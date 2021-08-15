@@ -22,7 +22,7 @@ import GitLab.WebRequests.GitLabWebCalls
 import Network.HTTP.Client
 import Network.HTTP.Types.URI
 
--- | gets groups with the given group name or path.
+-- | gets groups with the given group name, path or full path.
 --
 -- > projectsWithNameOrPath "group1"
 groupsWithNameOrPath ::
@@ -40,6 +40,7 @@ groupsWithNameOrPath groupName = do
             ( \group ->
                 groupName == group_name group
                   || groupName == group_path group
+                  || groupName == group_full_path group
             )
             groups
         )
