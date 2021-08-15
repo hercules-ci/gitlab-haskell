@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
@@ -13,9 +14,11 @@ module GitLab.API.Projects where
 import qualified Data.ByteString.Lazy as BSL
 import Data.Either
 import Data.List
+import Data.Maybe
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
+import GHC.Generics
 import GitLab.API.Commits
 import GitLab.API.Issues
 import GitLab.API.Members
@@ -258,3 +261,294 @@ addGroupToProject groupId projectId access =
       "/projects/"
         <> T.pack (show projectId)
         <> "/share"
+
+-- | edit a project.
+editProject ::
+  -- | project
+  Project ->
+  -- | EditProjectAttributes
+  EditProjectAttrs ->
+  GitLab (Either (Response BSL.ByteString) Project)
+editProject prj = editProject' (project_id prj)
+
+-- | edit a project.
+editProject' ::
+  -- | project ID
+  Int ->
+  -- | EditProjectAttributes
+  EditProjectAttrs ->
+  GitLab (Either (Response BSL.ByteString) Project)
+editProject' projId attrs = do
+  let urlPath =
+        "/projects/"
+          <> T.pack (show projId)
+  result <-
+    gitlabPut
+      urlPath
+      (editProjectAttrs attrs)
+  case result of
+    Left resp -> return (Left resp)
+    Right Nothing -> error "editProject error"
+    Right (Just proj) -> return (Right proj)
+
+defaultEditProjectAttrs ::
+  -- | project ID
+  Int ->
+  EditProjectAttrs
+defaultEditProjectAttrs projId =
+  EditProjectAttrs Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing projId Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing
+
+editProjectAttrs :: EditProjectAttrs -> [GitLabParam]
+editProjectAttrs filters =
+  catMaybes
+    [ (\b -> Just ("allow_merge_on_skipped_pipeline", textToBS (showBool b))) =<< project_edit_allow_merge_on_skipped_pipeline filters,
+      (\x -> Just ("analytics_access_level", textToBS (T.pack (show x)))) =<< project_edit_analytics_access_level filters,
+      (\i -> Just ("approvals_before_merge", textToBS (T.pack (show i)))) =<< project_edit_approvals_before_merge filters,
+      (\x -> Just ("auto_cancel_pending_pipelines", textToBS (T.pack (show x))))
+        =<< project_edit_auto_cancel_pending_pipelines
+          filters,
+      (\x -> Just ("auto_devops_deploy_strategy", textToBS (T.pack (show x))))
+        =<< project_edit_auto_devops_deploy_strategy filters,
+      (\b -> Just ("auto_devops_enabled", textToBS (showBool b))) =<< project_edit_auto_devops_enabled filters,
+      (\b -> Just ("autoclose_referenced_issues", textToBS (showBool b))) =<< project_edit_autoclose_referenced_issues filters,
+      (\t -> Just ("build_coverage_regex", textToBS t)) =<< project_edit_build_coverage_regex filters,
+      (\x -> Just ("build_git_strategy", textToBS (T.pack (show x)))) =<< project_edit_build_git_strategy filters,
+      (\i -> Just ("build_timeout", textToBS (T.pack (show i)))) =<< project_edit_build_timeout filters,
+      (\x -> Just ("builds_access_level", textToBS (T.pack (show x)))) =<< project_edit_builds_access_level filters,
+      (\t -> Just ("ci_config_path", textToBS t)) =<< project_edit_ci_config_path filters,
+      (\i -> Just ("ci_default_git_depth", textToBS (T.pack (show i)))) =<< project_edit_ci_default_git_depth filters,
+      (\b -> Just ("ci_forward_deployment_enabled", textToBS (showBool b))) =<< project_edit_ci_forward_deployment_enabled filters,
+      (\x -> Just ("container_registry_access_level", textToBS (T.pack (show x)))) =<< project_edit_container_registry_access_level filters,
+      (\t -> Just ("default_branch", textToBS t)) =<< project_edit_default_branch filters,
+      (\t -> Just ("description", textToBS t)) =<< project_edit_description filters,
+      (\b -> Just ("emails_disabled", textToBS (showBool b))) =<< project_edit_emails_disabled filters,
+      (\t -> Just ("external_authorization_classification_label", textToBS t)) =<< project_edit_external_authorization_classification_label filters,
+      (\x -> Just ("forking_access_level", textToBS (T.pack (show x)))) =<< project_edit_forking_access_level filters,
+      (Just ("id", textToBS (T.pack (show (project_edit_id filters))))),
+      (\t -> Just ("import_url", textToBS t)) =<< project_edit_import_url filters,
+      (\x -> Just ("issues_access_level", textToBS (T.pack (show x)))) =<< project_edit_issues_access_level filters,
+      (\b -> Just ("lfs_enabled", textToBS (showBool b))) =<< project_edit_lfs_enabled filters,
+      (\x -> Just ("merge_method", textToBS (T.pack (show x)))) =<< project_edit_merge_method filters,
+      (\x -> Just ("merge_requests_access_level", textToBS (T.pack (show x)))) =<< project_edit_merge_requests_access_level filters,
+      (\b -> Just ("mirror_overwrites_diverged_branches", textToBS (showBool b))) =<< project_edit_mirror_overwrites_diverged_branches filters,
+      (\b -> Just ("mirror_trigger_builds", textToBS (showBool b))) =<< project_edit_mirror_trigger_builds filters,
+      (\i -> Just ("mirror_user_id", textToBS (T.pack (show i)))) =<< project_edit_mirror_user_id filters,
+      (\b -> Just ("mirror", textToBS (showBool b))) =<< project_edit_mirror filters,
+      (\t -> Just ("name", textToBS t)) =<< project_edit_name filters,
+      (\x -> Just ("operations_access_level", textToBS (T.pack (show x)))) =<< project_edit_operations_access_level filters,
+      (\b -> Just ("only_allow_merge_if_all_discussions_are_resolved", textToBS (showBool b))) =<< project_edit_only_allow_merge_if_all_discussions_are_resolved filters,
+      (\b -> Just ("only_allow_merge_if_pipeline_succeeds", textToBS (showBool b))) =<< project_edit_only_allow_merge_if_pipeline_succeeds filters,
+      (\b -> Just ("only_mirror_protected_branches", textToBS (showBool b))) =<< project_edit_only_mirror_protected_branches filters,
+      (\b -> Just ("packages_enabled", textToBS (showBool b))) =<< project_edit_packages_enabled filters,
+      (\x -> Just ("pages_access_level", textToBS (T.pack (show x)))) =<< project_edit_pages_access_level filters,
+      (\x -> Just ("requirements_access_level", textToBS (T.pack (show x)))) =<< project_edit_requirements_access_level filters,
+      (\b -> Just ("restrict_user_defined_variables", textToBS (showBool b))) =<< project_edit_restrict_user_defined_variables filters,
+      (\t -> Just ("path", textToBS t)) =<< project_edit_path filters,
+      (\b -> Just ("public_builds", textToBS (showBool b))) =<< project_edit_public_builds filters,
+      (\b -> Just ("remove_source_branch_after_merge", textToBS (showBool b))) =<< project_edit_remove_source_branch_after_merge filters,
+      (\x -> Just ("repository_access_level", textToBS (T.pack (show x)))) =<< project_edit_repository_access_level filters,
+      (\t -> Just ("repository_storage", textToBS t)) =<< project_edit_repository_storage filters,
+      (\b -> Just ("request_access_enabled", textToBS (showBool b))) =<< project_edit_request_access_enabled filters,
+      (\b -> Just ("resolve_outdated_diff_discussions", textToBS (showBool b))) =<< project_edit_resolve_outdated_diff_discussions filters,
+      (\b -> Just ("service_desk_enabled", textToBS (showBool b))) =<< project_edit_service_desk_enabled filters,
+      (\b -> Just ("shared_runners_enabled", textToBS (showBool b))) =<< project_edit_shared_runners_enabled filters,
+      (\b -> Just ("show_default_award_emojis", textToBS (showBool b))) =<< project_edit_show_default_award_emojis filters,
+      (\x -> Just ("snippets_access_level", textToBS (T.pack (show x)))) =<< project_edit_snippets_access_level filters,
+      (\x -> Just ("squash_option", textToBS (T.pack (show x)))) =<< project_edit_squash_option filters,
+      (\t -> Just ("suggestion_commit_message", textToBS t)) =<< project_edit_suggestion_commit_message filters,
+      (\x -> Just ("visibility", textToBS (T.pack (show x)))) =<< project_edit_visibility filters,
+      (\x -> Just ("wiki_access_level", textToBS (T.pack (show x)))) =<< project_edit_wiki_access_level filters,
+      (\t -> Just ("issues_template", textToBS t)) =<< project_edit_issues_template filters,
+      (\t -> Just ("merge_requests_template", textToBS t)) =<< project_edit_merge_requests_template filters,
+      (\b -> Just ("keep_latest_artifact", textToBS (showBool b))) =<< project_edit_keep_latest_artifact filters
+    ]
+  where
+    textToBS = Just . T.encodeUtf8
+    showBool :: Bool -> Text
+    showBool True = "true"
+    showBool False = "false"
+
+data EditProjectAttrs = EditProjectAttrs
+  { -- | Set whether or not merge requests can be merged with skipped jobs.
+    project_edit_allow_merge_on_skipped_pipeline :: Maybe Bool,
+    -- | One of disabled, private or enabled.
+    project_edit_analytics_access_level :: Maybe Text,
+    -- | How many approvers should approve merge request by default.
+    project_edit_approvals_before_merge :: Maybe Int,
+    -- | Auto-cancel pending pipelines.
+    project_edit_auto_cancel_pending_pipelines :: Maybe EnabledDisabled,
+    -- | Auto Deploy strategy (continuous, manual, or timed_incremental).
+    project_edit_auto_devops_deploy_strategy :: Maybe AutoDeployStrategy,
+    -- | Enable Auto DevOps for this project.
+    project_edit_auto_devops_enabled :: Maybe Bool,
+    -- | Set whether auto-closing referenced issues on default branch.
+    project_edit_autoclose_referenced_issues :: Maybe Bool,
+    -- | Test coverage parsing.
+    project_edit_build_coverage_regex :: Maybe Text,
+    -- | The Git strategy. Defaults to fetch.
+    project_edit_build_git_strategy :: Maybe GitStrategy,
+    -- | The maximum amount of time, in seconds, that a job can run.
+    project_edit_build_timeout :: Maybe Int,
+    -- | One of disabled, private, or enabled.
+    project_edit_builds_access_level :: Maybe ProjectSettingAccessLevel,
+    -- | The path to CI configuration file.
+    project_edit_ci_config_path :: Maybe Text,
+    -- | Default number of revisions for shallow cloning.
+    project_edit_ci_default_git_depth :: Maybe Int,
+    -- | When a new deployment job starts, skip older deployment jobs that are still pending.
+    project_edit_ci_forward_deployment_enabled :: Maybe Bool,
+    -- | Set visibility of container registry, for this project, to one of disabled, private or enabled.
+    project_edit_container_registry_access_level :: Maybe ProjectSettingAccessLevel,
+    -- | The default branch name.
+    project_edit_default_branch :: Maybe Text,
+    -- | Short project description.
+    project_edit_description :: Maybe Text,
+    -- | Disable email notifications.
+    project_edit_emails_disabled :: Maybe Bool,
+    -- | The classification label for the project.
+    project_edit_external_authorization_classification_label :: Maybe Text,
+    -- | One of disabled, private, or enabled.
+    project_edit_forking_access_level :: Maybe ProjectSettingAccessLevel,
+    -- | The ID or URL-encoded path of the project.
+    project_edit_id :: Int,
+    -- | URL to import repository from.
+    project_edit_import_url :: Maybe Text,
+    -- | One of disabled, private, or enabled.
+    project_edit_issues_access_level :: Maybe ProjectSettingAccessLevel,
+    -- | Enable LFS.
+    project_edit_lfs_enabled :: Maybe Bool,
+    -- | Set the merge method used.
+    project_edit_merge_method :: Maybe MergeMethod,
+    -- | One of disabled, private, or enabled.
+    project_edit_merge_requests_access_level :: Maybe ProjectSettingAccessLevel,
+    -- | Pull mirror overwrites diverged branches.
+    project_edit_mirror_overwrites_diverged_branches :: Maybe Bool,
+    -- | Pull mirroring triggers builds.
+    project_edit_mirror_trigger_builds :: Maybe Bool,
+    -- | User responsible for all the activity surrounding a pull mirror event. (admins only)
+    project_edit_mirror_user_id :: Maybe Int,
+    -- | Enables pull mirroring in a project.
+    project_edit_mirror :: Maybe Bool,
+    -- | The name of the project.
+    project_edit_name :: Maybe Text,
+    -- | One of disabled, private, or enabled.
+    project_edit_operations_access_level :: Maybe ProjectSettingAccessLevel,
+    -- | Set whether merge requests can only be merged when all the discussions are resolved.
+    project_edit_only_allow_merge_if_all_discussions_are_resolved :: Maybe Bool,
+    -- | Set whether merge requests can only be merged with successful jobs.
+    project_edit_only_allow_merge_if_pipeline_succeeds :: Maybe Bool,
+    -- | Only mirror protected branches.
+    project_edit_only_mirror_protected_branches :: Maybe Bool,
+    -- | Enable or disable packages repository feature.
+    project_edit_packages_enabled :: Maybe Bool,
+    -- | One of disabled, private, enabled, or public.
+    project_edit_pages_access_level :: Maybe ProjectSettingAccessLevel,
+    -- | One of disabled, private, enabled or public.
+    project_edit_requirements_access_level :: Maybe ProjectSettingAccessLevel,
+    -- | Allow only maintainers to pass user-defined variables when triggering a pipeline. For example when the pipeline is triggered in the UI, with the API, or by a trigger token.
+    project_edit_restrict_user_defined_variables :: Maybe Bool,
+    -- | Custom repository name for the project. By default generated based on name.
+    project_edit_path :: Maybe Text,
+    -- | If true, jobs can be viewed by non-project members.
+    project_edit_public_builds :: Maybe Bool,
+    -- | Enable Delete source branch option by default for all new merge requests.
+    project_edit_remove_source_branch_after_merge :: Maybe Bool,
+    -- | One of disabled, private, or enabled.
+    project_edit_repository_access_level :: Maybe ProjectSettingAccessLevel,
+    -- | Which storage shard the repository is on. (admins only)
+    project_edit_repository_storage :: Maybe Text,
+    -- | Allow users to request member access.
+    project_edit_request_access_enabled :: Maybe Bool,
+    -- | Automatically resolve merge request diffs discussions on lines changed with a push.
+    project_edit_resolve_outdated_diff_discussions :: Maybe Bool,
+    -- | Enable or disable Service Desk feature.
+    project_edit_service_desk_enabled :: Maybe Bool,
+    -- | Enable shared runners for this project.
+    project_edit_shared_runners_enabled :: Maybe Bool,
+    -- | Show default award emojis.
+    project_edit_show_default_award_emojis :: Maybe Bool,
+    -- | One of disabled, private, or enabled.
+    project_edit_snippets_access_level :: Maybe ProjectSettingAccessLevel,
+    -- | One of never, always, default_on, or default_off.
+    project_edit_squash_option :: Maybe SquashOption,
+    -- | The commit message used to apply merge request suggestions.
+    project_edit_suggestion_commit_message :: Maybe Text,
+    project_edit_visibility :: Maybe Visibility,
+    -- | One of disabled, private, or enabled.
+    project_edit_wiki_access_level :: Maybe ProjectSettingAccessLevel,
+    -- | Default description for Issues. Description is parsed with GitLab Flavored Markdown. See Templates for issues and merge requests.
+    project_edit_issues_template :: Maybe Text,
+    -- | Default description for Merge Requests. Description is parsed with GitLab Flavored Markdown.
+    project_edit_merge_requests_template :: Maybe Text,
+    -- | Disable or enable the ability to keep the latest artifact for this project.
+    project_edit_keep_latest_artifact :: Maybe Bool
+  }
+  deriving (Generic, Show, Eq)
+
+data EnabledDisabled
+  = Enabled
+  | Disabled
+  deriving (Eq)
+
+instance Show EnabledDisabled where
+  show Enabled = "enabled"
+  show Disabled = "disabled"
+
+data AutoDeployStrategy
+  = Continuous
+  | Manual
+  | TimedIncremental
+  deriving (Eq)
+
+instance Show AutoDeployStrategy where
+  show Continuous = "continuous"
+  show Manual = "manual"
+  show TimedIncremental = "timed_incremental"
+
+data GitStrategy
+  = Clone
+  | Fetch
+  | None
+  deriving (Eq)
+
+instance Show GitStrategy where
+  show Clone = "clone"
+  show Fetch = "fetch"
+  show None = "none"
+
+data ProjectSettingAccessLevel
+  = DisabledAccess
+  | PrivateAccess
+  | EnabledAccess
+  | PublicAccess
+  deriving (Eq)
+
+instance Show ProjectSettingAccessLevel where
+  show DisabledAccess = "disabled"
+  show PrivateAccess = "private"
+  show EnabledAccess = "enabled"
+  show PublicAccess = "public"
+
+data MergeMethod
+  = Merge
+  | RebaseMerge
+  | FF
+  deriving (Eq)
+
+instance Show MergeMethod where
+  show Merge = "merge"
+  show RebaseMerge = "rebase_merge"
+  show FF = "ff"
+
+data SquashOption
+  = NeverSquash
+  | AlwaysSquash
+  | DefaultOnSquash
+  | DefaultOffSquash
+  deriving (Eq)
+
+instance Show SquashOption where
+  show NeverSquash = "never"
+  show AlwaysSquash = "always"
+  show DefaultOnSquash = "default_on"
+  show DefaultOffSquash = "default_off"
