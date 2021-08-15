@@ -698,13 +698,6 @@ data ProjectAction
   | MergeRequested
   deriving (Show, Eq)
 
--- |  Project visibility.
-data Visibility
-  = Public
-  | Private
-  | Internal
-  deriving (Show, Eq)
-
 instance FromJSON ProjectCreate where
   parseJSON =
     withObject "ProjectCreate" $ \v -> do
@@ -1434,12 +1427,3 @@ instance FromJSON ProjectAction where
   parseJSON (String "repository_update") = return RepositoryUpdated
   parseJSON (String "merge_request") = return MergeRequested
   parseJSON s = error ("unexpected system hook event: " <> show s)
-
-instance FromJSON Visibility where
-  parseJSON (String "public") = return Public
-  parseJSON (String "private") = return Private
-  parseJSON (String "internal") = return Internal
-  parseJSON (Number 0) = return Private
-  parseJSON (Number 10) = return Internal
-  parseJSON (Number 20) = return Public
-  parseJSON n = error (show n)

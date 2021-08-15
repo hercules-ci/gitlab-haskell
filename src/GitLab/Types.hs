@@ -60,6 +60,7 @@ module GitLab.Types
     BoardIssue (..),
     BoardIssueLabel (..),
     ProjectBoard (..),
+    Visibility (..),
   )
 where
 
@@ -765,6 +766,22 @@ data ProjectBoard = ProjectBoard
     project_board_web_url :: Text
   }
   deriving (Generic, Show, Eq)
+
+-- |  Project visibility.
+data Visibility
+  = Public
+  | Private
+  | Internal
+  deriving (Show, Eq)
+
+instance FromJSON Visibility where
+  parseJSON (String "public") = return Public
+  parseJSON (String "private") = return Private
+  parseJSON (String "internal") = return Internal
+  parseJSON (Number 0) = return Private
+  parseJSON (Number 10) = return Internal
+  parseJSON (Number 20) = return Public
+  parseJSON n = error (show n)
 
 -----------------------------
 -- JSON GitLab parsers below
