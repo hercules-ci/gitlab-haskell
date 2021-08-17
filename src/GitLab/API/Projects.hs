@@ -262,6 +262,38 @@ addGroupToProject groupId projectId access =
         <> T.pack (show projectId)
         <> "/share"
 
+-- | transfer a project to a new namespace.
+transferProject ::
+  -- | project
+  Project ->
+  -- | namespace where to transfer project to
+  Text ->
+  GitLab (Either (Response BSL.ByteString) Project)
+transferProject prj = transferProject' (project_id prj)
+
+-- | edit a project.
+transferProject' ::
+  -- | project ID
+  Int ->
+  -- | namespace where to transfer project to
+  Text ->
+  GitLab (Either (Response BSL.ByteString) Project)
+transferProject' projId namespaceString = do
+  let urlPath =
+        "/projects/"
+          <> T.pack (show projId)
+          <> "/transfer"
+  result <-
+    gitlabPut
+      urlPath
+      [ ("id", Just (T.encodeUtf8 (T.pack (show projId)))),
+        ("namespace", Just (T.encodeUtf8 namespaceString))
+      ]
+  case result of
+    Left resp -> return (Left resp)
+    Right Nothing -> error "transferProject error"
+    Right (Just proj) -> return (Right proj)
+
 -- | edit a project.
 editProject ::
   -- | project
