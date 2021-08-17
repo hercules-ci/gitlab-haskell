@@ -9,6 +9,7 @@
 -- Stability   : stable
 module GitLab
   ( runGitLab,
+    runGitLabPassPrompt,
     runGitLabDbg,
     runGitLabWithManager,
     module GitLab.Types,
@@ -38,6 +39,7 @@ where
 
 import Control.Monad.IO.Class
 import Control.Monad.Trans.Reader
+import qualified Data.Text as T
 import GitLab.API.Boards
 import GitLab.API.Branches
 import GitLab.API.Commits
@@ -88,6 +90,23 @@ runGitLab cfg action = do
   let settings = mkManagerSettings (TLSSettingsSimple True False False) Nothing
   manager <- liftIO $ newManager settings
   runGitLabWithManager manager cfg action
+
+-- | The same as 'runGitLab', except that it prompts for a GitLab
+-- access token before running the GitLab action.
+--
+-- In this case you can just use 'defaultGitLabServer' with no
+-- modification of the record field values, because these values will
+-- be asked for at runtime:
+--
+-- > runGitLabPassPrompt defaultGitLabServer myGitLabProgram
+runGitLabPassPrompt :: GitLabServerConfig -> GitLab a -> IO a
+runGitLabPassPrompt cfg action = do
+  liftIO $ hSetBuffering stdout NoBuffering
+  liftIO (putStr "Enter GitLab server URL\n> ")
+  hostUrl <- getLine
+  liftIO (putStr "Enter GitLab access token\n> ")
+  pass <- getLine
+  runGitLab (cfg {url = T.pack hostUrl, token = T.pack pass}) action
 
 -- | The same as 'runGitLab', except that it also takes a connection
 -- manager as an argument.
