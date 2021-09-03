@@ -105,14 +105,12 @@ gitlabPut urlPath params = do
         params
 
 gitlabDelete ::
+  FromJSON a =>
   -- | the URL to post to
   Text ->
-  GitLab (Either (Response BSL.ByteString) (Maybe ()))
+  GitLab (Either (Response BSL.ByteString) (Maybe a))
 gitlabDelete urlPath = do
-  result <- request
-  case result of
-    Right (Just _) -> return (Right (Just ()))
-    x -> return x
+  request
   where
     request =
       gitlabHTTPOne
