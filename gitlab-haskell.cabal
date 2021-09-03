@@ -46,7 +46,7 @@ homepage:       https://gitlab.com/robstewart57/gitlab-haskell
 bug-reports:    https://gitlab.com/robstewart57/gitlab-haskell/issues
 author:         Rob Stewart
 maintainer:     robstewart57@gmail.com
-copyright:      2020 Rob Stewart, Heriot-Watt University
+copyright:      2021 Rob Stewart, Heriot-Watt University
 license:        BSD-3-Clause
 license-file:   LICENSE
 data-files:     data/system-hooks/*.json
