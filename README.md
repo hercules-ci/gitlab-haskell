@@ -16,6 +16,11 @@ about and updates to:
 * Repository files
 * Users
 * Discussions
+* Tags
+* Todos
+* Version
+* Notes
+* Boards
 
 The library parses JSON results into Haskell data types in the
 `GitLab.Types` module, allowing you to work with statically typed
