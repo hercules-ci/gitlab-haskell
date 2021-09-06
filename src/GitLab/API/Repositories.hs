@@ -9,7 +9,7 @@
 -- Stability   : stable
 module GitLab.API.Repositories where
 
-import Control.Monad.IO.Unlift
+import Control.Monad.IO.Class
 import qualified Data.ByteString.Lazy as BSL
 import Data.Either
 import qualified Data.Text as T

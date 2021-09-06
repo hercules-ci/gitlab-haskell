@@ -100,8 +100,6 @@ library
               , http-client
               , http-types
               , transformers
-              , unliftio
-              , unliftio-core
               , time >= 1.9
               , temporary
               , unix

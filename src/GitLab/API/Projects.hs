@@ -28,7 +28,6 @@ import GitLab.Types
 import GitLab.WebRequests.GitLabWebCalls
 import Network.HTTP.Client
 import Network.HTTP.Types.URI
-import UnliftIO.Async
 
 -- | gets all projects.
 allProjects :: GitLab [Project]
@@ -161,7 +160,7 @@ issuesCreatedByUser username = do
     Nothing -> return Nothing
     Just usr -> do
       usersIssues <- userIssues usr
-      projects <- mapConcurrently projectOfIssue usersIssues
+      projects <- mapM projectOfIssue usersIssues
       return (Just (usr, projects))
 
 -- | searches for all projects with the given name, and returns a list
