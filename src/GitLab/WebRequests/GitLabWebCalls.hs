@@ -19,6 +19,7 @@ import Control.Monad.Trans.Reader
 import Data.Aeson
 import Data.ByteString
 import qualified Data.ByteString.Lazy as BSL
+import Data.Maybe (isJust)
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
@@ -219,24 +220,22 @@ gitlabHTTPMany httpMethod contentType urlPath urlParams contentParams = do
           case parseMany (responseBody response) of
             Nothing -> return (Right accum)
             Just moreResults -> do
-              let numPages = totalPages response
-                  accum' = accum <> moreResults
-              if pageNum == numPages
-                then return (Right accum')
-                else go (pageNum + 1) accum'
+              let accum' = accum <> moreResults
+              if hasNextPage response
+                then go (pageNum + 1) accum'
+                else return (Right accum')
         else return (Left response)
 
-totalPages :: Response a -> Int
-totalPages resp =
+hasNextPage :: Response a -> Bool
+hasNextPage resp =
   let hdrs = responseHeaders resp
    in findPages hdrs
   where
-    findPages [] = 1 -- error "cannot find X-Total-Pages in header"
-    findPages (("X-Total-Pages", bs) : _) =
-      case readMaybe (T.unpack (T.decodeUtf8 bs)) of
-        Just s -> s
-        Nothing -> error "cannot find X-Total-Pages in header"
+    findPages [] = False
+    findPages (("X-Next-Page", bs) : _) = isJust $ readNP bs
     findPages (_ : xs) = findPages xs
+    readNP :: ByteString -> Maybe Int
+    readNP bs = readMaybe (T.unpack (T.decodeUtf8 bs))
 
 successStatus :: Status -> Bool
 successStatus (Status n _msg) =
