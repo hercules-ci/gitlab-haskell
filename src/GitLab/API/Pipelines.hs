@@ -39,3 +39,34 @@ pipelines' projectId =
       "/projects/"
         <> T.pack (show projectId)
         <> "/pipelines"
+
+-- | get a pipeline’s test report.  Since GitLab 13.0.
+pipelineTestReport ::
+  -- | the project
+  Project ->
+  -- | the pipeline
+  Pipeline ->
+  GitLab TestReport
+pipelineTestReport proj pipeline = do
+  result <- pipelineTestReport' (project_id proj) (pipeline_id pipeline)
+  case fromRight (error "pipelineTestReport error") result of
+    Nothing -> error "pipelineTestReport error"
+    Just testReport -> return testReport
+
+-- | get a pipeline’s test report. Since GitLab 13.0.
+pipelineTestReport' ::
+  -- | the project ID
+  Int ->
+  -- | the pipeline ID
+  Int ->
+  GitLab (Either (Response BSL.ByteString) (Maybe TestReport))
+pipelineTestReport' projId pipelineId = do
+  let urlPath =
+        T.pack
+          ( "/projects/"
+              <> show projId
+              <> "/pipelines/"
+              <> show pipelineId
+              <> "/test_report"
+          )
+  gitlabGetOne urlPath []

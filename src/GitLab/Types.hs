@@ -61,6 +61,9 @@ module GitLab.Types
     BoardIssueLabel (..),
     ProjectBoard (..),
     Visibility (..),
+    TestReport (..),
+    TestSuite (..),
+    TestCase (..),
   )
 where
 
@@ -783,6 +786,57 @@ instance FromJSON Visibility where
   parseJSON (Number 20) = return Public
   parseJSON n = error (show n)
 
+data TestReport = TestReport
+  { total_time :: Double,
+    total_count :: Int,
+    success_count :: Int,
+    failed_count :: Int,
+    skipped_count :: Int,
+    error_count :: Int,
+    test_suites :: [TestSuite]
+  }
+  deriving (Generic, Show, Eq)
+
+data TestSuite = TestSuite
+  { testsuite_name :: Text,
+    testsuite_total_time :: Double,
+    testsuite_success_count :: Int,
+    testsuite_failed_count :: Int,
+    testsuite_skipped_count :: Int,
+    testsuite_error_count :: Int,
+    testsuite_test_cases :: [TestCase]
+  }
+  deriving (Generic, Show, Eq)
+
+testsuitePrefix :: String -> String
+testsuitePrefix "testsuite_name" = "name"
+testsuitePrefix "testsuite_total_time" = "total_time"
+testsuitePrefix "testsuite_success_count" = "success_count"
+testsuitePrefix "testsuite_failed_count" = "failed_count"
+testsuitePrefix "testsuite_skipped_count" = "skipped_count"
+testsuitePrefix "testsuite_error_count" = "error_count"
+testsuitePrefix "testsuite_test_cases" = "test_cases"
+testsuitePrefix s = s
+
+data TestCase = TestCase
+  { testcase_status :: Text, -- could turn this into a type e.g. for "success"
+    testcase_name :: Text,
+    testcase_classname :: Text,
+    testcase_execution_time :: Double,
+    testcase_system_output :: Maybe Text,
+    testcase_stack_trace :: Maybe Text
+  }
+  deriving (Generic, Show, Eq)
+
+testcasePrefix :: String -> String
+testcasePrefix "testcase_status" = "status"
+testcasePrefix "testcase_name" = "name"
+testcasePrefix "testcase_classname" = "classname"
+testcasePrefix "testcase_execution_time" = "execution_time"
+testcasePrefix "testcase_system_output" = "system_output"
+testcasePrefix "testcase_stack_trace" = "stack_trace"
+testcasePrefix s = s
+
 -----------------------------
 -- JSON GitLab parsers below
 -----------------------------
@@ -1286,5 +1340,25 @@ instance FromJSON ProjectBoard where
     genericParseJSON
       ( defaultOptions
           { fieldLabelModifier = boardsPrefix
+          }
+      )
+
+instance FromJSON TestReport where
+  parseJSON =
+    genericParseJSON defaultOptions
+
+instance FromJSON TestSuite where
+  parseJSON =
+    genericParseJSON
+      ( defaultOptions
+          { fieldLabelModifier = testsuitePrefix
+          }
+      )
+
+instance FromJSON TestCase where
+  parseJSON =
+    genericParseJSON
+      ( defaultOptions
+          { fieldLabelModifier = testcasePrefix
           }
       )
