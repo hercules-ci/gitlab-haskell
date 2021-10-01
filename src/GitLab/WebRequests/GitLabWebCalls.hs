@@ -10,6 +10,7 @@ module GitLab.WebRequests.GitLabWebCalls
     gitlabPut,
     gitlabDelete,
     gitlabUnsafe,
+    gitlabGetByteStringResponse,
   )
 where
 
@@ -130,6 +131,25 @@ gitlabUnsafe query = do
     Left _err -> error "gitlabUnsafe error"
     Right Nothing -> error "gitlabUnsafe error"
     Right (Just x) -> return x
+
+-- | Lower level query that returns the raw bytestring response from a
+-- GitLab HTTP query. Useful for downloading project archives files.
+gitlabGetByteStringResponse ::
+  -- | the URL to post to
+  Text ->
+  -- | the data to post
+  [GitLabParam] ->
+  GitLab (Response BSL.ByteString)
+gitlabGetByteStringResponse urlPath params =
+  request
+  where
+    request =
+      gitlabHTTP
+        "GET"
+        "application/x-www-form-urlencoded"
+        urlPath
+        params
+        []
 
 ---------------------
 -- internal functions
