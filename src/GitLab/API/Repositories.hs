@@ -16,6 +16,7 @@ import qualified Data.Text as T
 import GitLab.Types
 import GitLab.WebRequests.GitLabWebCalls
 import Network.HTTP.Client
+import Network.HTTP.Types.Status
 
 -- | returns a list of repository files and directories in a project.
 repositories ::
@@ -102,10 +103,11 @@ getFileArchiveBS' ::
   ArchiveFormat ->
   GitLab (Either (Response BSL.ByteString) (Maybe BSL.ByteString))
 getFileArchiveBS' projectId format = do
-  result <- gitlabGetOne addr [] :: GitLab (Either (Response BSL.ByteString) (Maybe Bool))
-  case result of
-    Left response -> return (Right (Just (responseBody response)))
-    Right _b -> error "impossible" -- we're asking it to parse BS as a Bool, which shouldn't be possible.
+  result <- gitlabGetByteStringResponse addr []
+  let (Status n _msg) = responseStatus result
+  if n >= 200 && n <= 226
+    then return (Right (Just (responseBody result)))
+    else return (Left result)
   where
     addr =
       "/projects/"
