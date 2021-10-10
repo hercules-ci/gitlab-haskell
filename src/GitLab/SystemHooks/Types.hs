@@ -46,6 +46,7 @@ module GitLab.SystemHooks.Types
     CommitAuthorEvent (..),
     Visibility (..),
     MergeRequestEvent (..),
+    Label (..),
     MergeRequestChanges (..),
     MergeRequestChange (..),
     ObjectAttributes (..),
@@ -588,24 +589,38 @@ data MergeRequestEvent = MergeRequestEvent
     mergeRequest_user :: UserEvent,
     mergeRequest_project :: ProjectEvent,
     mergeRequest_object_attributes :: ObjectAttributes,
-    mergeRequest_labels :: Maybe [Text],
+    mergeRequest_labels :: Maybe [Label],
     mergeRequest_changes :: MergeRequestChanges,
     mergeRequest_repository :: RepositoryEvent
   }
   deriving (Typeable, Show, Eq, Generic)
 
+data Label = Label
+  { label_id :: Maybe Int,
+    label_title :: Maybe Text,
+    label_color :: Maybe Text,
+    label_project_id :: Maybe Int,
+    label_created_at :: Maybe Text, -- TODO date from e.g. "2013-12-03T17:15:43Z"
+    label_updated_at :: Maybe Text, -- TODO date
+    label_template :: Maybe Bool,
+    label_description :: Maybe Text,
+    label_type :: Maybe Text, -- TODO type from "ProjectLabel"
+    label_group_id :: Maybe Int
+  }
+  deriving (Typeable, Show, Eq, Generic)
+
 data MergeRequestChanges = MergeRequestChanges
-  { mergeRequestChanges_author_id :: MergeRequestChange Int,
-    mergeRequestChanges_created_at :: MergeRequestChange Text,
-    mergeRequestChanges_description :: MergeRequestChange Text,
-    mergeRequestChanges_id :: MergeRequestChange Int,
-    mergeRequestChanges_iid :: MergeRequestChange Int,
-    mergeRequestChanges_source_branch :: MergeRequestChange Text,
-    mergeRequestChanges_source_project_id :: MergeRequestChange Int,
-    mergeRequestChanges_target_branch :: MergeRequestChange Text,
-    mergeRequestChanges_target_project_id :: MergeRequestChange Int,
-    mergeRequestChanges_title :: MergeRequestChange Text,
-    mergeRequestChanges_updated_at :: MergeRequestChange Text
+  { mergeRequestChanges_author_id :: Maybe (MergeRequestChange Int),
+    mergeRequestChanges_created_at :: Maybe (MergeRequestChange Text),
+    mergeRequestChanges_description :: Maybe (MergeRequestChange Text),
+    mergeRequestChanges_id :: Maybe (MergeRequestChange Int),
+    mergeRequestChanges_iid :: Maybe (MergeRequestChange Int),
+    mergeRequestChanges_source_branch :: Maybe (MergeRequestChange Text),
+    mergeRequestChanges_source_project_id :: Maybe (MergeRequestChange Int),
+    mergeRequestChanges_target_branch :: Maybe (MergeRequestChange Text),
+    mergeRequestChanges_target_project_id :: Maybe (MergeRequestChange Int),
+    mergeRequestChanges_title :: Maybe (MergeRequestChange Text),
+    mergeRequestChanges_updated_at :: Maybe (MergeRequestChange Text)
   }
   deriving (Typeable, Show, Eq, Generic)
 
@@ -620,7 +635,7 @@ data ObjectAttributes = ObjectAttributes
     objectAttributes_target_branch :: Text,
     objectAttributes_source_branch :: Text,
     objectAttributes_source_project_id :: Int,
-    objectAttributes_author_id :: Int,
+    objectAttributes_author_id :: Maybe Int,
     objectAttributes_assignee_id :: Maybe Int,
     objectAttributes_assignee_ids :: Maybe [Int],
     objectAttributes_title :: Text,
@@ -635,14 +650,14 @@ data ObjectAttributes = ObjectAttributes
     objectAttributes_description :: Text,
     objectAttributes_updated_by_id :: Maybe Int,
     objectAttributes_merge_error :: Maybe Text,
-    objectAttributes_merge_params :: MergeParams,
-    objectAttributes_merge_when_pipeline_succeeds :: Bool,
+    objectAttributes_merge_params :: Maybe MergeParams,
+    objectAttributes_merge_when_pipeline_succeeds :: Maybe Bool,
     objectAttributes_merge_user_id :: Maybe Int,
     objectAttributes_merge_commit_sha :: Maybe Text,
     objectAttributes_deleted_at :: Maybe Text,
     objectAttributes_in_progress_merge_commit_sha :: Maybe Text,
     objectAttributes_lock_version :: Maybe Int,
-    objectAttributes_time_estimate :: Int,
+    objectAttributes_time_estimate :: Maybe Int,
     objectAttributes_last_edited_at :: Maybe Text,
     objectAttributes_last_edited_by_id :: Maybe Int,
     objectAttributes_head_pipeline_id :: Maybe Int,
@@ -652,7 +667,7 @@ data ObjectAttributes = ObjectAttributes
     objectAttributes_target :: ProjectEvent,
     objectAttributes_last_commit :: CommitEvent,
     objectAttributes_work_in_progress :: Bool,
-    objectAttributes_total_time_spent :: Int,
+    objectAttributes_total_time_spent :: Maybe Int,
     objectAttributes_human_total_time_spent :: Maybe Int,
     objectAttributes_human_time_estimate :: Maybe Int,
     objectAttributes_action :: Maybe Text
@@ -1400,6 +1415,32 @@ instance (FromJSON a) => FromJSON (MergeRequestChange a) where
           { fieldLabelModifier = bodyNoPrefix
           }
       )
+
+instance FromJSON Label where
+  parseJSON = withObject "Label" $ \obj -> do
+    labelId <- obj .:? "id"
+    labelTitle <- obj .:? "title"
+    labelColor <- obj .:? "color"
+    labelProjectId <- obj .:? "project_id"
+    labelCreatedAt <- obj .:? "created_at"
+    labelUpdatedAt <- obj .:? "updated_at"
+    labelTemplate <- obj .:? "template"
+    labelDescription <- obj .:? "description"
+    labelType <- obj .:? "type"
+    labelGroupId <- obj .:? "group_id"
+    return $
+      Label
+        { label_id = labelId,
+          label_title = labelTitle,
+          label_color = labelColor,
+          label_project_id = labelProjectId,
+          label_created_at = labelCreatedAt,
+          label_updated_at = labelUpdatedAt,
+          label_template = labelTemplate,
+          label_description = labelDescription,
+          label_type = labelType,
+          label_group_id = labelGroupId
+        }
 
 instance FromJSON ProjectAction where
   parseJSON (String "project_create") = return ProjectCreated
