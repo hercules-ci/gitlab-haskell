@@ -36,6 +36,7 @@ module GitLab.Types
     CommitTodo (..),
     CommitStats (..),
     Tag (..),
+    Release (..),
     Diff (..),
     Repository (..),
     Job (..),
@@ -54,7 +55,9 @@ module GitLab.Types
     URL,
     EditIssueReq (..),
     Discussion (..),
+    Note (..),
     IssueStatistics (..),
+    IssueStats (..),
     IssueCounts (..),
     IssueBoard (..),
     BoardIssue (..),
@@ -402,6 +405,7 @@ data Tag = Tag
   }
   deriving (Generic, Show)
 
+-- | Release associated with a tag
 data Release = Release
   { release_tag_name :: Text,
     release_description :: Text
@@ -710,16 +714,19 @@ data Note = Note
   }
   deriving (Generic, Show)
 
+-- | Statistics and an issue
 newtype IssueStatistics = IssueStatistics
   { issues_statistics :: IssueStats
   }
   deriving (Generic, Show)
 
+-- | Issue statistics
 newtype IssueStats = IssueStats
   { issues_counts :: IssueCounts
   }
   deriving (Generic, Show)
 
+-- | A count of all, open and closed issues against a project
 data IssueCounts = IssueCounts
   { issues_all :: Int,
     issues_closed :: Int,
@@ -727,6 +734,7 @@ data IssueCounts = IssueCounts
   }
   deriving (Generic, Show)
 
+-- | Project issue boards https://docs.gitlab.com/ee/user/project/issue_board.html
 data IssueBoard = IssueBoard
   { board_id :: Int,
     board_name :: Text,
@@ -740,6 +748,7 @@ data IssueBoard = IssueBoard
   }
   deriving (Generic, Show, Eq)
 
+-- | Issues associated with a project issue board
 data BoardIssue = BoardIssue
   { board_issue_id :: Int,
     board_issue_label :: BoardIssueLabel,
@@ -751,6 +760,7 @@ data BoardIssue = BoardIssue
   }
   deriving (Generic, Show, Eq)
 
+-- | Label of an issues for a project issue board
 data BoardIssueLabel = BoardIssueLabel
   { board_issue_label_id :: Maybe Int,
     board_issue_label_name :: Text,
@@ -759,6 +769,7 @@ data BoardIssueLabel = BoardIssueLabel
   }
   deriving (Generic, Show, Eq)
 
+-- | A project board
 data ProjectBoard = ProjectBoard
   { project_board_id :: Int,
     project_board_name :: Text,
@@ -786,6 +797,7 @@ instance FromJSON Visibility where
   parseJSON (Number 20) = return Public
   parseJSON n = error (show n)
 
+-- | Unit test reports for a CI pipeline https://docs.gitlab.com/ee/ci/unit_test_reports.html
 data TestReport = TestReport
   { total_time :: Double,
     total_count :: Int,
@@ -797,6 +809,7 @@ data TestReport = TestReport
   }
   deriving (Generic, Show, Eq)
 
+-- | Testsuites associated with a test report
 data TestSuite = TestSuite
   { testsuite_name :: Text,
     testsuite_total_time :: Double,
@@ -818,6 +831,7 @@ testsuitePrefix "testsuite_error_count" = "error_count"
 testsuitePrefix "testsuite_test_cases" = "test_cases"
 testsuitePrefix s = s
 
+-- | Test case associated with a testsuite
 data TestCase = TestCase
   { testcase_status :: Text, -- could turn this into a type e.g. for "success"
     testcase_name :: Text,

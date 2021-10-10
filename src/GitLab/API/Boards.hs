@@ -7,7 +7,32 @@
 -- License     : BSD3
 -- Maintainer  : robstewart57@gmail.com
 -- Stability   : stable
-module GitLab.API.Boards where
+module GitLab.API.Boards
+  ( projectIssueBoards,
+    projectIssueBoards',
+    projectIssueBoard,
+    projectIssueBoard',
+    createIssueBoard,
+    createIssueBoard',
+    updateIssueBoard',
+    deleteIssueBoard,
+    deleteIssueBoard',
+    projectBoardLists,
+    projectBoardLists',
+    boardList,
+    boardList',
+    createBoardList,
+    createBoardList',
+    reorderBoardList,
+    reorderBoardList',
+    deleteBoardList,
+    deleteBoardList',
+    UpdateBoardAttrs (..),
+    defaultUpdateBoardAttrs,
+    defaultCreateBoardAttrs,
+    CreateBoardAttrs (..),
+  )
+where
 
 import qualified Data.ByteString.Lazy as BSL
 import Data.Either
@@ -296,6 +321,8 @@ deleteBoardList' projectId boardId listId =
         <> "/lists/"
         <> T.pack (show listId)
 
+-- | Attributes for updating when editing a board with the
+-- functions for updating issue boards.
 data UpdateBoardAttrs = UpdateBoardAttrs
   { updateBoard_new_name :: Maybe String,
     updateBoard_assignee_id :: Maybe Int,
@@ -304,9 +331,9 @@ data UpdateBoardAttrs = UpdateBoardAttrs
     updateBoard_weight :: Maybe Int
   }
 
--- | no attributes for board update.
-noUpdateBoardAttrs :: UpdateBoardAttrs
-noUpdateBoardAttrs =
+-- | default attributes for board update.
+defaultUpdateBoardAttrs :: UpdateBoardAttrs
+defaultUpdateBoardAttrs =
   UpdateBoardAttrs Nothing Nothing Nothing Nothing Nothing
 
 updateBoardAttrs :: UpdateBoardAttrs -> [GitLabParam]
@@ -326,9 +353,9 @@ data CreateBoardAttrs = CreateBoardAttrs
     createBoard_milestone_id :: Maybe Int
   }
 
--- | no attributes for board creation.
-noCreateBoardAttrs :: CreateBoardAttrs
-noCreateBoardAttrs =
+-- | default attributes for board creation.
+defaultCreateBoardAttrs :: CreateBoardAttrs
+defaultCreateBoardAttrs =
   CreateBoardAttrs Nothing Nothing Nothing
 
 createBoardAttrs :: CreateBoardAttrs -> [GitLabParam]

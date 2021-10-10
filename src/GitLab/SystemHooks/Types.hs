@@ -595,6 +595,7 @@ data MergeRequestEvent = MergeRequestEvent
   }
   deriving (Typeable, Show, Eq, Generic)
 
+-- | Label associated with a merge request
 data Label = Label
   { label_id :: Maybe Int,
     label_title :: Maybe Text,
@@ -609,6 +610,7 @@ data Label = Label
   }
   deriving (Typeable, Show, Eq, Generic)
 
+-- | Changes that a merge request will make
 data MergeRequestChanges = MergeRequestChanges
   { mergeRequestChanges_author_id :: Maybe (MergeRequestChange Int),
     mergeRequestChanges_created_at :: Maybe (MergeRequestChange Text),
@@ -624,12 +626,15 @@ data MergeRequestChanges = MergeRequestChanges
   }
   deriving (Typeable, Show, Eq, Generic)
 
+-- | The change between for a given GitLab data field a merge request
+-- will make
 data MergeRequestChange a = MergeRequestChange
   { mergeRequestChange_previous :: Maybe a,
     mergeRequestChange_current :: Maybe a
   }
   deriving (Typeable, Show, Eq, Generic)
 
+-- | Attributes associated with a merge request
 data ObjectAttributes = ObjectAttributes
   { objectAttributes_id :: Int,
     objectAttributes_target_branch :: Text,
@@ -674,11 +679,13 @@ data ObjectAttributes = ObjectAttributes
   }
   deriving (Typeable, Show, Eq, Generic)
 
+-- | Merge parameters associated with a merge request
 data MergeParams = MergeParams
   { mergeParams_force_remove_source_branch :: Maybe Text
   }
   deriving (Typeable, Show, Eq, Generic)
 
+-- | User associated with a merge request
 data UserEvent = UserEvent
   { userEvent_name :: Text,
     userEvent_username :: Text,

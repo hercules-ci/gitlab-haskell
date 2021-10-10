@@ -31,16 +31,17 @@ groupsWithNameOrPath groupName = do
     Left {} -> return result
     Right groups ->
       return
-        ( Right
-            $filter
-            ( \group ->
-                groupName == group_name group
-                  || groupName == group_path group
-                  || groupName == group_full_path group
-            )
-            groups
+        ( Right $
+            filter
+              ( \group ->
+                  groupName == group_name group
+                    || groupName == group_path group
+                    || groupName == group_full_path group
+              )
+              groups
         )
 
+-- | Get a list of projects in this group
 groupProjects ::
   -- | group
   Group ->
@@ -48,6 +49,7 @@ groupProjects ::
 groupProjects group = do
   groupProjects' (group_id group)
 
+-- | Get a list of projects in this group
 groupProjects' ::
   -- | group ID
   Int ->

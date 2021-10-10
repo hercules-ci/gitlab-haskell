@@ -2,7 +2,7 @@
 
 -- |
 -- Module      : Notes
--- Description : Notes on issues, snippets, merge requests and epics.
+-- Description : Notes on issues, snippets, merge requests and epics
 -- Copyright   : (c) Rob Stewart, Heriot-Watt University, 2020
 -- License     : BSD3
 -- Maintainer  : robstewart57@gmail.com
@@ -17,6 +17,7 @@ import GitLab.Types
 import GitLab.WebRequests.GitLabWebCalls
 import Network.HTTP.Client
 
+-- | Creates a new note for a single merge request.
 createMergeRequestNote ::
   -- | project
   Project ->
@@ -28,6 +29,7 @@ createMergeRequestNote ::
 createMergeRequestNote project =
   createMergeRequestNote' (project_id project)
 
+-- | Creates a new note for a single merge request.
 createMergeRequestNote' ::
   -- | project ID
   Int ->

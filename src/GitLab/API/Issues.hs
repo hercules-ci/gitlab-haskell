@@ -48,6 +48,7 @@ defaultIssueFilters :: IssueAttrs
 defaultIssueFilters =
   IssueAttrs Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing (Just All) Nothing Nothing Nothing Nothing Nothing Nothing
 
+-- | When an issue is due
 data DueDate
   = NoDueDate
   | Overdue
@@ -62,6 +63,7 @@ instance Show DueDate where
   show Month = "month"
   show NextMonthPreviousTwoWeeks = "next_month_and_previous_two_weeks"
 
+-- | Where to filter a search within
 data IssueSearchIn
   = JustTitle
   | JustDescription
@@ -72,6 +74,7 @@ instance Show IssueSearchIn where
   show JustDescription = "description"
   show TitleAndDescription = "title,description"
 
+-- | Ordering search results
 data IssueOrderBy
   = CreatedAt
   | UpdatedAt
@@ -94,6 +97,7 @@ instance Show IssueOrderBy where
   show Popularity = "popularity"
   show Weight = "weight"
 
+-- | Scope of issue search results
 data IssueScope
   = CreatedByMe
   | AssignedToMe
@@ -104,6 +108,7 @@ instance Show IssueScope where
   show AssignedToMe = "assigned_to_me"
   show All = "all"
 
+-- | Sort issues in ascending or descending order
 data IssueSortBy
   = Ascending
   | Descending
@@ -112,6 +117,7 @@ instance Show IssueSortBy where
   show Ascending = "asc"
   show Descending = "desc"
 
+-- | Is a project issues open or closed
 data IssueState
   = IssueOpen
   | IssueClosed
@@ -120,6 +126,7 @@ instance Show IssueState where
   show IssueOpen = "opened"
   show IssueClosed = "closed"
 
+-- | Get a list of a project’s issues
 projectIssues ::
   -- | the project
   Project ->
@@ -131,6 +138,7 @@ projectIssues p filters = do
   result <- projectIssues' (project_id p) filters
   return (fromRight (error "projectIssues error") result)
 
+-- | Get a list of a project’s issues
 projectIssues' ::
   -- | the project ID
   Int ->
@@ -293,9 +301,7 @@ editIssue projId issueId editIssueReq = do
     Right Nothing -> error "editIssue error"
     Right (Just issue) -> return (Right issue)
 
--------------------------------
--- Internal functions and types
-
+-- | Attributes related to a project issue
 data IssueAttrs = IssueAttrs
   { issueFilter_assignee_id :: Maybe Int,
     issueFilter_assignee_username :: Maybe String,

@@ -239,6 +239,7 @@ addUsersToGroup' groupName access usernames = do
   users <- catMaybes <$> mapM searchUser usernames
   mapM (addUserToGroup' groupName access . user_id) users
 
+-- | Removes a user from a project where the user has been explicitly assigned a role
 removeUserFromProject ::
   -- | project name
   Text ->
@@ -248,6 +249,7 @@ removeUserFromProject ::
 removeUserFromProject grpName usr =
   removeUserFromEntity grpName "projects" usr
 
+-- | Removes a user from a project where the user has been explicitly assigned a role
 removeUserFromProject' ::
   -- | project name
   Text ->
@@ -257,6 +259,7 @@ removeUserFromProject' ::
 removeUserFromProject' grpName usrId =
   removeUserFromEntity' grpName "projects" usrId
 
+-- | Removes a user from a group where the user has been explicitly assigned a role
 removeUserFromGroup ::
   -- | group name
   Text ->
@@ -266,6 +269,7 @@ removeUserFromGroup ::
 removeUserFromGroup grpName usr =
   removeUserFromEntity grpName "groups" usr
 
+-- | Removes a user from a group where the user has been explicitly assigned a role
 removeUserFromGroup' ::
   -- | group name
   Text ->
@@ -274,6 +278,9 @@ removeUserFromGroup' ::
   GitLab (Either (Response BSL.ByteString) (Maybe ()))
 removeUserFromGroup' grpName usrId =
   removeUserFromEntity' grpName "groups" usrId
+
+-----------------------
+-- Internal functions.
 
 -- | removes a user from a group or project.
 removeUserFromEntity ::
@@ -308,7 +315,7 @@ removeUserFromEntity' groupName entity usrId = do
         Left err -> return (Left err)
         -- GitLab version 14.2.3 returns Version JSON info when a
         -- member is removed from a group/project. I'm not sure if
-        -- this is new behaviour, anyway we catch it here. 
+        -- this is new behaviour, anyway we catch it here.
         Right (Just (Version {})) -> return (Right (Just ()))
         Right Nothing -> return (Right (Just ()))
       where
@@ -322,13 +329,11 @@ removeUserFromEntity' groupName entity usrId = do
     Right (_ : _) ->
       return (Right Nothing)
 
-
-
 -- | the members of a project given its ID.
 membersOfEntity' ::
-  -- ^ group or project ID
+  -- | group or project ID
   Int ->
-  -- ^ entity ("groups" or "projects")
+  -- | entity ("groups" or "projects")
   Text ->
   GitLab (Either (Response BSL.ByteString) [Member])
 membersOfEntity' projectId entity =
@@ -336,7 +341,7 @@ membersOfEntity' projectId entity =
   where
     addr =
       "/"
-      <> entity
-      <> "/"
-      <> T.pack (show projectId)
-      <> "/members"
+        <> entity
+        <> "/"
+        <> T.pack (show projectId)
+        <> "/members"

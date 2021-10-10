@@ -17,6 +17,8 @@ import GitLab.API.Users
 import GitLab.SystemHooks.Types
 import GitLab.Types
 
+-- | When a new user creates an account on a GitLab server they are
+-- added to all groups in the specified group list
 ruleAddNewUserToGroups ::
   -- | rule label
   String ->
@@ -41,6 +43,8 @@ ruleAddNewUserToGroups lbl nonRegisteredUsernames groupNames =
           groupNames
     )
 
+-- | Add specified users with a 'Reporter' role to all specified
+-- projects with a given project name
 ruleAddMembers ::
   -- | rule label
   String ->

@@ -2,7 +2,7 @@
 
 -- |
 -- Module      : Todos
--- Description : Queries about todos for users.
+-- Description : Queries about todos for users
 -- Copyright   : (c) Rob Stewart, Heriot-Watt University, 2019
 -- License     : BSD3
 -- Maintainer  : robstewart57@gmail.com

@@ -9,7 +9,40 @@
 -- License     : BSD3
 -- Maintainer  : robstewart57@gmail.com
 -- Stability   : stable
-module GitLab.API.Projects where
+module GitLab.API.Projects
+  ( allProjects,
+    projectForks,
+    searchProjectId,
+    projectsWithName,
+    projectsWithNameAndUser,
+    multipleCommitters,
+    commitsEmailAddresses,
+    commitsEmailAddresses',
+    userProjects,
+    userProjects',
+    projectOfIssue,
+    issuesCreatedByUser,
+    issuesOnForks,
+    projectMemebersCount,
+    projectCISuccess,
+    namespacePathToUserId,
+    projectDiffs,
+    projectDiffs',
+    addGroupToProject,
+    transferProject,
+    transferProject',
+    editProject,
+    editProject',
+    defaultEditProjectAttrs,
+    EditProjectAttrs (..),
+    EnabledDisabled (..),
+    AutoDeployStrategy (..),
+    GitStrategy (..),
+    ProjectSettingAccessLevel (..),
+    MergeMethod (..),
+    SquashOption (..),
+  )
+where
 
 import qualified Data.ByteString.Lazy as BSL
 import Data.Either
@@ -322,6 +355,8 @@ editProject' projId attrs = do
     Right Nothing -> error "editProject error"
     Right (Just proj) -> return (Right proj)
 
+-- | A default set of project attributes to override with the
+-- 'editProject' functions.
 defaultEditProjectAttrs ::
   -- | project ID
   Int ->
@@ -399,6 +434,8 @@ editProjectAttrs filters =
     showBool True = "true"
     showBool False = "false"
 
+-- | Attributes for updating when editing a project with the
+-- 'editProject' functions.
 data EditProjectAttrs = EditProjectAttrs
   { -- | Set whether or not merge requests can be merged with skipped jobs.
     project_edit_allow_merge_on_skipped_pipeline :: Maybe Bool,
@@ -516,6 +553,7 @@ data EditProjectAttrs = EditProjectAttrs
   }
   deriving (Generic, Show, Eq)
 
+-- | Is auto-cancel pending pipelines enabled or disabled
 data EnabledDisabled
   = Enabled
   | Disabled
@@ -525,6 +563,8 @@ instance Show EnabledDisabled where
   show Enabled = "enabled"
   show Disabled = "disabled"
 
+-- | Auto Deploy strategy: continuous, manual, or timed_incremental,
+-- for the 'editProject' functions
 data AutoDeployStrategy
   = Continuous
   | Manual
@@ -536,6 +576,7 @@ instance Show AutoDeployStrategy where
   show Manual = "manual"
   show TimedIncremental = "timed_incremental"
 
+-- | The Git strategy, defaults to fetch, for the 'editProject' functions
 data GitStrategy
   = Clone
   | Fetch
@@ -547,6 +588,7 @@ instance Show GitStrategy where
   show Fetch = "fetch"
   show None = "none"
 
+-- | The project access level setting, for the 'editProject' functions
 data ProjectSettingAccessLevel
   = DisabledAccess
   | PrivateAccess
@@ -560,6 +602,7 @@ instance Show ProjectSettingAccessLevel where
   show EnabledAccess = "enabled"
   show PublicAccess = "public"
 
+-- | The project git merge method, for the 'editProject' functions
 data MergeMethod
   = Merge
   | RebaseMerge
@@ -571,6 +614,7 @@ instance Show MergeMethod where
   show RebaseMerge = "rebase_merge"
   show FF = "ff"
 
+-- | The project git merge squash option, for the 'editProject' functions
 data SquashOption
   = NeverSquash
   | AlwaysSquash
