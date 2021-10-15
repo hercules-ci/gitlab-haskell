@@ -208,7 +208,7 @@ data Project = Project
     name_with_namespace :: Text,
     project_path :: Text,
     project_path_with_namespace :: Text,
-    project_created_at :: Text,
+    project_created_at :: UTCTime,
     default_branch :: Maybe Text,
     tag_list :: [Text], -- check
     ssh_url_to_repo :: Text,
@@ -271,7 +271,7 @@ data User = User
     user_avatar_uri :: Maybe Text,
     user_web_url :: Maybe Text
   }
-  deriving (Generic, Show)
+  deriving (Generic, Show, Eq)
 
 -- | milestone state.
 data MilestoneState
@@ -310,7 +310,7 @@ data TimeStats = TimeStats
     human_time_estimate :: Maybe Int,
     human_total_time_spent :: Maybe Int
   }
-  deriving (Generic, Show)
+  deriving (Generic, Show, Eq)
 
 -- | alias for project id
 type ProjectId = Int
@@ -327,12 +327,12 @@ data Issue = Issue
     issue_project_id :: ProjectId,
     assignees :: Maybe [User],
     assignee :: Maybe User,
-    updated_at :: Text,
+    updated_at :: UTCTime,
     closed_at :: Maybe Text,
     closed_by :: Maybe User,
     issue_id :: IssueId,
     issue_title :: Text,
-    issue_created_at :: Text,
+    issue_created_at :: UTCTime,
     iid :: Int,
     issue_labels :: [Text],
     upvotes :: Int,
@@ -355,7 +355,7 @@ data Pipeline = Pipeline
     pipeline_status :: Text,
     pipeline_web_url :: Maybe Text
   }
-  deriving (Generic, Show)
+  deriving (Generic, Show, Eq)
 
 -- | code commits.
 data Commit = Commit
@@ -368,7 +368,7 @@ data Commit = Commit
     committer_name :: Text,
     committer_email :: Text,
     committed_date :: Text,
-    commit_created_at :: Text,
+    commit_created_at :: UTCTime,
     message :: Text,
     commit_parent_ids :: Maybe [String],
     last_pipeline :: Maybe Pipeline,
@@ -381,7 +381,7 @@ data Commit = Commit
 data CommitTodo = CommitTodo
   { todo_commit_id :: Text,
     todo_commit_short_id :: Text,
-    todo_commit_created_at :: Text,
+    todo_commit_created_at :: UTCTime,
     todo_parent_ids :: Maybe [String]
   }
   deriving (Generic, Show)
@@ -439,9 +439,9 @@ data Repository = Repository
 data Job = Job
   { job_commit :: Commit,
     job_coverage :: Maybe Text, -- ?
-    job_created_at :: Text,
-    job_started_at :: Text,
-    job_finished_at :: Text,
+    job_created_at :: UTCTime,
+    job_started_at :: UTCTime,
+    job_finished_at :: UTCTime,
     job_duration :: Double,
     job_artifacts_expire_at :: Maybe Text,
     job_id :: Int,
@@ -532,11 +532,11 @@ data MergeRequest = MergeRequest
     merge_request_description :: Text,
     merge_request_state :: Text,
     merge_request_merged_by :: Maybe User,
-    merge_request_merged_at :: Maybe Text,
+    merge_request_merged_at :: Maybe UTCTime,
     merge_request_closed_by :: Maybe User,
-    merge_request_closed_at :: Maybe Text,
-    merge_request_created_at :: Text,
-    merge_request_updated_at :: Text,
+    merge_request_closed_at :: Maybe UTCTime,
+    merge_request_created_at :: UTCTime,
+    merge_request_updated_at :: UTCTime,
     merge_request_target_branch :: Text,
     merge_request_source_branch :: Text,
     merge_request_upvotes :: Int,
@@ -569,7 +569,7 @@ data MergeRequest = MergeRequest
     merge_request_blocking_discussions_resolved :: Maybe Bool,
     merge_request_approvals_before_merge :: Maybe Bool -- ?
   }
-  deriving (Generic, Show)
+  deriving (Generic, Show, Eq)
 
 -- | TODO actions.
 data TodoAction
@@ -678,7 +678,7 @@ data EditIssueReq = EditIssueReq
     edit_issue_milestone_id :: Maybe Int,
     edit_issue_labels :: Maybe [Text],
     edit_issue_state_event :: Maybe Text,
-    edit_issue_updated_at :: Maybe Text,
+    edit_issue_updated_at :: Maybe UTCTime,
     edit_issue_due_date :: Maybe Text,
     edit_issue_weight :: Maybe Int,
     edit_issue_discussion_locked :: Maybe Bool,
@@ -703,9 +703,8 @@ data Note = Note
     note_body :: Text,
     note_attachment :: Maybe Text,
     note_author :: Owner,
-    --  -- TODO parse these as date type
-    note_created_at :: Text,
-    note_updated_at :: Text,
+    note_created_at :: UTCTime,
+    note_updated_at :: UTCTime,
     note_system :: Bool,
     note_noteable_id :: Maybe Int,
     note_noteable_type :: Maybe Text, -- create type e.g. from "Commit"
@@ -938,6 +937,8 @@ bodyNoPrefix "merge_request_upvotes" = "upvotes"
 bodyNoPrefix "merge_request_downvotes" = "downvotes"
 bodyNoPrefix "merge_request_author" = "author"
 bodyNoPrefix "merge_request_assignee" = "assignee"
+bodyNoPrefix "merge_request_assignees" = "assignees"
+bodyNoPrefix "merge_request_reviewers" = "reviewers"
 bodyNoPrefix "merge_request_source_project_id" = "source_project_id"
 bodyNoPrefix "merge_request_target_project_id" = "target_project_id"
 bodyNoPrefix "merge_request_labels" = "labels"

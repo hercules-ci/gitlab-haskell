@@ -344,7 +344,7 @@ editIssuesAttrs filters =
       -- TODO
       -- (\ts -> Just ("labels", textToBS (T.pack (show i)))) =<< edit_issue_labels filters,
       (\t -> Just ("state_event", textToBS t)) =<< edit_issue_state_event filters,
-      (\t -> Just ("updated_at", textToBS t)) =<< edit_issue_updated_at filters,
+      (\d -> Just ("updated_at", stringToBS (show d))) =<< edit_issue_updated_at filters,
       (\t -> Just ("due_date", textToBS t)) =<< edit_issue_due_date filters,
       (\i -> Just ("weight", textToBS (T.pack (show i)))) =<< edit_issue_weight filters,
       (\b -> Just ("discussion_locked", textToBS (showBool b))) =<< edit_issue_discussion_locked filters,
@@ -353,6 +353,7 @@ editIssuesAttrs filters =
     ]
   where
     textToBS = Just . T.encodeUtf8
+    stringToBS = Just . T.encodeUtf8 . T.pack
     showBool :: Bool -> Text
     showBool True = "true"
     showBool False = "false"
