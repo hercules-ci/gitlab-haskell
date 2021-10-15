@@ -543,6 +543,8 @@ data MergeRequest = MergeRequest
     merge_request_downvotes :: Int,
     merge_request_author :: User,
     merge_request_assignee :: Maybe User,
+    merge_request_assignees :: Maybe [User],
+    merge_request_reviewers :: Maybe [User],
     merge_request_source_project_id :: Int,
     merge_request_target_project_id :: Int,
     merge_request_labels :: [Text],
