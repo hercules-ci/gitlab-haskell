@@ -67,6 +67,7 @@ module GitLab.Types
     TestReport (..),
     TestSuite (..),
     TestCase (..),
+    TimeEstimate (..),
   )
 where
 
@@ -135,6 +136,7 @@ data ArchiveFormat
     Tar
   | -- | ".zip"
     Zip
+  deriving (Generic)
 
 instance Show ArchiveFormat where
   show TarGz = ".tar.gz"
@@ -277,7 +279,7 @@ data User = User
 data MilestoneState
   = MSActive
   | MSClosed
-  deriving (Show, Eq)
+  deriving (Generic, Show, Eq)
 
 instance FromJSON MilestoneState where
   parseJSON (String "active") = return MSActive
@@ -567,7 +569,7 @@ data MergeRequest = MergeRequest
     merge_request_pipeline :: Maybe Pipeline,
     merge_request_diverged_commits_count :: Maybe Int,
     merge_request_rebase_in_progress :: Maybe Bool,
-    merge_request_has_conflicts :: Bool,
+    merge_request_has_conflicts :: Maybe Bool,
     merge_request_blocking_discussions_resolved :: Maybe Bool,
     merge_request_approvals_before_merge :: Maybe Bool -- ?
   }
@@ -582,7 +584,7 @@ data TodoAction
   | TAApprovalRequired
   | TAUnmergeable
   | TADirectlyAddressed
-  deriving (Show)
+  deriving (Generic, Show)
 
 instance FromJSON TodoAction where
   parseJSON (String "assigned") = return TAAssigned
@@ -599,7 +601,7 @@ data TodoTarget
   = TTIssue Issue
   | TTMergeRequest MergeRequest
   | TTCommit CommitTodo
-  deriving (Show)
+  deriving (Generic, Show)
 
 -- | URL is a synonym for 'Text'.
 type URL = Text
@@ -608,7 +610,7 @@ type URL = Text
 data TodoState
   = TSPending
   | TSDone
-  deriving (Show)
+  deriving (Generic, Show)
 
 instance FromJSON TodoState where
   parseJSON (String "pending") = return TSPending
@@ -642,7 +644,7 @@ data Todo = Todo
     todo_state :: TodoState,
     todo_created_at :: UTCTime
   }
-  deriving (Show)
+  deriving (Generic, Show)
 
 instance FromJSON Todo where
   parseJSON = withObject "Todo" $ \v ->
@@ -787,7 +789,7 @@ data Visibility
   = Public
   | Private
   | Internal
-  deriving (Show, Eq)
+  deriving (Generic, Show, Eq)
 
 instance FromJSON Visibility where
   parseJSON (String "public") = return Public
@@ -851,6 +853,14 @@ testcasePrefix "testcase_execution_time" = "execution_time"
 testcasePrefix "testcase_system_output" = "system_output"
 testcasePrefix "testcase_stack_trace" = "stack_trace"
 testcasePrefix s = s
+
+data TimeEstimate = TimeEstimate
+  { time_estimate_human_time_estimate :: Maybe Text,
+    time_estimate_human_time_spent :: Maybe Text,
+    time_estimate_time_estimate :: Maybe Int,
+    time_estimate_total_time_spent :: Maybe Int
+  }
+  deriving (Generic, Show, Eq)
 
 -----------------------------
 -- JSON GitLab parsers below
@@ -1377,5 +1387,13 @@ instance FromJSON TestCase where
     genericParseJSON
       ( defaultOptions
           { fieldLabelModifier = testcasePrefix
+          }
+      )
+
+instance FromJSON TimeEstimate where
+  parseJSON =
+    genericParseJSON
+      ( defaultOptions
+          { fieldLabelModifier = drop (T.length "time_estimate_")
           }
       )
