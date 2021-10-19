@@ -345,9 +345,9 @@ data Issue = Issue
     confidential :: Bool,
     weight :: Maybe Text, -- Int?
     discussion_locked :: Maybe Bool,
-    time_stats :: TimeStats
+    time_stats :: Maybe TimeStats
   }
-  deriving (Generic, Show)
+  deriving (Generic, Show, Eq)
 
 -- | project pipelines
 data Pipeline = Pipeline
@@ -386,7 +386,7 @@ data CommitTodo = CommitTodo
     todo_commit_created_at :: UTCTime,
     todo_parent_ids :: Maybe [String]
   }
-  deriving (Generic, Show)
+  deriving (Generic, Show, Eq)
 
 -- | commit stats.
 data CommitStats = Stats
@@ -532,7 +532,7 @@ data MergeRequest = MergeRequest
     merge_request_project_id :: Int,
     merge_request_title :: Text,
     merge_request_description :: Text,
-    merge_request_state :: Text,
+    merge_request_state :: Text, -- TODO make a type e.g. 'reopened'
     merge_request_merged_by :: Maybe User,
     merge_request_merged_at :: Maybe UTCTime,
     merge_request_closed_by :: Maybe User,
@@ -556,6 +556,7 @@ data MergeRequest = MergeRequest
     merge_request_merge_status :: Text,
     merge_request_sha :: Text,
     merge_request_merge_commit_sha :: Maybe Text,
+    merge_request_squash_commit_sha :: Maybe Text,
     merge_request_user_notes_count :: Int,
     merge_request_discussion_locked :: Maybe Bool,
     merge_request_should_remove_source_branch :: Maybe Bool,
@@ -563,7 +564,7 @@ data MergeRequest = MergeRequest
     merge_request_allow_collaboration :: Maybe Bool,
     merge_request_allow_maintainer_to_push :: Maybe Bool,
     merge_request_web_url :: Text,
-    merge_request_time_stats :: TimeStats,
+    merge_request_time_stats :: Maybe TimeStats,
     merge_request_squash :: Bool,
     merge_request_changes_count :: Maybe String,
     merge_request_pipeline :: Maybe Pipeline,
@@ -571,9 +572,40 @@ data MergeRequest = MergeRequest
     merge_request_rebase_in_progress :: Maybe Bool,
     merge_request_has_conflicts :: Maybe Bool,
     merge_request_blocking_discussions_resolved :: Maybe Bool,
-    merge_request_approvals_before_merge :: Maybe Bool -- ?
+    merge_request_approvals_before_merge :: Maybe Bool, -- ?
+    merge_request_draft :: Maybe Bool,
+    merge_request_subscribed :: Maybe Bool
   }
   deriving (Generic, Show, Eq)
+
+{- TODO for MergeRequest
+
+  "references": {
+    "short": "!1",
+    "relative": "!1",
+    "full": "my-group/my-project!1"
+  },
+
+  "task_completion_status":{
+    "count":0,
+    "completed_count":0
+  },
+
+  "changes": [
+    {
+    "old_path": "VERSION",
+    "new_path": "VERSION",
+    "a_mode": "100644",
+    "b_mode": "100644",
+    "diff": "--- a/VERSION\\ +++ b/VERSION\\ @@ -1 +1 @@\\ -1.9.7\\ +1.9.8",
+    "new_file": false,
+    "renamed_file": false,
+    "deleted_file": false
+    }
+
+  "overflow": false
+
+-}
 
 -- | TODO actions.
 data TodoAction
@@ -584,7 +616,7 @@ data TodoAction
   | TAApprovalRequired
   | TAUnmergeable
   | TADirectlyAddressed
-  deriving (Generic, Show)
+  deriving (Generic, Show, Eq)
 
 instance FromJSON TodoAction where
   parseJSON (String "assigned") = return TAAssigned
@@ -601,7 +633,7 @@ data TodoTarget
   = TTIssue Issue
   | TTMergeRequest MergeRequest
   | TTCommit CommitTodo
-  deriving (Generic, Show)
+  deriving (Generic, Show, Eq)
 
 -- | URL is a synonym for 'Text'.
 type URL = Text
@@ -610,7 +642,7 @@ type URL = Text
 data TodoState
   = TSPending
   | TSDone
-  deriving (Generic, Show)
+  deriving (Generic, Show, Eq)
 
 instance FromJSON TodoState where
   parseJSON (String "pending") = return TSPending
@@ -620,14 +652,14 @@ instance FromJSON TodoState where
 -- | A project TODO.
 data TodoProject = TP
   { tp_id :: Int,
-    tp_description :: Text,
+    tp_description :: Maybe Text,
     tp_name :: Text,
     tp_name_with_namespace :: Text,
     tp_path :: Text,
     tp_path_with_namespace :: Text,
-    tp_created_at :: UTCTime
+    tp_created_at :: Maybe UTCTime
   }
-  deriving (Generic, Show)
+  deriving (Generic, Show, Eq)
 
 instance FromJSON TodoProject where
   parseJSON = genericParseJSON (defaultOptions {fieldLabelModifier = drop 3})
@@ -644,7 +676,7 @@ data Todo = Todo
     todo_state :: TodoState,
     todo_created_at :: UTCTime
   }
-  deriving (Generic, Show)
+  deriving (Generic, Show, Eq)
 
 instance FromJSON Todo where
   parseJSON = withObject "Todo" $ \v ->
@@ -960,6 +992,7 @@ bodyNoPrefix "merge_request_merge_when_pipeline_succeeds" = "merge_when_pipeline
 bodyNoPrefix "merge_request_merge_status" = "merge_status"
 bodyNoPrefix "merge_request_sha" = "sha"
 bodyNoPrefix "merge_request_merge_commit_sha" = "merge_commit_sha"
+bodyNoPrefix "merge_request_squash_commit_sha" = "merge_squash_sha"
 bodyNoPrefix "merge_request_user_notes_count" = "user_notes_count"
 bodyNoPrefix "merge_request_discussion_locked" = "discussion_locked"
 bodyNoPrefix "merge_request_should_remove_source_branch" = "should_remove_source_branch"
