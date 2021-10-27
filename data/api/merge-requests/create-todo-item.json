@@ -24,7 +24,7 @@
     "title": "Et voluptas laudantium minus nihil recusandae ut accusamus earum aut non.",
     "description": "Veniam sunt nihil modi earum cumque illum delectus. Nihil ad quis distinctio quia. Autem eligendi at quibusdam repellendus.",
     "state": "merged",
-    "created_at": "2016-06-17T07:48:04.330Z",
+    "created_at": "2016-06-17T07:48:04.33Z",
     "updated_at": "2016-07-01T11:14:15.537Z",
     "target_branch": "allow_regex_for_project_skip_ref",
     "source_branch": "backup",
@@ -75,8 +75,8 @@
       "title": "v1.0",
       "description": "Quis ea accusantium animi hic fuga assumenda.",
       "state": "active",
-      "created_at": "2016-06-17T07:47:33.840Z",
-      "updated_at": "2016-06-17T07:47:33.840Z",
+      "created_at": "2016-06-17T07:47:33.84Z",
+      "updated_at": "2016-06-17T07:47:33.84Z",
       "due_date": null
     },
     "merge_when_pipeline_succeeds": false,
@@ -100,5 +100,5 @@
   "target_url": "https://gitlab.example.com/gitlab-org/gitlab-ci/merge_requests/7",
   "body": "Et voluptas laudantium minus nihil recusandae ut accusamus earum aut non.",
   "state": "pending",
-  "created_at": "2016-07-01T11:14:15.530Z"
+  "created_at": "2016-07-01T11:14:15.53Z"
 }
