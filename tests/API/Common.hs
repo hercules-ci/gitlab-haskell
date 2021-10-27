@@ -7,14 +7,56 @@ import Control.Exception
 import Control.Monad.IO.Class
 import Data.Aeson
 import qualified Data.ByteString.Lazy.Char8 as BSL
+import qualified Data.HashMap.Strict as HashMap
+import Data.Maybe
 import Data.TreeDiff.Class
 import Data.TreeDiff.Pretty
+import qualified Data.Vector as Vec
 import GitLab
 import GitLab.SystemHooks.GitLabSystemHooks
 import GitLab.SystemHooks.Types
 import Test.Tasty
 import Test.Tasty.HUnit
+import Test.Tasty.HUnit (AssertionPredicable)
+import Test.Tasty.Runners (Result (resultDescription))
 import qualified Text.PrettyPrint.ANSI.Leijen as WL
+
+removeNulls :: Value -> Maybe Value
+removeNulls Null = Nothing
+removeNulls (Array vec) = Just (Array (Vec.mapMaybe removeNulls vec))
+removeNulls (String x) = Just $ String x
+removeNulls (Number x) = Just $ Number x
+removeNulls (Bool x) = Just $ Bool x
+removeNulls (Object keyMap) = Just $ Object (HashMap.mapMaybe removeNulls keyMap)
+
+gitlabJsonParserTests :: (ToExpr a, FromJSON a, ToJSON a, Eq a, Show a) => String -> FilePath -> IO a -> IO a -> [TestTree]
+gitlabJsonParserTests testPrefix jsonFilename parseFileF decodedCustomTypeF = do
+  [ testCase
+      (testPrefix <> "-decode-encode-decode")
+      (decodeEncodeDecode parseFileF),
+    testCase
+      (testPrefix <> "-json-values-equal")
+      (jsonValuesEqual jsonFilename decodedCustomTypeF)
+    ]
+
+decodeEncodeDecode :: (ToExpr a, FromJSON a, ToJSON a, Eq a, Show a) => IO a -> Assertion
+decodeEncodeDecode parseFileF = do
+  decodedFromFile <- parseFileF
+  decodedAgain <- parseOne (encode decodedFromFile)
+  (decodedFromFile == decodedAgain)
+    @? showWL (ansiWlEditExprCompact (ediff decodedFromFile decodedAgain))
+
+jsonValuesEqual :: (ToExpr a, FromJSON a, ToJSON a, Eq a, Show a) => FilePath -> IO a -> Assertion
+jsonValuesEqual jsonFilename decodedCustomTypeF = do
+  jsonValueFromFile <- parseValuesFromFile jsonFilename
+  decodedCustomType <- decodedCustomTypeF
+  let (Just jsonFromCustomType) = decode (encode decodedCustomType) :: Maybe Value
+  (jsonValueFromFile == jsonFromCustomType)
+    @? showWL (ansiWlEditExprCompact (ediff jsonValueFromFile jsonFromCustomType))
+
+parseValuesFromFile :: String -> IO Value
+parseValuesFromFile fname =
+  fromJust . removeNulls . fromJust . decode <$> BSL.readFile fname
 
 gitlabParseTestOne :: (ToExpr a, FromJSON a, Eq a, Show a) => a -> String -> Assertion
 gitlabParseTestOne expectedHaskellValue filename = do
@@ -145,3 +187,15 @@ instance ToExpr TestSuite
 instance ToExpr TestCase
 
 instance ToExpr TimeEstimate
+
+instance ToExpr TaskCompletionStatus
+
+instance ToExpr References
+
+instance ToExpr Change
+
+instance ToExpr DiffRefs
+
+instance ToExpr DetailedStatus
+
+instance ToExpr TodoTargetType
