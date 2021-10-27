@@ -10,12 +10,14 @@
 module GitLab.API.RepositoryFiles where
 
 import qualified Data.ByteString.Lazy as BSL
+import qualified Data.ByteString.Lazy.Char8 as BSL8
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 import GitLab.Types
 import GitLab.WebRequests.GitLabWebCalls
 import Network.HTTP.Client
+import Network.HTTP.Types.Status
 import Network.HTTP.Types.URI
 
 -- | Get a list of repository files and directories in a project.
@@ -56,9 +58,12 @@ repositoryFileBlob ::
   Int ->
   -- | blob SHA
   Text ->
-  GitLab (Either (Response BSL.ByteString) (Maybe String))
-repositoryFileBlob projectId blobSha =
-  gitlabGetOne addr []
+  GitLab (Either (Response BSL.ByteString) String)
+repositoryFileBlob projectId blobSha = do
+  resp <- gitlabGetByteStringResponse addr []
+  if successStatus (responseStatus resp)
+    then return (Right (BSL8.unpack (responseBody resp)))
+    else return (Left resp)
   where
     addr =
       "/projects/"
@@ -67,3 +72,6 @@ repositoryFileBlob projectId blobSha =
         <> "/blobs/"
         <> blobSha
         <> "/raw"
+    successStatus :: Status -> Bool
+    successStatus (Status n _msg) =
+      n >= 200 && n <= 226
