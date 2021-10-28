@@ -50,6 +50,7 @@ module GitLab.Types
     TodoProject (..),
     TodoAction (..),
     TodoTarget (..),
+    TodoTargetType (..),
     TodoState (..),
     Version (..),
     URL,
@@ -62,12 +63,16 @@ module GitLab.Types
     IssueBoard (..),
     BoardIssue (..),
     BoardIssueLabel (..),
-    ProjectBoard (..),
     Visibility (..),
     TestReport (..),
     TestSuite (..),
     TestCase (..),
     TimeEstimate (..),
+    TaskCompletionStatus (..),
+    References (..),
+    Change (..),
+    DiffRefs (..),
+    DetailedStatus (..),
   )
 where
 
@@ -159,37 +164,37 @@ data Member = Member
     access_level :: Int,
     expires_at :: Maybe Text
   }
-  deriving (Generic, Show)
+  deriving (Generic, Show, Eq)
 
 -- | namespaces.
 data Namespace = Namespace
   { namespace_id :: Int,
     namespace_name :: Text,
     namespace_path :: Text,
-    kind :: Text,
-    full_path :: Text,
-    parent_id :: Maybe Int
+    namespace_kind :: Text,
+    namespace_full_path :: Text,
+    namespace_parent_id :: Maybe Int
   }
-  deriving (Generic, Show)
+  deriving (Generic, Show, Eq)
 
 -- | links.
 data Links = Links
-  { self :: Text,
-    issues :: Maybe Text,
-    merge_requests :: Maybe Text,
-    repo_branches :: Text,
-    link_labels :: Text,
-    link_events :: Text,
-    members :: Text
+  { links_self :: Text,
+    links_issues :: Maybe Text,
+    links_merge_requests :: Maybe Text,
+    links_repo_branches :: Text,
+    links_labels :: Text,
+    links_events :: Text,
+    links_members :: Text
   }
-  deriving (Generic, Show)
+  deriving (Generic, Show, Eq)
 
 -- | owners.
 data Owner = Ownwer
   { owner_id :: Int,
     owner_name :: Text,
     owner_username :: Text,
-    state :: Text,
+    owner_state :: Text,
     owner_avatar_url :: Maybe Text,
     owner_web_url :: Text
   }
@@ -197,72 +202,72 @@ data Owner = Ownwer
 
 -- | permissions.
 data Permissions = Permissions
-  { project_access :: Maybe Object,
-    group_access :: Maybe Object
+  { permissions_project_access :: Maybe Object,
+    permissions_group_access :: Maybe Object
   }
-  deriving (Generic, Show)
+  deriving (Generic, Show, Eq)
 
 -- | projects.
 data Project = Project
   { project_id :: Int,
-    description :: Maybe Text,
+    project_description :: Maybe Text,
     project_name :: Text,
-    name_with_namespace :: Text,
+    project_name_with_namespace :: Text,
     project_path :: Text,
     project_path_with_namespace :: Text,
-    project_created_at :: UTCTime,
-    default_branch :: Maybe Text,
-    tag_list :: [Text], -- check
-    ssh_url_to_repo :: Text,
-    http_url_to_repo :: Text,
+    project_created_at :: Maybe UTCTime,
+    project_default_branch :: Maybe Text,
+    project_tag_list :: Maybe [Text], -- check
+    project_ssh_url_to_repo :: Maybe Text,
+    project_http_url_to_repo :: Maybe Text,
     project_web_url :: Text,
-    readme_url :: Maybe Text, -- check
+    project_readme_url :: Maybe Text, -- check
     project_avatar_url :: Maybe Text, -- check
-    star_count :: Int,
-    forks_count :: Int,
-    last_activity_at :: Text,
-    namespace :: Namespace,
-    _links :: Maybe Links,
-    archived :: Maybe Bool,
-    visibility :: Maybe Text,
-    owner :: Maybe Owner,
-    resolve_outdated_diff_discussions :: Maybe Bool,
-    container_registry_enabled :: Maybe Bool,
-    issues_enabled :: Maybe Bool,
-    merge_requests_enabled :: Maybe Bool,
-    wiki_enabled :: Maybe Bool,
-    jobs_enabled :: Maybe Bool,
-    snippets_enabled :: Maybe Bool,
-    shared_runners_enabled :: Maybe Bool,
-    lfs_enabled :: Maybe Bool,
-    creator_id :: Maybe Int,
-    forked_from_project :: Maybe Project,
-    import_status :: Maybe String,
-    open_issues_count :: Maybe Int,
-    public_jobs :: Maybe Bool,
-    ci_config_path :: Maybe Text, -- check null
-    shared_with_groups :: Maybe [Object],
-    only_allow_merge_if_pipeline_succeeds :: Maybe Bool,
-    request_access_enabled :: Maybe Bool,
-    only_allow_merge_if_all_discussions_are_resolved :: Maybe Bool,
-    printing_merge_request_link_enabled :: Maybe Bool,
-    merge_method :: Maybe Text,
-    permissions :: Maybe Permissions,
+    project_star_count :: Maybe Int,
+    project_forks_count :: Maybe Int,
+    project_last_activity_at :: Maybe UTCTime,
+    project_namespace :: Maybe Namespace,
+    project_links :: Maybe Links,
+    project_archived :: Maybe Bool,
+    project_visibility :: Maybe Text,
+    project_owner :: Maybe Owner,
+    project_resolve_outdated_diff_discussions :: Maybe Bool,
+    project_container_registry_enabled :: Maybe Bool,
+    project_issues_enabled :: Maybe Bool,
+    project_merge_requests_enabled :: Maybe Bool,
+    project_wiki_enabled :: Maybe Bool,
+    project_jobs_enabled :: Maybe Bool,
+    project_snippets_enabled :: Maybe Bool,
+    project_shared_runners_enabled :: Maybe Bool,
+    project_lfs_enabled :: Maybe Bool,
+    project_creator_id :: Maybe Int,
+    project_forked_from_project :: Maybe Project,
+    project_import_status :: Maybe String,
+    project_open_issues_count :: Maybe Int,
+    project_public_jobs :: Maybe Bool,
+    project_ci_config_path :: Maybe Text, -- check null
+    project_shared_with_groups :: Maybe [Object],
+    project_only_allow_merge_if_pipeline_succeeds :: Maybe Bool,
+    project_request_access_enabled :: Maybe Bool,
+    project_only_allow_merge_if_all_discussions_are_resolved :: Maybe Bool,
+    project_printing_merge_request_link_enabled :: Maybe Bool,
+    project_merge_method :: Maybe Text,
+    project_permissions :: Maybe Permissions,
     project_stats :: Maybe ProjectStats
   }
-  deriving (Generic, Show)
+  deriving (Generic, Show, Eq)
 
 -- | project statistics.
 data ProjectStats = ProjectStats
-  { commit_count :: Int,
-    storage_size :: Int,
-    repository_size :: Int,
-    wiki_size :: Maybe Int,
-    lfs_objects_size :: Maybe Int,
-    job_artifacts_size :: Maybe Int,
-    packages_size :: Maybe Int
+  { project_stats_commit_count :: Int,
+    project_stats_storage_size :: Int,
+    project_stats_repository_size :: Int,
+    project_stats_wiki_size :: Maybe Int,
+    project_stats_lfs_objects_size :: Maybe Int,
+    project_stats_job_artifacts_size :: Maybe Int,
+    project_stats_packages_size :: Maybe Int
   }
-  deriving (Generic, Show)
+  deriving (Generic, Show, Eq)
 
 -- | registered users.
 data User = User
@@ -270,8 +275,9 @@ data User = User
     user_username :: Text,
     user_name :: Text,
     user_state :: Text,
-    user_avatar_uri :: Maybe Text,
-    user_web_url :: Maybe Text
+    user_avatar_url :: Maybe Text,
+    user_web_url :: Maybe Text,
+    user_discussion_locked :: Maybe Bool -- only for author of 'TODO' type
   }
   deriving (Generic, Show, Eq)
 
@@ -293,6 +299,7 @@ data Milestone = Milestone
     milestone_description :: Maybe Text,
     milestone_state :: Maybe MilestoneState,
     milestone_due_date :: Maybe Text,
+    milestone_start_date :: Maybe Text,
     milestone_iid :: Maybe Int,
     milestone_created_at :: Maybe UTCTime,
     milestone_title :: Text,
@@ -307,10 +314,10 @@ instance FromJSON Milestone where
 
 -- | time stats.
 data TimeStats = TimeStats
-  { time_estimate :: Int,
-    total_time_spent :: Int,
-    human_time_estimate :: Maybe Int,
-    human_total_time_spent :: Maybe Int
+  { time_stats_time_estimate :: Int,
+    time_stats_total_time_spent :: Int,
+    time_stats_human_time_estimate :: Maybe Int,
+    time_stats_human_total_time_spent :: Maybe Int
   }
   deriving (Generic, Show, Eq)
 
@@ -325,37 +332,62 @@ data Issue = Issue
   { issue_state :: Text,
     issue_description :: Maybe Text,
     issue_author :: User,
-    milestone :: Maybe Milestone,
+    issue_milestone :: Maybe Milestone,
     issue_project_id :: ProjectId,
-    assignees :: Maybe [User],
-    assignee :: Maybe User,
-    updated_at :: UTCTime,
-    closed_at :: Maybe Text,
-    closed_by :: Maybe User,
+    issue_assignees :: Maybe [User],
+    issue_assignee :: Maybe User,
+    issue_updated_at :: UTCTime,
+    issue_closed_at :: Maybe Text,
+    issue_closed_by :: Maybe User,
     issue_id :: IssueId,
     issue_title :: Text,
     issue_created_at :: UTCTime,
-    iid :: Int,
+    issue_iid :: Int,
     issue_labels :: [Text],
-    upvotes :: Int,
-    downvotes :: Int,
-    user_notes_count :: Int,
+    issue_upvotes :: Int,
+    issue_downvotes :: Int,
+    issue_user_notes_count :: Int,
     issue_due_date :: Maybe Text,
     issue_web_url :: Text,
-    confidential :: Bool,
-    weight :: Maybe Text, -- Int?
-    discussion_locked :: Maybe Bool,
-    time_stats :: Maybe TimeStats
+    issue_confidential :: Bool,
+    issue_weight :: Maybe Text, -- Int?
+    issue_discussion_locked :: Maybe Bool,
+    issue_time_stats :: Maybe TimeStats
   }
   deriving (Generic, Show, Eq)
 
 -- | project pipelines
 data Pipeline = Pipeline
   { pipeline_id :: Int,
-    sha :: Text,
+    pipeline_sha :: Text,
     pipeline_ref :: Text,
     pipeline_status :: Text,
-    pipeline_web_url :: Maybe Text
+    pipeline_web_url :: Maybe Text,
+    pipeline_before_sha :: Maybe Text,
+    pipeline_tag :: Maybe Bool,
+    pipeline_yaml_errors :: Maybe Text,
+    pipeline_user :: Maybe User,
+    pipeline_created_at :: Maybe UTCTime,
+    pipeline_updated_at :: Maybe UTCTime,
+    pipeline_started_at :: Maybe UTCTime,
+    pipeline_finished_at :: Maybe UTCTime,
+    pipelined_committed_at :: Maybe UTCTime,
+    pipeline_duration :: Maybe Int,
+    pipeline_detailed_status :: Maybe DetailedStatus
+  }
+  deriving (Generic, Show, Eq)
+
+-- | project pipelines
+data DetailedStatus = DetailedStatus
+  { detailed_status_icon :: Maybe Text, -- "status_pending"
+    detailed_status_text :: Maybe Text,
+    detailed_status_label :: Maybe Text,
+    detailed_status_group :: Maybe Text,
+    detailed_status_tooltip :: Maybe Text,
+    detailed_status_has_details :: Maybe Bool,
+    detailed_status_details_path :: Maybe Text,
+    detailed_status_illustration :: Maybe Text,
+    detailed_status_favicon :: Maybe Text
   }
   deriving (Generic, Show, Eq)
 
@@ -377,14 +409,14 @@ data Commit = Commit
     commit_stats :: Maybe CommitStats,
     commit_status :: Maybe Text
   }
-  deriving (Generic, Show)
+  deriving (Generic, Show, Eq)
 
 -- | summary of a code commit for TODOs.
 data CommitTodo = CommitTodo
-  { todo_commit_id :: Text,
-    todo_commit_short_id :: Text,
-    todo_commit_created_at :: UTCTime,
-    todo_parent_ids :: Maybe [String]
+  { commit_todo_id :: Text,
+    commit_todo_short_id :: Text,
+    commit_todo_created_at :: UTCTime,
+    commit_todo_parent_ids :: Maybe [String]
   }
   deriving (Generic, Show, Eq)
 
@@ -394,7 +426,7 @@ data CommitStats = Stats
     deletions :: Int,
     total :: Int
   }
-  deriving (Generic, Show)
+  deriving (Generic, Show, Eq)
 
 -- | tags.
 data Tag = Tag
@@ -405,14 +437,14 @@ data Tag = Tag
     tag_message :: Maybe Text,
     tag_protected :: Bool
   }
-  deriving (Generic, Show)
+  deriving (Generic, Show, Eq)
 
 -- | Release associated with a tag
 data Release = Release
   { release_tag_name :: Text,
     release_description :: Text
   }
-  deriving (Generic, Show)
+  deriving (Generic, Show, Eq)
 
 -- | diff between two commits.
 data Diff = Diff
@@ -425,7 +457,7 @@ data Diff = Diff
     renamed_file :: Bool,
     deleted_file :: Bool
   }
-  deriving (Generic, Show)
+  deriving (Generic, Show, Eq)
 
 -- | repositories.
 data Repository = Repository
@@ -435,7 +467,7 @@ data Repository = Repository
     repository_path :: Text,
     mode :: Text
   }
-  deriving (Generic, Show)
+  deriving (Generic, Show, Eq)
 
 -- | jobs.
 data Job = Job
@@ -458,7 +490,7 @@ data Job = Job
     job_web_url :: Text,
     job_user :: User
   }
-  deriving (Generic, Show)
+  deriving (Generic, Show, Eq)
 
 -- | artifacts.
 data Artifact = Artifact
@@ -467,7 +499,7 @@ data Artifact = Artifact
     filename :: Text,
     file_format :: Maybe Text
   }
-  deriving (Generic, Show)
+  deriving (Generic, Show, Eq)
 
 -- | groups.
 data Group = Group
@@ -485,7 +517,7 @@ data Group = Group
     group_file_template_project_id :: Maybe Int,
     group_parent_id :: Maybe Int
   }
-  deriving (Generic, Show)
+  deriving (Generic, Show, Eq)
 
 -- | response to sharing a project with a group.
 data GroupShare = GroupShare
@@ -495,7 +527,7 @@ data GroupShare = GroupShare
     share_group_access :: Int,
     share_expires_at :: Maybe Text
   }
-  deriving (Generic, Show)
+  deriving (Generic, Show, Eq)
 
 -- | code branches.
 data Branch = Branch
@@ -508,7 +540,7 @@ data Branch = Branch
     can_push :: Bool,
     branch_commit :: Commit
   }
-  deriving (Generic, Show)
+  deriving (Generic, Show, Eq)
 
 -- | files in a repository.
 data RepositoryFile = RepositoryFile
@@ -523,7 +555,7 @@ data RepositoryFile = RepositoryFile
     repository_file_commit_id :: Text,
     last_commit_id :: Text
   }
-  deriving (Generic, Show)
+  deriving (Generic, Show, Eq)
 
 -- | project merge requests.
 data MergeRequest = MergeRequest
@@ -533,10 +565,6 @@ data MergeRequest = MergeRequest
     merge_request_title :: Text,
     merge_request_description :: Text,
     merge_request_state :: Text, -- TODO make a type e.g. 'reopened'
-    merge_request_merged_by :: Maybe User,
-    merge_request_merged_at :: Maybe UTCTime,
-    merge_request_closed_by :: Maybe User,
-    merge_request_closed_at :: Maybe UTCTime,
     merge_request_created_at :: UTCTime,
     merge_request_updated_at :: UTCTime,
     merge_request_target_branch :: Text,
@@ -550,10 +578,12 @@ data MergeRequest = MergeRequest
     merge_request_source_project_id :: Int,
     merge_request_target_project_id :: Int,
     merge_request_labels :: [Text],
+    merge_request_draft :: Maybe Bool,
     merge_request_work_in_progress :: Bool,
     merge_request_milestone :: Maybe Milestone,
     merge_request_merge_when_pipeline_succeeds :: Bool,
-    merge_request_merge_status :: Text,
+    merge_request_merge_status :: Text, -- create type e.g. for "can_be_merged"
+    merge_request_merge_error :: Maybe Text,
     merge_request_sha :: Text,
     merge_request_merge_commit_sha :: Maybe Text,
     merge_request_squash_commit_sha :: Maybe Text,
@@ -566,15 +596,27 @@ data MergeRequest = MergeRequest
     merge_request_web_url :: Text,
     merge_request_time_stats :: Maybe TimeStats,
     merge_request_squash :: Bool,
+    merge_request_subscribed :: Maybe Bool,
     merge_request_changes_count :: Maybe String,
+    merge_request_merged_by :: Maybe User,
+    merge_request_merged_at :: Maybe UTCTime,
+    merge_request_closed_by :: Maybe User,
+    merge_request_closed_at :: Maybe UTCTime,
+    merge_request_latest_build_started_at :: Maybe UTCTime,
+    merge_request_latest_build_finished_at :: Maybe UTCTime,
+    merge_request_first_deployed_to_production_at :: Maybe UTCTime,
     merge_request_pipeline :: Maybe Pipeline,
     merge_request_diverged_commits_count :: Maybe Int,
     merge_request_rebase_in_progress :: Maybe Bool,
+    merge_request_first_contribution :: Maybe Bool,
     merge_request_has_conflicts :: Maybe Bool,
     merge_request_blocking_discussions_resolved :: Maybe Bool,
     merge_request_approvals_before_merge :: Maybe Bool, -- ?
-    merge_request_draft :: Maybe Bool,
-    merge_request_subscribed :: Maybe Bool
+    merge_request_task_completion_status :: Maybe TaskCompletionStatus,
+    merge_request_references :: Maybe References,
+    merge_request_changes :: Maybe [Change],
+    merge_request_overflow :: Maybe Bool,
+    merge_request_diff_refs :: Maybe DiffRefs
   }
   deriving (Generic, Show, Eq)
 
@@ -584,11 +626,6 @@ data MergeRequest = MergeRequest
     "short": "!1",
     "relative": "!1",
     "full": "my-group/my-project!1"
-  },
-
-  "task_completion_status":{
-    "count":0,
-    "completed_count":0
   },
 
   "changes": [
@@ -604,6 +641,12 @@ data MergeRequest = MergeRequest
     }
 
   "overflow": false
+
+  "diff_refs": {
+    "base_sha": "c380d3acebd181f13629a25d2e2acca46ffe1e00",
+    "head_sha": "2be7ddb704c7b6b83732fdd5b9f09d5a397b5f8f",
+    "start_sha": "c380d3acebd181f13629a25d2e2acca46ffe1e00"
+  },
 
 -}
 
@@ -644,25 +687,39 @@ data TodoState
   | TSDone
   deriving (Generic, Show, Eq)
 
-instance FromJSON TodoState where
-  parseJSON (String "pending") = return TSPending
-  parseJSON (String "done") = return TSDone
-  parseJSON x = unexpected x
-
 -- | A project TODO.
 data TodoProject = TP
-  { tp_id :: Int,
-    tp_description :: Maybe Text,
-    tp_name :: Text,
-    tp_name_with_namespace :: Text,
-    tp_path :: Text,
-    tp_path_with_namespace :: Text,
-    tp_created_at :: Maybe UTCTime
+  { todo_project_id :: Int,
+    todo_project_description :: Maybe Text,
+    todo_project_name :: Text,
+    todo_project_name_with_namespace :: Text,
+    todo_project_path :: Text,
+    todo_project_path_with_namespace :: Text,
+    todo_project_created_at :: Maybe UTCTime
   }
   deriving (Generic, Show, Eq)
 
 instance FromJSON TodoProject where
-  parseJSON = genericParseJSON (defaultOptions {fieldLabelModifier = drop 3})
+  parseJSON =
+    genericParseJSON
+      ( defaultOptions
+          { fieldLabelModifier = drop (T.length "todo_project_")
+          }
+      )
+
+instance ToJSON TodoProject where
+  toJSON =
+    genericToJSON
+      defaultOptions
+        { fieldLabelModifier = drop (T.length "todo_project_"),
+          omitNothingFields = True
+        }
+  toEncoding =
+    genericToEncoding
+      defaultOptions
+        { fieldLabelModifier = drop (T.length "todo_project_"),
+          omitNothingFields = True
+        }
 
 -- | TODOs.
 data Todo = Todo
@@ -670,6 +727,7 @@ data Todo = Todo
     todo_project :: TodoProject,
     todo_author :: User,
     todo_action_name :: TodoAction,
+    todo_target_type :: TodoTargetType,
     todo_target :: TodoTarget,
     todo_target_url :: URL,
     todo_body :: Text,
@@ -678,23 +736,11 @@ data Todo = Todo
   }
   deriving (Generic, Show, Eq)
 
-instance FromJSON Todo where
-  parseJSON = withObject "Todo" $ \v ->
-    Todo
-      <$> v .: "id"
-      <*> v .: "project"
-      <*> v .: "author"
-      <*> v .: "action_name"
-      <*> ( v .: "target_type" >>= \case
-              "MergeRequest" -> TTMergeRequest <$> v .: "target"
-              "Issue" -> TTIssue <$> v .: "target"
-              "Commit" -> TTCommit <$> v .: "target"
-              (_ :: Text) -> fail ""
-          )
-      <*> v .: "target_url"
-      <*> v .: "body"
-      <*> v .: "state"
-      <*> v .: "created_at"
+data TodoTargetType
+  = MergeRequestTarget
+  | IssueTarget
+  | CommitTarget
+  deriving (Generic, Show, Eq)
 
 -- | version of the GitLab instance.
 data Version = Version
@@ -773,7 +819,7 @@ data IssueCounts = IssueCounts
 data IssueBoard = IssueBoard
   { board_id :: Int,
     board_name :: Text,
-    board_project :: ProjectBoard,
+    board_project :: Project,
     board_milestone :: Maybe Milestone,
     board_lists :: [BoardIssue],
     board_group :: Maybe Text, -- not sure, documentation doesn't indicate type
@@ -801,18 +847,6 @@ data BoardIssueLabel = BoardIssueLabel
     board_issue_label_name :: Text,
     board_issue_label_color :: Text, -- parse into type from e.g. "#F0AD4E"
     board_issue_label_description :: Maybe Text
-  }
-  deriving (Generic, Show, Eq)
-
--- | A project board
-data ProjectBoard = ProjectBoard
-  { project_board_id :: Int,
-    project_board_name :: Text,
-    project_board_name_with_namespace :: Text,
-    project_board_path :: Text,
-    project_board_path_with_namespace :: Text,
-    project_board_http_url_to_repo :: Text,
-    project_board_web_url :: Text
   }
   deriving (Generic, Show, Eq)
 
@@ -888,9 +922,41 @@ testcasePrefix s = s
 
 data TimeEstimate = TimeEstimate
   { time_estimate_human_time_estimate :: Maybe Text,
-    time_estimate_human_time_spent :: Maybe Text,
+    time_estimate_human_total_time_spent :: Maybe Text,
     time_estimate_time_estimate :: Maybe Int,
     time_estimate_total_time_spent :: Maybe Int
+  }
+  deriving (Generic, Show, Eq)
+
+data TaskCompletionStatus = TaskCompletionStatus
+  { task_completion_status_count :: Int,
+    task_completion_status_completed_count :: Maybe Int
+  }
+  deriving (Generic, Show, Eq)
+
+data References = References
+  { references_short :: Text,
+    references_relative :: Text,
+    references_full :: Text
+  }
+  deriving (Generic, Show, Eq)
+
+data Change = Change
+  { change_old_path :: Text,
+    change_new_path :: Text,
+    change_a_mode :: Text, -- find type for "100644"
+    change_b_mode :: Text, -- find type for "100644"
+    change_diff :: Text, -- find type for "--- a/VERSION\\ +++ b/VERSION\\ @@ -1 +1 @@\\ -1.9.7\\ +1.9.8"
+    change_new_file :: Bool,
+    change_renamed_file :: Bool,
+    change_deleted_file :: Bool
+  }
+  deriving (Generic, Show, Eq)
+
+data DiffRefs = DiffRefs
+  { diff_refs_base_sha :: Text,
+    diff_refs_head_sha :: Text,
+    diff_refs_start_sha :: Text
   }
   deriving (Generic, Show, Eq)
 
@@ -903,10 +969,10 @@ bodyNoPrefix "commit_created_at" = "created_at"
 bodyNoPrefix "commit_id" = "id"
 bodyNoPrefix "commit_status" = "status"
 bodyNoPrefix "commit_parent_ids" = "parent_ids"
-bodyNoPrefix "todo_commit_id" = "id"
-bodyNoPrefix "todo_commit_short_id" = "short_id"
-bodyNoPrefix "todo_commit_created_at" = "created_at"
-bodyNoPrefix "todo_parent_ids" = "parent_ids"
+-- bodyNoPrefix "todo_commit_id" = "id"
+-- bodyNoPrefix "todo_commit_short_id" = "short_id"
+-- bodyNoPrefix "todo_commit_created_at" = "created_at"
+-- bodyNoPrefix "todo_parent_ids" = "parent_ids"
 bodyNoPrefix "issue_author" = "author"
 bodyNoPrefix "issue_created_at" = "created_at"
 bodyNoPrefix "issue_description" = "description"
@@ -925,37 +991,27 @@ bodyNoPrefix "member_name" = "name"
 bodyNoPrefix "member_state" = "state"
 bodyNoPrefix "member_username" = "username"
 bodyNoPrefix "member_web_url" = "we_url"
-bodyNoPrefix "namespace_id" = "id"
-bodyNoPrefix "namespace_name" = "name"
-bodyNoPrefix "namespace_path" = "path"
-bodyNoPrefix "owner_avatar_url" = "avatar_url"
-bodyNoPrefix "owner_id" = "id"
-bodyNoPrefix "owner_name" = "name"
-bodyNoPrefix "owner_username" = "username"
-bodyNoPrefix "owner_web_url" = "web_url"
-bodyNoPrefix "pipeline_id" = "id"
-bodyNoPrefix "pipeline_status" = "status"
-bodyNoPrefix "pipeline_web_url" = "web_url"
-bodyNoPrefix "project_avatar_url" = "avatar_url"
-bodyNoPrefix "project_created_at" = "created_at"
-bodyNoPrefix "project_id" = "id"
-bodyNoPrefix "project_name" = "name"
-bodyNoPrefix "project_path" = "path"
-bodyNoPrefix "project_path_with_namespace" = "path_with_namespace"
-bodyNoPrefix "project_web_url" = "web_url"
+-- bodyNoPrefix "namespace_id" = "id"
+-- bodyNoPrefix "namespace_name" = "name"
+-- bodyNoPrefix "namespace_path" = "path"
+-- bodyNoPrefix "owner_avatar_url" = "avatar_url"
+-- bodyNoPrefix "owner_id" = "id"
+-- bodyNoPrefix "owner_name" = "name"
+-- bodyNoPrefix "owner_username" = "username"
+-- bodyNoPrefix "owner_web_url" = "web_url"
+-- bodyNoPrefix "project_avatar_url" = "avatar_url"
+-- bodyNoPrefix "project_created_at" = "created_at"
+-- bodyNoPrefix "project_id" = "id"
+-- bodyNoPrefix "project_name" = "name"
+-- bodyNoPrefix "project_path" = "path"
+-- bodyNoPrefix "project_path_with_namespace" = "path_with_namespace"
+-- bodyNoPrefix "project_web_url" = "web_url"
 bodyNoPrefix "repository_id" = "id"
 bodyNoPrefix "repository_name" = "name"
 bodyNoPrefix "repository_path" = "path"
 bodyNoPrefix "repository_type" = "type"
-bodyNoPrefix "user_avatar_uri" = "avatar_url"
-bodyNoPrefix "user_id" = "id"
-bodyNoPrefix "user_name" = "name"
-bodyNoPrefix "user_state" = "state"
-bodyNoPrefix "user_username" = "username"
-bodyNoPrefix "user_web_url" = "web_url"
 bodyNoPrefix "event_title" = "title"
 bodyNoPrefix "event_project_id" = "project_id"
-bodyNoPrefix "pipeline_ref" = "ref"
 bodyNoPrefix "branch_name" = "name"
 bodyNoPrefix "branch_default" = "default"
 bodyNoPrefix "branch_commit" = "commit"
@@ -963,7 +1019,7 @@ bodyNoPrefix "repository_file_file_name" = "file_name"
 bodyNoPrefix "repository_file_file_path" = "file_path"
 bodyNoPrefix "repository_file_size" = "size"
 bodyNoPrefix "repository_file_commit_id" = "commit_id"
-bodyNoPrefix "project_stats" = "statistics"
+-- bodyNoPrefix "project_stats" = "statistics"
 bodyNoPrefix "commit_stats" = "stats"
 bodyNoPrefix "share_id" = "id"
 bodyNoPrefix "share_project_id" = "project_id"
@@ -1044,51 +1100,79 @@ issueStatsPrefix "issues_statistics" = "statistics"
 issueStatsPrefix "issues_counts" = "counts"
 issueStatsPrefix s = s
 
-boardsPrefix :: String -> String
-boardsPrefix "board_id" = "id"
-boardsPrefix "board_name" = "name"
-boardsPrefix "board_project" = "project"
-boardsPrefix "board_milestone" = "milestone"
-boardsPrefix "board_lists" = "lists"
-boardsPrefix "board_issue_id" = "id"
-boardsPrefix "board_issue_label" = "label"
-boardsPrefix "board_issue_position" = "position"
-boardsPrefix "board_issue_max_issue_count" = "max_issue_count"
-boardsPrefix "board_issue_max_issue_weight" = "max_issue_weight"
-boardsPrefix "board_issue_limit_metric" = "limit_metric"
-boardsPrefix "board_issue_label_name" = "name"
-boardsPrefix "board_issue_label_color" = "color"
-boardsPrefix "board_issue_label_description" = "description"
-boardsPrefix "project_board_id" = "id"
-boardsPrefix "project_board_name" = "name"
-boardsPrefix "project_board_name_with_namespace" = "name_with_namespace"
-boardsPrefix "project_board_path" = "path"
-boardsPrefix "project_board_path_with_namespace" = "path_with_namespace"
-boardsPrefix "project_board_http_url_to_repo" = "http_url_to_repo"
-boardsPrefix "project_board_web_url" = "web_url"
-boardsPrefix s = s
+-- boardsPrefix :: String -> String
+-- boardsPrefix "board_id" = "id"
+-- boardsPrefix "board_name" = "name"
+-- boardsPrefix "board_project" = "project"
+-- boardsPrefix "board_milestone" = "milestone"
+-- boardsPrefix "board_lists" = "lists"
+-- boardsPrefix "board_issue_id" = "id"
+-- boardsPrefix "board_issue_label" = "label"
+-- boardsPrefix "board_issue_position" = "position"
+-- boardsPrefix "board_issue_max_issue_count" = "max_issue_count"
+-- boardsPrefix "board_issue_max_issue_weight" = "max_issue_weight"
+-- boardsPrefix "board_issue_limit_metric" = "limit_metric"
+-- boardsPrefix "board_issue_label_name" = "name"
+-- boardsPrefix "board_issue_label_color" = "color"
+-- boardsPrefix "board_issue_label_description" = "description"
+-- boardsPrefix "project_board_id" = "id"
+-- boardsPrefix "project_board_name" = "name"
+-- boardsPrefix "project_board_name_with_namespace" = "name_with_namespace"
+-- boardsPrefix "project_board_path" = "path"
+-- boardsPrefix "project_board_path_with_namespace" = "path_with_namespace"
+-- boardsPrefix "project_board_http_url_to_repo" = "http_url_to_repo"
+-- boardsPrefix "project_board_web_url" = "web_url"
+-- boardsPrefix s = s
 
 instance FromJSON TimeStats where
   parseJSON =
     genericParseJSON
       ( defaultOptions
-          { fieldLabelModifier = bodyNoPrefix
+          { fieldLabelModifier = drop (T.length "time_stats_")
           }
       )
+
+instance ToJSON TimeStats where
+  toJSON =
+    genericToJSON
+      defaultOptions
+        { fieldLabelModifier = drop (T.length "time_stats_"),
+          omitNothingFields = True
+        }
+  toEncoding =
+    genericToEncoding
+      defaultOptions
+        { fieldLabelModifier = drop (T.length "time_stats_"),
+          omitNothingFields = True
+        }
 
 instance FromJSON Issue where
   parseJSON =
     genericParseJSON
       ( defaultOptions
-          { fieldLabelModifier = bodyNoPrefix
+          { fieldLabelModifier = drop (T.length "issue_")
           }
       )
+
+instance ToJSON Issue where
+  toJSON =
+    genericToJSON
+      defaultOptions
+        { fieldLabelModifier = drop (T.length "issue_"),
+          omitNothingFields = True
+        }
+  toEncoding =
+    genericToEncoding
+      defaultOptions
+        { fieldLabelModifier = drop (T.length "issue_"),
+          omitNothingFields = True
+        }
 
 instance FromJSON User where
   parseJSON =
     genericParseJSON
       ( defaultOptions
-          { fieldLabelModifier = bodyNoPrefix
+          { fieldLabelModifier = drop (T.length "user_")
           }
       )
 
@@ -1136,7 +1220,23 @@ instance FromJSON Pipeline where
   parseJSON =
     genericParseJSON
       ( defaultOptions
-          { fieldLabelModifier = bodyNoPrefix
+          { fieldLabelModifier = drop (T.length "pipeline_")
+          }
+      )
+
+instance ToJSON Pipeline where
+  toJSON =
+    genericToJSON
+      ( defaultOptions
+          { fieldLabelModifier = drop (T.length "pipeline_"),
+            omitNothingFields = True
+          }
+      )
+  toEncoding =
+    genericToEncoding
+      ( defaultOptions
+          { fieldLabelModifier = drop (T.length "pipeline_"),
+            omitNothingFields = True
           }
       )
 
@@ -1152,7 +1252,23 @@ instance FromJSON Permissions where
   parseJSON =
     genericParseJSON
       ( defaultOptions
-          { fieldLabelModifier = bodyNoPrefix
+          { fieldLabelModifier = drop (T.length "permissions_")
+          }
+      )
+
+instance ToJSON Permissions where
+  toJSON =
+    genericToJSON
+      ( defaultOptions
+          { fieldLabelModifier = drop (T.length "permissions_"),
+            omitNothingFields = True
+          }
+      )
+  toEncoding =
+    genericToEncoding
+      ( defaultOptions
+          { fieldLabelModifier = drop (T.length "permissions_"),
+            omitNothingFields = True
           }
       )
 
@@ -1160,33 +1276,89 @@ instance FromJSON Owner where
   parseJSON =
     genericParseJSON
       ( defaultOptions
-          { fieldLabelModifier = bodyNoPrefix
+          { fieldLabelModifier = drop (T.length "owner_")
           }
       )
+
+instance ToJSON Owner where
+  toJSON =
+    genericToJSON
+      defaultOptions
+        { fieldLabelModifier = drop (T.length "owner_"),
+          omitNothingFields = True
+        }
+  toEncoding =
+    genericToEncoding
+      defaultOptions
+        { fieldLabelModifier = drop (T.length "owner_"),
+          omitNothingFields = True
+        }
 
 instance FromJSON Links where
   parseJSON =
     genericParseJSON
       ( defaultOptions
-          { fieldLabelModifier = bodyNoPrefix
+          { fieldLabelModifier = drop (T.length "links_")
           }
       )
+
+instance ToJSON Links where
+  toJSON =
+    genericToJSON
+      defaultOptions
+        { fieldLabelModifier = drop (T.length "links_"),
+          omitNothingFields = True
+        }
+  toEncoding =
+    genericToEncoding
+      defaultOptions
+        { fieldLabelModifier = drop (T.length "links_"),
+          omitNothingFields = True
+        }
 
 instance FromJSON Namespace where
   parseJSON =
     genericParseJSON
       ( defaultOptions
-          { fieldLabelModifier = bodyNoPrefix
+          { fieldLabelModifier = drop (T.length "namespace_")
           }
       )
+
+instance ToJSON Namespace where
+  toJSON =
+    genericToJSON
+      defaultOptions
+        { fieldLabelModifier = drop (T.length "namespace_"),
+          omitNothingFields = True
+        }
+  toEncoding =
+    genericToEncoding
+      defaultOptions
+        { fieldLabelModifier = drop (T.length "namespace_"),
+          omitNothingFields = True
+        }
 
 instance FromJSON Project where
   parseJSON =
     genericParseJSON
       ( defaultOptions
-          { fieldLabelModifier = bodyNoPrefix
+          { fieldLabelModifier = drop (T.length "project_")
           }
       )
+
+instance ToJSON Project where
+  toJSON =
+    genericToJSON
+      defaultOptions
+        { fieldLabelModifier = drop (T.length "project_"),
+          omitNothingFields = True
+        }
+  toEncoding =
+    genericToEncoding
+      defaultOptions
+        { fieldLabelModifier = drop (T.length "project_"),
+          omitNothingFields = True
+        }
 
 instance FromJSON ProjectStats where
   parseJSON =
@@ -1195,6 +1367,20 @@ instance FromJSON ProjectStats where
           { fieldLabelModifier = bodyNoPrefix
           }
       )
+
+instance ToJSON ProjectStats where
+  toJSON =
+    genericToJSON
+      defaultOptions
+        { fieldLabelModifier = drop (T.length "project_stats_"),
+          omitNothingFields = True
+        }
+  toEncoding =
+    genericToEncoding
+      defaultOptions
+        { fieldLabelModifier = drop (T.length "project_stats_"),
+          omitNothingFields = True
+        }
 
 instance FromJSON Repository where
   parseJSON =
@@ -1260,6 +1446,20 @@ instance FromJSON MergeRequest where
           }
       )
 
+instance ToJSON MergeRequest where
+  toJSON =
+    genericToJSON
+      defaultOptions
+        { fieldLabelModifier = drop (T.length "merge_request_"),
+          omitNothingFields = True
+        }
+  toEncoding =
+    genericToEncoding
+      defaultOptions
+        { fieldLabelModifier = drop (T.length "merge_request_"),
+          omitNothingFields = True
+        }
+
 instance FromJSON Diff where
   parseJSON =
     genericParseJSON
@@ -1277,6 +1477,12 @@ instance FromJSON Version where
       )
 
 instance ToJSON EditIssueReq where
+  toJSON =
+    genericToJSON
+      defaultOptions
+        { fieldLabelModifier = drop (T.length "edit_issue_"),
+          omitNothingFields = True
+        }
   toEncoding =
     genericToEncoding
       defaultOptions
@@ -1328,33 +1534,67 @@ instance FromJSON IssueBoard where
   parseJSON =
     genericParseJSON
       ( defaultOptions
-          { fieldLabelModifier = boardsPrefix
+          { fieldLabelModifier = drop (T.length "board_")
           }
       )
+
+instance ToJSON IssueBoard where
+  toJSON =
+    genericToJSON
+      defaultOptions
+        { fieldLabelModifier = drop (T.length "board_"),
+          omitNothingFields = True
+        }
+  toEncoding =
+    genericToEncoding
+      defaultOptions
+        { fieldLabelModifier = drop (T.length "board_"),
+          omitNothingFields = True
+        }
 
 instance FromJSON BoardIssue where
   parseJSON =
     genericParseJSON
       ( defaultOptions
-          { fieldLabelModifier = boardsPrefix
+          { fieldLabelModifier = drop (T.length "board_issue_")
           }
       )
+
+instance ToJSON BoardIssue where
+  toJSON =
+    genericToJSON
+      defaultOptions
+        { fieldLabelModifier = drop (T.length "board_issue_"),
+          omitNothingFields = True
+        }
+  toEncoding =
+    genericToEncoding
+      defaultOptions
+        { fieldLabelModifier = drop (T.length "board_issue_"),
+          omitNothingFields = True
+        }
 
 instance FromJSON BoardIssueLabel where
   parseJSON =
     genericParseJSON
       ( defaultOptions
-          { fieldLabelModifier = boardsPrefix
+          { fieldLabelModifier = drop (T.length "board_issue_label_")
           }
       )
 
-instance FromJSON ProjectBoard where
-  parseJSON =
-    genericParseJSON
-      ( defaultOptions
-          { fieldLabelModifier = boardsPrefix
-          }
-      )
+instance ToJSON BoardIssueLabel where
+  toJSON =
+    genericToJSON
+      defaultOptions
+        { fieldLabelModifier = drop (T.length "board_issue_label_"),
+          omitNothingFields = True
+        }
+  toEncoding =
+    genericToEncoding
+      defaultOptions
+        { fieldLabelModifier = drop (T.length "board_issue_label_"),
+          omitNothingFields = True
+        }
 
 instance FromJSON TestReport where
   parseJSON =
@@ -1383,3 +1623,240 @@ instance FromJSON TimeEstimate where
           { fieldLabelModifier = drop (T.length "time_estimate_")
           }
       )
+
+instance ToJSON TimeEstimate where
+  toJSON =
+    genericToJSON
+      defaultOptions
+        { fieldLabelModifier = drop (T.length "time_estimate_"),
+          omitNothingFields = True
+        }
+  toEncoding =
+    genericToEncoding
+      defaultOptions
+        { fieldLabelModifier = drop (T.length "time_estimate_"),
+          omitNothingFields = True
+        }
+
+instance ToJSON User where
+  toJSON =
+    genericToJSON
+      defaultOptions
+        { fieldLabelModifier = drop (T.length "user_"),
+          omitNothingFields = True
+        }
+  toEncoding =
+    genericToEncoding
+      defaultOptions
+        { fieldLabelModifier = drop (T.length "user_"),
+          omitNothingFields = True
+        }
+
+instance ToJSON Milestone where
+  toJSON =
+    genericToJSON
+      defaultOptions
+        { fieldLabelModifier = drop (T.length "milestone_"),
+          omitNothingFields = True
+        }
+  toEncoding =
+    genericToEncoding
+      defaultOptions
+        { fieldLabelModifier = drop (T.length "milestone_"),
+          omitNothingFields = True
+        }
+
+instance FromJSON TaskCompletionStatus where
+  parseJSON =
+    genericParseJSON
+      ( defaultOptions
+          { fieldLabelModifier = drop (T.length "task_completion_status_")
+          }
+      )
+
+instance ToJSON TaskCompletionStatus where
+  toJSON =
+    genericToJSON
+      defaultOptions
+        { fieldLabelModifier = drop (T.length "task_completion_status_"),
+          omitNothingFields = True
+        }
+  toEncoding =
+    genericToEncoding
+      defaultOptions
+        { fieldLabelModifier = drop (T.length "task_completion_status_"),
+          omitNothingFields = True
+        }
+
+instance ToJSON MilestoneState where
+  toJSON MSActive = String "active"
+  toJSON MSClosed = String "closed"
+
+instance ToJSON TodoAction where
+  toJSON TAAssigned = String "assigned"
+  toJSON TAMentioned = String "mentioned"
+  toJSON TABuildFailed = String "build_build"
+  toJSON TAMarked = String "marked"
+  toJSON TAApprovalRequired = String "approval_required"
+  toJSON TAUnmergeable = String "unmergeable"
+  toJSON TADirectlyAddressed = String "directly_addressed"
+
+instance FromJSON References where
+  parseJSON =
+    genericParseJSON
+      ( defaultOptions
+          { fieldLabelModifier = drop (T.length "references_")
+          }
+      )
+
+instance ToJSON References where
+  toJSON =
+    genericToJSON
+      defaultOptions
+        { fieldLabelModifier = drop (T.length "references_"),
+          omitNothingFields = True
+        }
+  toEncoding =
+    genericToEncoding
+      defaultOptions
+        { fieldLabelModifier = drop (T.length "references_"),
+          omitNothingFields = True
+        }
+
+instance FromJSON DiffRefs where
+  parseJSON =
+    genericParseJSON
+      ( defaultOptions
+          { fieldLabelModifier = drop (T.length "diff_refs_")
+          }
+      )
+
+instance ToJSON DiffRefs where
+  toJSON =
+    genericToJSON
+      defaultOptions
+        { fieldLabelModifier = drop (T.length "diff_refs_"),
+          omitNothingFields = True
+        }
+  toEncoding =
+    genericToEncoding
+      defaultOptions
+        { fieldLabelModifier = drop (T.length "diff_refs_"),
+          omitNothingFields = True
+        }
+
+instance FromJSON Change where
+  parseJSON =
+    genericParseJSON
+      ( defaultOptions
+          { fieldLabelModifier = drop (T.length "change_")
+          }
+      )
+
+instance ToJSON Change where
+  toJSON =
+    genericToJSON
+      defaultOptions
+        { fieldLabelModifier = drop (T.length "change_"),
+          omitNothingFields = True
+        }
+  toEncoding =
+    genericToEncoding
+      defaultOptions
+        { fieldLabelModifier = drop (T.length "change_"),
+          omitNothingFields = True
+        }
+
+instance FromJSON DetailedStatus where
+  parseJSON =
+    genericParseJSON
+      ( defaultOptions
+          { fieldLabelModifier = drop (T.length "detailed_status_")
+          }
+      )
+
+instance ToJSON DetailedStatus where
+  toJSON =
+    genericToJSON
+      defaultOptions
+        { fieldLabelModifier = drop (T.length "detailed_status_"),
+          omitNothingFields = True
+        }
+  toEncoding =
+    genericToEncoding
+      defaultOptions
+        { fieldLabelModifier = drop (T.length "detailed_status_"),
+          omitNothingFields = True
+        }
+
+instance FromJSON Todo where
+  parseJSON = withObject "Todo" $ \v ->
+    Todo
+      <$> v .: "id"
+      <*> v .: "project"
+      <*> v .: "author"
+      <*> v .: "action_name"
+      <*> v .: "target_type"
+      <*> ( v .: "target_type" >>= \case
+              "MergeRequest" -> TTMergeRequest <$> v .: "target"
+              "Issue" -> TTIssue <$> v .: "target"
+              "Commit" -> TTCommit <$> v .: "target"
+              (_ :: Text) -> fail ""
+          )
+      <*> v .: "target_url"
+      <*> v .: "body"
+      <*> v .: "state"
+      <*> v .: "created_at"
+
+instance ToJSON Todo where
+  toJSON =
+    genericToJSON
+      defaultOptions
+        { fieldLabelModifier = drop (T.length "todo_"),
+          omitNothingFields = True
+        }
+  toEncoding =
+    genericToEncoding
+      defaultOptions
+        { fieldLabelModifier = drop (T.length "todo_"),
+          omitNothingFields = True
+        }
+
+instance FromJSON TodoTargetType where
+  parseJSON (String "MergeRequest") = return MergeRequestTarget
+  parseJSON (String "Issue") = return IssueTarget
+  parseJSON (String "Commit") = return CommitTarget
+  parseJSON x = unexpected x
+
+instance ToJSON TodoTargetType where
+  toJSON MergeRequestTarget = String "MergeRequest"
+  toJSON IssueTarget = String "Issue"
+  toJSON CommitTarget = String "Commit"
+
+instance FromJSON TodoState where
+  parseJSON (String "pending") = return TSPending
+  parseJSON (String "done") = return TSDone
+  parseJSON x = unexpected x
+
+instance ToJSON TodoState where
+  toJSON TSPending = String "pending"
+  toJSON TSDone = String "done"
+
+instance ToJSON TodoTarget where
+  toJSON (TTIssue x) = toJSON x
+  toJSON (TTMergeRequest x) = toJSON x
+  toJSON (TTCommit x) = toJSON x
+
+instance ToJSON CommitTodo where
+  toJSON =
+    genericToJSON
+      defaultOptions
+        { fieldLabelModifier = drop (T.length "commit_todo_"),
+          omitNothingFields = True
+        }
+  toEncoding =
+    genericToEncoding
+      defaultOptions
+        { fieldLabelModifier = drop (T.length "commit_todo_"),
+          omitNothingFields = True
+        }
