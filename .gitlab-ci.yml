@@ -27,4 +27,4 @@ test:
       - .stack-work/
       - .stack-root/
   script:
-    - stack --no-terminal test
+    - stack --no-terminal test --fast
