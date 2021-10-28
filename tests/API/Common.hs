@@ -176,8 +176,6 @@ instance ToExpr BoardIssue
 
 instance ToExpr BoardIssueLabel
 
-instance ToExpr ProjectBoard
-
 instance ToExpr Visibility
 
 instance ToExpr TestReport
