@@ -222,7 +222,7 @@ issuesOnForks projectName = do
 projectMemebersCount :: Project -> GitLab (Text, [(Text, Text)])
 projectMemebersCount project = do
   friends <- count
-  return (namespace_name (namespace project), friends)
+  return (namespace_name (fromJust (project_namespace project)), friends)
   where
     count = do
       let addr =
