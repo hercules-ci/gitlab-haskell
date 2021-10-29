@@ -104,7 +104,7 @@ instance ToExpr Permissions
 
 instance ToExpr Project
 
-instance ToExpr ProjectStats
+instance ToExpr Statistics
 
 instance ToExpr User
 
