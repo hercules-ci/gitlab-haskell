@@ -24,7 +24,7 @@ module GitLab.Types
     Permissions (..),
     ProjectId,
     Project (..),
-    ProjectStats (..),
+    Statistics (..),
     User (..),
     Milestone (..),
     MilestoneState (..),
@@ -193,10 +193,11 @@ data Links = Links
 data Owner = Ownwer
   { owner_id :: Int,
     owner_name :: Text,
-    owner_username :: Text,
-    owner_state :: Text,
+    owner_username :: Maybe Text,
+    owner_state :: Maybe Text,
     owner_avatar_url :: Maybe Text,
-    owner_web_url :: Text
+    owner_web_url :: Maybe Text,
+    owner_created_at :: Maybe UTCTime
   }
   deriving (Generic, Show, Eq)
 
@@ -217,27 +218,33 @@ data Project = Project
     project_path_with_namespace :: Text,
     project_created_at :: Maybe UTCTime,
     project_default_branch :: Maybe Text,
-    project_tag_list :: Maybe [Text], -- check
+    project_tag_list :: Maybe [Text],
+    project_topics :: Maybe [Text],
     project_ssh_url_to_repo :: Maybe Text,
     project_http_url_to_repo :: Maybe Text,
     project_web_url :: Text,
     project_readme_url :: Maybe Text, -- check
     project_avatar_url :: Maybe Text, -- check
     project_star_count :: Maybe Int,
+    project_runners_token :: Maybe Text, -- "b8547b1dc37721d05889db52fa2f02"
+    project_ci_default_git_depth :: Maybe Int,
+    project_ci_forward_deployment_enabled :: Maybe Bool,
     project_forks_count :: Maybe Int,
     project_last_activity_at :: Maybe UTCTime,
     project_namespace :: Maybe Namespace,
-    project_links :: Maybe Links,
     project_archived :: Maybe Bool,
     project_visibility :: Maybe Text,
     project_owner :: Maybe Owner,
     project_resolve_outdated_diff_discussions :: Maybe Bool,
     project_container_registry_enabled :: Maybe Bool,
+    project_container_registry_access_level :: Maybe Text, -- TODO
+    -- type for "disabled"
     project_issues_enabled :: Maybe Bool,
     project_merge_requests_enabled :: Maybe Bool,
     project_wiki_enabled :: Maybe Bool,
     project_jobs_enabled :: Maybe Bool,
     project_snippets_enabled :: Maybe Bool,
+    project_can_create_merge_request_in :: Maybe Bool,
     project_shared_runners_enabled :: Maybe Bool,
     project_lfs_enabled :: Maybe Bool,
     project_creator_id :: Maybe Int,
@@ -248,24 +255,48 @@ data Project = Project
     project_ci_config_path :: Maybe Text, -- check null
     project_shared_with_groups :: Maybe [Object],
     project_only_allow_merge_if_pipeline_succeeds :: Maybe Bool,
+    project_allow_merge_on_skipped_pipeline :: Maybe Bool,
+    project_restrict_user_defined_variables :: Maybe Bool,
     project_request_access_enabled :: Maybe Bool,
     project_only_allow_merge_if_all_discussions_are_resolved :: Maybe Bool,
-    project_printing_merge_request_link_enabled :: Maybe Bool,
+    project_remove_source_branch_after_merge :: Maybe Bool,
+    project_printing_merge_request_links_enabled :: Maybe Bool,
     project_merge_method :: Maybe Text,
+    project_squash_option :: Maybe Text, -- TODO type for "default_on"
+    project_autoclose_referenced_issues :: Maybe Bool,
+    project_suggestion_commit_message :: Maybe Text,
+    project_marked_for_deletion_at :: Maybe Text, -- TODO "2020-04-03"
+    project_marked_for_deletion_on :: Maybe Text, -- TODO "2020-04-03"
+    project_statistics :: Maybe Statistics,
     project_permissions :: Maybe Permissions,
-    project_stats :: Maybe ProjectStats
+    project_container_registry_image_prefix :: Maybe Text,
+    project__links :: Maybe Links,
+    project_mirror :: Maybe Bool,
+    project_mirror_overwrites_diverged_branches :: Maybe Bool,
+    project_mirror_trigger_builds :: Maybe Bool,
+    project_auto_devops_deploy_strategy :: Maybe Text,
+    project_auto_devops_enabled :: Maybe Bool,
+    project_service_desk_enabled :: Maybe Bool,
+    project_approvals_before_merge :: Maybe Int,
+    project_mirror_user_id :: Maybe Int,
+    project_packages_enabled :: Maybe Bool,
+    project_only_mirror_protected_branches :: Maybe Bool,
+    project_repository_storage :: Maybe Text -- TODO type for "default"
   }
   deriving (Generic, Show, Eq)
 
 -- | project statistics.
-data ProjectStats = ProjectStats
-  { project_stats_commit_count :: Int,
-    project_stats_storage_size :: Int,
-    project_stats_repository_size :: Int,
-    project_stats_wiki_size :: Maybe Int,
-    project_stats_lfs_objects_size :: Maybe Int,
-    project_stats_job_artifacts_size :: Maybe Int,
-    project_stats_packages_size :: Maybe Int
+data Statistics = Statistics
+  { statistics_commit_count :: Int,
+    statistics_storage_size :: Int,
+    statistics_repository_size :: Int,
+    statistics_wiki_size :: Maybe Int,
+    statistics_lfs_objects_size :: Maybe Int,
+    statistics_job_artifacts_size :: Maybe Int,
+    statistics_packages_size :: Maybe Int,
+    statistics_uploads_size :: Maybe Int,
+    statistics_snippets_size :: Maybe Int,
+    statistics_pipeline_artifacts_size :: Maybe Int
   }
   deriving (Generic, Show, Eq)
 
@@ -611,7 +642,8 @@ data MergeRequest = MergeRequest
     merge_request_first_contribution :: Maybe Bool,
     merge_request_has_conflicts :: Maybe Bool,
     merge_request_blocking_discussions_resolved :: Maybe Bool,
-    merge_request_approvals_before_merge :: Maybe Bool, -- ?
+    merge_request_approvals_before_merge :: Maybe Int,
+    merge_request_mirror :: Maybe Bool,
     merge_request_task_completion_status :: Maybe TaskCompletionStatus,
     merge_request_references :: Maybe References,
     merge_request_changes :: Maybe [Change],
@@ -650,7 +682,7 @@ data MergeRequest = MergeRequest
 
 -}
 
--- | TODO actions.
+-- | TODO action.
 data TodoAction
   = TAAssigned
   | TAMentioned
@@ -1360,25 +1392,25 @@ instance ToJSON Project where
           omitNothingFields = True
         }
 
-instance FromJSON ProjectStats where
+instance FromJSON Statistics where
   parseJSON =
     genericParseJSON
       ( defaultOptions
-          { fieldLabelModifier = bodyNoPrefix
+          { fieldLabelModifier = drop (T.length "statistics_")
           }
       )
 
-instance ToJSON ProjectStats where
+instance ToJSON Statistics where
   toJSON =
     genericToJSON
       defaultOptions
-        { fieldLabelModifier = drop (T.length "project_stats_"),
+        { fieldLabelModifier = drop (T.length "statistics_"),
           omitNothingFields = True
         }
   toEncoding =
     genericToEncoding
       defaultOptions
-        { fieldLabelModifier = drop (T.length "project_stats_"),
+        { fieldLabelModifier = drop (T.length "statistics_"),
           omitNothingFields = True
         }
 
