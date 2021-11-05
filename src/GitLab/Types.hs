@@ -148,7 +148,6 @@ data ArchiveFormat
     Tar
   | -- | ".zip"
     Zip
-  deriving (Generic)
 
 instance Show ArchiveFormat where
   show TarGz = ".tar.gz"
@@ -168,10 +167,10 @@ data Member = Member
     member_state :: Text,
     member_avatar_uri :: Maybe Text,
     member_web_url :: Maybe Text,
-    access_level :: Int,
-    expires_at :: Maybe Text
+    member_access_level :: Int,
+    member_expires_at :: Maybe Text
   }
-  deriving (Generic, Show, Eq)
+  deriving (Show, Eq)
 
 -- | namespaces.
 data Namespace = Namespace
@@ -184,7 +183,7 @@ data Namespace = Namespace
     namespace_web_url :: Maybe Text,
     namespace_parent_id :: Maybe Int
   }
-  deriving (Generic, Show, Eq)
+  deriving (Show, Eq)
 
 -- | links.
 data Links = Links
@@ -196,7 +195,7 @@ data Links = Links
     links_events :: Text,
     links_members :: Text
   }
-  deriving (Generic, Show, Eq)
+  deriving (Show, Eq)
 
 -- | owners.
 data Owner = Ownwer
@@ -208,14 +207,14 @@ data Owner = Ownwer
     owner_web_url :: Maybe Text,
     owner_created_at :: Maybe UTCTime
   }
-  deriving (Generic, Show, Eq)
+  deriving (Show, Eq)
 
 -- | permissions.
 data Permissions = Permissions
   { permissions_project_access :: Maybe Object,
     permissions_group_access :: Maybe Object
   }
-  deriving (Generic, Show, Eq)
+  deriving (Show, Eq)
 
 -- | projects.
 data Project = Project
@@ -309,7 +308,7 @@ data Project = Project
     project_only_mirror_protected_branches :: Maybe Bool,
     project_repository_storage :: Maybe Text -- TODO type for "default"
   }
-  deriving (Generic, Show, Eq)
+  deriving (Show, Eq)
 
 data License = License
   { license_key :: Maybe Text,
@@ -318,7 +317,7 @@ data License = License
     license_html_url :: Maybe Text,
     license_source_url :: Maybe Text
   }
-  deriving (Generic, Show, Eq)
+  deriving (Show, Eq)
 
 data ExpirationPolicy = ExpirationPolicy
   { expiration_policy_cadence :: Maybe Text,
@@ -330,7 +329,7 @@ data ExpirationPolicy = ExpirationPolicy
     expiration_policy_name_regex_keep :: Maybe Object, -- TODO
     expiration_policy_next_run_at :: Maybe UTCTime
   }
-  deriving (Generic, Show, Eq)
+  deriving (Show, Eq)
 
 data RepositoryStorage = RepositoryStorage
   { repository_storage_project_id :: Int,
@@ -338,7 +337,7 @@ data RepositoryStorage = RepositoryStorage
     repository_storage_created_at :: Maybe UTCTime,
     repository_storage_repository_storage :: Maybe Text
   }
-  deriving (Generic, Show, Eq)
+  deriving (Show, Eq)
 
 -- | project statistics.
 data Statistics = Statistics
@@ -353,7 +352,7 @@ data Statistics = Statistics
     statistics_snippets_size :: Maybe Int,
     statistics_pipeline_artifacts_size :: Maybe Int
   }
-  deriving (Generic, Show, Eq)
+  deriving (Show, Eq)
 
 -- | registered users.
 data User = User
@@ -365,13 +364,13 @@ data User = User
     user_web_url :: Maybe Text,
     user_discussion_locked :: Maybe Bool -- only for author of 'TODO' type
   }
-  deriving (Generic, Show, Eq)
+  deriving (Show, Eq)
 
 -- | milestone state.
 data MilestoneState
   = MSActive
   | MSClosed
-  deriving (Generic, Show, Eq)
+  deriving (Show, Eq)
 
 instance FromJSON MilestoneState where
   parseJSON (String "active") = return MSActive
@@ -393,7 +392,7 @@ data Milestone = Milestone
     milestone_updated_at :: Maybe UTCTime,
     milestone_web_url :: Maybe URL
   }
-  deriving (Generic, Show, Eq)
+  deriving (Show, Eq)
 
 -- instance FromJSON Milestone where
 --   parseJSON = genericParseJSON (defaultOptions {fieldLabelModifier = drop 10})
@@ -405,7 +404,7 @@ data TimeStats = TimeStats
     time_stats_human_time_estimate :: Maybe Int,
     time_stats_human_total_time_spent :: Maybe Int
   }
-  deriving (Generic, Show, Eq)
+  deriving (Show, Eq)
 
 -- | alias for project id
 type ProjectId = Int
@@ -440,7 +439,7 @@ data Issue = Issue
     issue_discussion_locked :: Maybe Bool,
     issue_time_stats :: Maybe TimeStats
   }
-  deriving (Generic, Show, Eq)
+  deriving (Show, Eq)
 
 -- | project pipelines
 data Pipeline = Pipeline
@@ -461,7 +460,7 @@ data Pipeline = Pipeline
     pipeline_duration :: Maybe Int,
     pipeline_detailed_status :: Maybe DetailedStatus
   }
-  deriving (Generic, Show, Eq)
+  deriving (Show, Eq)
 
 -- | project pipelines
 data DetailedStatus = DetailedStatus
@@ -475,27 +474,27 @@ data DetailedStatus = DetailedStatus
     detailed_status_illustration :: Maybe Text,
     detailed_status_favicon :: Maybe Text
   }
-  deriving (Generic, Show, Eq)
+  deriving (Show, Eq)
 
 -- | code commits.
 data Commit = Commit
   { commit_id :: Text,
-    short_id :: Text,
-    title :: Text,
-    author_name :: Text,
-    author_email :: Text,
-    authored_date :: Text,
-    committer_name :: Text,
-    committer_email :: Text,
-    committed_date :: Text,
+    commit_short_id :: Text,
+    commit_title :: Text,
+    commit_author_name :: Text,
+    commit_author_email :: Text,
+    commit_authored_date :: Text,
+    commit_committer_name :: Text,
+    commit_committer_email :: Text,
+    commit_committed_date :: Text,
     commit_created_at :: UTCTime,
-    message :: Text,
+    commit_message :: Text,
     commit_parent_ids :: Maybe [String],
-    last_pipeline :: Maybe Pipeline,
+    commit_last_pipeline :: Maybe Pipeline,
     commit_stats :: Maybe CommitStats,
     commit_status :: Maybe Text
   }
-  deriving (Generic, Show, Eq)
+  deriving (Show, Eq)
 
 -- | summary of a code commit for TODOs.
 data CommitTodo = CommitTodo
@@ -504,15 +503,15 @@ data CommitTodo = CommitTodo
     commit_todo_created_at :: UTCTime,
     commit_todo_parent_ids :: Maybe [String]
   }
-  deriving (Generic, Show, Eq)
+  deriving (Show, Eq)
 
 -- | commit stats.
-data CommitStats = Stats
-  { additions :: Int,
-    deletions :: Int,
-    total :: Int
+data CommitStats = CommitStats
+  { commitstats_additions :: Int,
+    commitstats_deletions :: Int,
+    commitstats_total :: Int
   }
-  deriving (Generic, Show, Eq)
+  deriving (Show, Eq)
 
 -- | tags.
 data Tag = Tag
@@ -523,14 +522,14 @@ data Tag = Tag
     tag_message :: Maybe Text,
     tag_protected :: Bool
   }
-  deriving (Generic, Show, Eq)
+  deriving (Show, Eq)
 
 -- | Release associated with a tag
 data Release = Release
   { release_tag_name :: Text,
     release_description :: Text
   }
-  deriving (Generic, Show, Eq)
+  deriving (Show, Eq)
 
 -- | diff between two commits.
 data Diff = Diff
@@ -553,7 +552,7 @@ data Repository = Repository
     repository_path :: Text,
     mode :: Text
   }
-  deriving (Generic, Show, Eq)
+  deriving (Show, Eq)
 
 -- | jobs.
 data Job = Job
@@ -576,16 +575,16 @@ data Job = Job
     job_web_url :: Text,
     job_user :: User
   }
-  deriving (Generic, Show, Eq)
+  deriving (Show, Eq)
 
 -- | artifacts.
 data Artifact = Artifact
-  { file_type :: Text,
-    size :: Int,
-    filename :: Text,
-    file_format :: Maybe Text
+  { artifact_file_type :: Text,
+    artifact_size :: Int,
+    artifact_filename :: Text,
+    artifact_file_format :: Maybe Text
   }
-  deriving (Generic, Show, Eq)
+  deriving (Show, Eq)
 
 -- | groups.
 data Group = Group
@@ -603,17 +602,17 @@ data Group = Group
     group_file_template_project_id :: Maybe Int,
     group_parent_id :: Maybe Int
   }
-  deriving (Generic, Show, Eq)
+  deriving (Show, Eq)
 
 -- | response to sharing a project with a group.
 data GroupShare = GroupShare
-  { share_id :: Int,
-    share_project_id :: Int,
-    share_group_id :: Int,
-    share_group_access :: Int,
-    share_expires_at :: Maybe Text
+  { groupshare_id :: Int,
+    groupshare_project_id :: Int,
+    groupshare_group_id :: Int,
+    groupshare_group_access :: Int,
+    groupshare_expires_at :: Maybe Text
   }
-  deriving (Generic, Show, Eq)
+  deriving (Show, Eq)
 
 -- | code branches.
 data Branch = Branch
@@ -705,7 +704,39 @@ data MergeRequest = MergeRequest
     merge_request_overflow :: Maybe Bool,
     merge_request_diff_refs :: Maybe DiffRefs
   }
-  deriving (Generic, Show, Eq)
+  deriving (Show, Eq)
+
+data TaskCompletionStatus = TaskCompletionStatus
+  { task_completion_status_count :: Int,
+    task_completion_status_completed_count :: Maybe Int
+  }
+  deriving (Show, Eq)
+
+data References = References
+  { references_short :: Text,
+    references_relative :: Text,
+    references_full :: Text
+  }
+  deriving (Show, Eq)
+
+data Change = Change
+  { change_old_path :: Text,
+    change_new_path :: Text,
+    change_a_mode :: Text, -- find type for "100644"
+    change_b_mode :: Text, -- find type for "100644"
+    change_diff :: Text, -- find type for "--- a/VERSION\\ +++ b/VERSION\\ @@ -1 +1 @@\\ -1.9.7\\ +1.9.8"
+    change_new_file :: Bool,
+    change_renamed_file :: Bool,
+    change_deleted_file :: Bool
+  }
+  deriving (Show, Eq)
+
+data DiffRefs = DiffRefs
+  { diff_refs_base_sha :: Text,
+    diff_refs_head_sha :: Text,
+    diff_refs_start_sha :: Text
+  }
+  deriving (Show, Eq)
 
 {- TODO for MergeRequest
 
@@ -746,7 +777,7 @@ data TodoAction
   | TAApprovalRequired
   | TAUnmergeable
   | TADirectlyAddressed
-  deriving (Generic, Show, Eq)
+  deriving (Show, Eq)
 
 instance FromJSON TodoAction where
   parseJSON (String "assigned") = return TAAssigned
@@ -763,7 +794,7 @@ data TodoTarget
   = TTIssue Issue
   | TTMergeRequest MergeRequest
   | TTCommit CommitTodo
-  deriving (Generic, Show, Eq)
+  deriving (Show, Eq)
 
 -- | URL is a synonym for 'Text'.
 type URL = Text
@@ -772,10 +803,10 @@ type URL = Text
 data TodoState
   = TSPending
   | TSDone
-  deriving (Generic, Show, Eq)
+  deriving (Show, Eq)
 
 -- | A project TODO.
-data TodoProject = TP
+data TodoProject = TodoProject
   { todo_project_id :: Int,
     todo_project_description :: Maybe Text,
     todo_project_name :: Text,
@@ -784,29 +815,31 @@ data TodoProject = TP
     todo_project_path_with_namespace :: Text,
     todo_project_created_at :: Maybe UTCTime
   }
-  deriving (Generic, Show, Eq)
+  deriving (Show, Eq)
 
-instance FromJSON TodoProject where
-  parseJSON =
-    genericParseJSON
-      ( defaultOptions
-          { fieldLabelModifier = drop (T.length "todo_project_")
-          }
-      )
+$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "todo_project_"), omitNothingFields = True} ''TodoProject)
 
-instance ToJSON TodoProject where
-  toJSON =
-    genericToJSON
-      defaultOptions
-        { fieldLabelModifier = drop (T.length "todo_project_"),
-          omitNothingFields = True
-        }
-  toEncoding =
-    genericToEncoding
-      defaultOptions
-        { fieldLabelModifier = drop (T.length "todo_project_"),
-          omitNothingFields = True
-        }
+-- instance FromJSON TodoProject where
+--   parseJSON =
+--     genericParseJSON
+--       ( defaultOptions
+--           { fieldLabelModifier = drop (T.length "todo_project_")
+--           }
+--       )
+
+-- instance ToJSON TodoProject where
+--   toJSON =
+--     genericToJSON
+--       defaultOptions
+--         { fieldLabelModifier = drop (T.length "todo_project_"),
+--           omitNothingFields = True
+--         }
+--   toEncoding =
+--     genericToEncoding
+--       defaultOptions
+--         { fieldLabelModifier = drop (T.length "todo_project_"),
+--           omitNothingFields = True
+--         }
 
 -- | TODOs.
 data Todo = Todo
@@ -821,13 +854,13 @@ data Todo = Todo
     todo_state :: TodoState,
     todo_created_at :: UTCTime
   }
-  deriving (Generic, Show, Eq)
+  deriving (Show, Eq)
 
 data TodoTargetType
   = MergeRequestTarget
   | IssueTarget
   | CommitTarget
-  deriving (Generic, Show, Eq)
+  deriving (Show, Eq)
 
 -- | version of the GitLab instance.
 data Version = Version
@@ -854,7 +887,7 @@ data EditIssueReq = EditIssueReq
     edit_issue_epic_id :: Maybe Int,
     edit_issue_epic_iid :: Maybe Int
   }
-  deriving (Generic, Show)
+  deriving (Show)
 
 -- | Discussions https://docs.gitlab.com/ee/api/discussions.html
 data Discussion = Discussion
@@ -862,7 +895,7 @@ data Discussion = Discussion
     discussion_individual_note :: Bool,
     discussion_notes :: [Note]
   }
-  deriving (Generic, Show)
+  deriving (Show)
 
 -- | Notes
 data Note = Note
@@ -880,7 +913,7 @@ data Note = Note
     note_noteable_iid :: Maybe Int,
     note_resolvable :: Bool
   }
-  deriving (Generic, Show)
+  deriving (Show)
 
 -- | Statistics and an issue
 newtype IssueStatistics = IssueStatistics
@@ -914,7 +947,7 @@ data IssueBoard = IssueBoard
     board_labels :: Maybe [BoardIssueLabel],
     board_weight :: Maybe Int
   }
-  deriving (Generic, Show, Eq)
+  deriving (Show, Eq)
 
 -- | Issues associated with a project issue board
 data BoardIssue = BoardIssue
@@ -926,7 +959,7 @@ data BoardIssue = BoardIssue
     -- TODO, the docs don't say what type this should be
     board_issue_limit_metric :: Maybe Int
   }
-  deriving (Generic, Show, Eq)
+  deriving (Show, Eq)
 
 -- | Label of an issues for a project issue board
 data BoardIssueLabel = BoardIssueLabel
@@ -935,14 +968,14 @@ data BoardIssueLabel = BoardIssueLabel
     board_issue_label_color :: Text, -- parse into type from e.g. "#F0AD4E"
     board_issue_label_description :: Maybe Text
   }
-  deriving (Generic, Show, Eq)
+  deriving (Show, Eq)
 
 -- |  Project visibility.
 data Visibility
   = Public
   | Private
   | Internal
-  deriving (Generic, Show, Eq)
+  deriving (Show, Eq)
 
 instance FromJSON Visibility where
   parseJSON (String "public") = return Public
@@ -975,17 +1008,17 @@ data TestSuite = TestSuite
     testsuite_error_count :: Int,
     testsuite_test_cases :: [TestCase]
   }
-  deriving (Generic, Show, Eq)
+  deriving (Show, Eq)
 
-testsuitePrefix :: String -> String
-testsuitePrefix "testsuite_name" = "name"
-testsuitePrefix "testsuite_total_time" = "total_time"
-testsuitePrefix "testsuite_success_count" = "success_count"
-testsuitePrefix "testsuite_failed_count" = "failed_count"
-testsuitePrefix "testsuite_skipped_count" = "skipped_count"
-testsuitePrefix "testsuite_error_count" = "error_count"
-testsuitePrefix "testsuite_test_cases" = "test_cases"
-testsuitePrefix s = s
+-- testsuitePrefix :: String -> String
+-- testsuitePrefix "testsuite_name" = "name"
+-- testsuitePrefix "testsuite_total_time" = "total_time"
+-- testsuitePrefix "testsuite_success_count" = "success_count"
+-- testsuitePrefix "testsuite_failed_count" = "failed_count"
+-- testsuitePrefix "testsuite_skipped_count" = "skipped_count"
+-- testsuitePrefix "testsuite_error_count" = "error_count"
+-- testsuitePrefix "testsuite_test_cases" = "test_cases"
+-- testsuitePrefix s = s
 
 -- | Test case associated with a testsuite
 data TestCase = TestCase
@@ -996,16 +1029,16 @@ data TestCase = TestCase
     testcase_system_output :: Maybe Text,
     testcase_stack_trace :: Maybe Text
   }
-  deriving (Generic, Show, Eq)
+  deriving (Show, Eq)
 
-testcasePrefix :: String -> String
-testcasePrefix "testcase_status" = "status"
-testcasePrefix "testcase_name" = "name"
-testcasePrefix "testcase_classname" = "classname"
-testcasePrefix "testcase_execution_time" = "execution_time"
-testcasePrefix "testcase_system_output" = "system_output"
-testcasePrefix "testcase_stack_trace" = "stack_trace"
-testcasePrefix s = s
+-- testcasePrefix :: String -> String
+-- testcasePrefix "testcase_status" = "status"
+-- testcasePrefix "testcase_name" = "name"
+-- testcasePrefix "testcase_classname" = "classname"
+-- testcasePrefix "testcase_execution_time" = "execution_time"
+-- testcasePrefix "testcase_system_output" = "system_output"
+-- testcasePrefix "testcase_stack_trace" = "stack_trace"
+-- testcasePrefix s = s
 
 data TimeEstimate = TimeEstimate
   { time_estimate_human_time_estimate :: Maybe Text,
@@ -1013,71 +1046,39 @@ data TimeEstimate = TimeEstimate
     time_estimate_time_estimate :: Maybe Int,
     time_estimate_total_time_spent :: Maybe Int
   }
-  deriving (Generic, Show, Eq)
-
-data TaskCompletionStatus = TaskCompletionStatus
-  { task_completion_status_count :: Int,
-    task_completion_status_completed_count :: Maybe Int
-  }
-  deriving (Generic, Show, Eq)
-
-data References = References
-  { references_short :: Text,
-    references_relative :: Text,
-    references_full :: Text
-  }
-  deriving (Generic, Show, Eq)
-
-data Change = Change
-  { change_old_path :: Text,
-    change_new_path :: Text,
-    change_a_mode :: Text, -- find type for "100644"
-    change_b_mode :: Text, -- find type for "100644"
-    change_diff :: Text, -- find type for "--- a/VERSION\\ +++ b/VERSION\\ @@ -1 +1 @@\\ -1.9.7\\ +1.9.8"
-    change_new_file :: Bool,
-    change_renamed_file :: Bool,
-    change_deleted_file :: Bool
-  }
-  deriving (Generic, Show, Eq)
-
-data DiffRefs = DiffRefs
-  { diff_refs_base_sha :: Text,
-    diff_refs_head_sha :: Text,
-    diff_refs_start_sha :: Text
-  }
-  deriving (Generic, Show, Eq)
+  deriving (Show, Eq)
 
 -----------------------------
 -- JSON GitLab parsers below
 -----------------------------
 
 bodyNoPrefix :: String -> String
-bodyNoPrefix "commit_created_at" = "created_at"
-bodyNoPrefix "commit_id" = "id"
-bodyNoPrefix "commit_status" = "status"
-bodyNoPrefix "commit_parent_ids" = "parent_ids"
+-- bodyNoPrefix "commit_created_at" = "created_at"
+-- bodyNoPrefix "commit_id" = "id"
+-- bodyNoPrefix "commit_status" = "status"
+-- bodyNoPrefix "commit_parent_ids" = "parent_ids"
 -- bodyNoPrefix "todo_commit_id" = "id"
 -- bodyNoPrefix "todo_commit_short_id" = "short_id"
 -- bodyNoPrefix "todo_commit_created_at" = "created_at"
 -- bodyNoPrefix "todo_parent_ids" = "parent_ids"
-bodyNoPrefix "issue_author" = "author"
-bodyNoPrefix "issue_created_at" = "created_at"
-bodyNoPrefix "issue_description" = "description"
-bodyNoPrefix "issue_due_date" = "due_date"
-bodyNoPrefix "issue_id" = "id"
-bodyNoPrefix "issue_labels" = "labels"
-bodyNoPrefix "issue_project_id" = "project_id"
-bodyNoPrefix "issue_state" = "state"
-bodyNoPrefix "issue_title" = "title"
-bodyNoPrefix "issue_web_url" = "web_url"
+-- bodyNoPrefix "issue_author" = "author"
+-- bodyNoPrefix "issue_created_at" = "created_at"
+-- bodyNoPrefix "issue_description" = "description"
+-- bodyNoPrefix "issue_due_date" = "due_date"
+-- bodyNoPrefix "issue_id" = "id"
+-- bodyNoPrefix "issue_labels" = "labels"
+-- bodyNoPrefix "issue_project_id" = "project_id"
+-- bodyNoPrefix "issue_state" = "state"
+-- bodyNoPrefix "issue_title" = "title"
+-- bodyNoPrefix "issue_web_url" = "web_url"
 bodyNoPrefix "link_events" = "events"
 bodyNoPrefix "link_labels" = "labels"
-bodyNoPrefix "member_avatar_url" = "avatar_url"
-bodyNoPrefix "member_id" = "id"
-bodyNoPrefix "member_name" = "name"
-bodyNoPrefix "member_state" = "state"
-bodyNoPrefix "member_username" = "username"
-bodyNoPrefix "member_web_url" = "we_url"
+-- bodyNoPrefix "member_avatar_url" = "avatar_url"
+-- bodyNoPrefix "member_id" = "id"
+-- bodyNoPrefix "member_name" = "name"
+-- bodyNoPrefix "member_state" = "state"
+-- bodyNoPrefix "member_username" = "username"
+-- bodyNoPrefix "member_web_url" = "we_url"
 -- bodyNoPrefix "namespace_id" = "id"
 -- bodyNoPrefix "namespace_name" = "name"
 -- bodyNoPrefix "namespace_path" = "path"
@@ -1093,10 +1094,10 @@ bodyNoPrefix "member_web_url" = "we_url"
 -- bodyNoPrefix "project_path" = "path"
 -- bodyNoPrefix "project_path_with_namespace" = "path_with_namespace"
 -- bodyNoPrefix "project_web_url" = "web_url"
-bodyNoPrefix "repository_id" = "id"
-bodyNoPrefix "repository_name" = "name"
-bodyNoPrefix "repository_path" = "path"
-bodyNoPrefix "repository_type" = "type"
+-- bodyNoPrefix "repository_id" = "id"
+-- bodyNoPrefix "repository_name" = "name"
+-- bodyNoPrefix "repository_path" = "path"
+-- bodyNoPrefix "repository_type" = "type"
 bodyNoPrefix "event_title" = "title"
 bodyNoPrefix "event_project_id" = "project_id"
 bodyNoPrefix "branch_name" = "name"
@@ -1113,51 +1114,51 @@ bodyNoPrefix "share_project_id" = "project_id"
 bodyNoPrefix "share_group_id" = "group_id"
 bodyNoPrefix "share_group_access" = "group_access"
 bodyNoPrefix "share_expires_at" = "expires_at"
-bodyNoPrefix "group_id" = "id"
-bodyNoPrefix "group_name" = "name"
-bodyNoPrefix "group_path" = "path"
-bodyNoPrefix "group_description" = "description"
-bodyNoPrefix "group_visibility" = "visibility"
-bodyNoPrefix "group_lfs_enabled" = "lfs_enabled"
-bodyNoPrefix "group_avatar_url" = "avatar_url"
-bodyNoPrefix "group_web_url" = "web_url"
-bodyNoPrefix "group_request_access_enabled" = "request_access_enabled"
-bodyNoPrefix "group_full_name" = "full_name"
-bodyNoPrefix "group_full_path" = "full_path"
-bodyNoPrefix "group_file_template_project_id" = "file_template_project_id"
-bodyNoPrefix "group_parent_id" = "parent_id"
-bodyNoPrefix "job_commit" = "commit"
-bodyNoPrefix "job_coverage" = "coverage"
-bodyNoPrefix "job_created_at" = "created_at"
-bodyNoPrefix "job_started_at" = "started_at"
-bodyNoPrefix "job_finished_at" = "finished_at"
-bodyNoPrefix "job_duration" = "duration"
-bodyNoPrefix "job_artifacts_expire_at" = "artifacts_expire_at"
-bodyNoPrefix "job_id" = "id"
-bodyNoPrefix "job_name" = "name"
-bodyNoPrefix "job_pipeline" = "pipeline"
-bodyNoPrefix "job_ref" = "ref"
-bodyNoPrefix "job_artifacts" = "artifacts"
-bodyNoPrefix "job_stage" = "stage"
-bodyNoPrefix "job_status" = "status"
-bodyNoPrefix "job_tag" = "tag"
-bodyNoPrefix "job_web_url" = "web_url"
-bodyNoPrefix "job_user" = "user"
-bodyNoPrefix "discussion_id" = "id"
-bodyNoPrefix "discussion_individual_note" = "individual_note"
-bodyNoPrefix "discussion_notes" = "notes"
-bodyNoPrefix "note_id" = "id"
-bodyNoPrefix "note_type" = "type"
-bodyNoPrefix "note_body" = "body"
-bodyNoPrefix "note_attachment" = "attachment"
-bodyNoPrefix "note_author" = "author"
-bodyNoPrefix "note_created_at" = "created_at"
-bodyNoPrefix "note_updated_at" = "updated_at"
-bodyNoPrefix "note_system" = "system"
-bodyNoPrefix "note_noteable_id" = "noteable_id"
-bodyNoPrefix "note_noteable_type" = "noteable_type"
-bodyNoPrefix "note_noteable_iid" = "iid"
-bodyNoPrefix "note_resolvable" = "resolvable"
+-- bodyNoPrefix "group_id" = "id"
+-- bodyNoPrefix "group_name" = "name"
+-- bodyNoPrefix "group_path" = "path"
+-- bodyNoPrefix "group_description" = "description"
+-- bodyNoPrefix "group_visibility" = "visibility"
+-- bodyNoPrefix "group_lfs_enabled" = "lfs_enabled"
+-- bodyNoPrefix "group_avatar_url" = "avatar_url"
+-- bodyNoPrefix "group_web_url" = "web_url"
+-- bodyNoPrefix "group_request_access_enabled" = "request_access_enabled"
+-- bodyNoPrefix "group_full_name" = "full_name"
+-- bodyNoPrefix "group_full_path" = "full_path"
+-- bodyNoPrefix "group_file_template_project_id" = "file_template_project_id"
+-- bodyNoPrefix "group_parent_id" = "parent_id"
+-- bodyNoPrefix "job_commit" = "commit"
+-- bodyNoPrefix "job_coverage" = "coverage"
+-- bodyNoPrefix "job_created_at" = "created_at"
+-- bodyNoPrefix "job_started_at" = "started_at"
+-- bodyNoPrefix "job_finished_at" = "finished_at"
+-- bodyNoPrefix "job_duration" = "duration"
+-- bodyNoPrefix "job_artifacts_expire_at" = "artifacts_expire_at"
+-- bodyNoPrefix "job_id" = "id"
+-- bodyNoPrefix "job_name" = "name"
+-- bodyNoPrefix "job_pipeline" = "pipeline"
+-- bodyNoPrefix "job_ref" = "ref"
+-- bodyNoPrefix "job_artifacts" = "artifacts"
+-- bodyNoPrefix "job_stage" = "stage"
+-- bodyNoPrefix "job_status" = "status"
+-- bodyNoPrefix "job_tag" = "tag"
+-- bodyNoPrefix "job_web_url" = "web_url"
+-- bodyNoPrefix "job_user" = "user"
+-- bodyNoPrefix "discussion_id" = "id"
+-- bodyNoPrefix "discussion_individual_note" = "individual_note"
+-- bodyNoPrefix "discussion_notes" = "notes"
+-- bodyNoPrefix "note_id" = "id"
+-- bodyNoPrefix "note_type" = "type"
+-- bodyNoPrefix "note_body" = "body"
+-- bodyNoPrefix "note_attachment" = "attachment"
+-- bodyNoPrefix "note_author" = "author"
+-- bodyNoPrefix "note_created_at" = "created_at"
+-- bodyNoPrefix "note_updated_at" = "updated_at"
+-- bodyNoPrefix "note_system" = "system"
+-- bodyNoPrefix "note_noteable_id" = "noteable_id"
+-- bodyNoPrefix "note_noteable_type" = "noteable_type"
+-- bodyNoPrefix "note_noteable_iid" = "iid"
+-- bodyNoPrefix "note_resolvable" = "resolvable"
 -- TODO field names for Issues data type
 bodyNoPrefix s = s
 
@@ -1165,19 +1166,19 @@ bodyNoPrefix s = s
 --    String -> String
 -- functions like those below.
 
-tagPrefix :: String -> String
-tagPrefix "tag_commit" = "commit"
-tagPrefix "tag_release" = "release"
-tagPrefix "tag_name" = "name"
-tagPrefix "tag_target" = "target"
-tagPrefix "tag_message" = "message"
-tagPrefix "tag_protected" = "protected"
-tagPrefix s = s
+-- tagPrefix :: String -> String
+-- tagPrefix "tag_commit" = "commit"
+-- tagPrefix "tag_release" = "release"
+-- tagPrefix "tag_name" = "name"
+-- tagPrefix "tag_target" = "target"
+-- tagPrefix "tag_message" = "message"
+-- tagPrefix "tag_protected" = "protected"
+-- tagPrefix s = s
 
-releasePrefix :: String -> String
-releasePrefix "release_tag_name" = "tag_name"
-releasePrefix "release_description" = "description"
-releasePrefix s = s
+-- releasePrefix :: String -> String
+-- releasePrefix "release_tag_name" = "tag_name"
+-- releasePrefix "release_description" = "description"
+-- releasePrefix s = s
 
 issueStatsPrefix :: String -> String
 issueStatsPrefix "issues_all" = "all"
@@ -1283,13 +1284,15 @@ $(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "user_"), omitN
 --           omitNothingFields = True
 --         }
 
-instance FromJSON Commit where
-  parseJSON =
-    genericParseJSON
-      ( defaultOptions
-          { fieldLabelModifier = bodyNoPrefix
-          }
-      )
+$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "commit_"), omitNothingFields = True} ''Commit)
+
+-- instance FromJSON Commit where
+--   parseJSON =
+--     genericParseJSON
+--       ( defaultOptions
+--           { fieldLabelModifier = bodyNoPrefix
+--           }
+--       )
 
 -- instance FromJSON CommitTodo where
 --   parseJSON =
@@ -1299,29 +1302,35 @@ instance FromJSON Commit where
 --           }
 --       )
 
-instance FromJSON Tag where
-  parseJSON =
-    genericParseJSON
-      ( defaultOptions
-          { fieldLabelModifier = tagPrefix
-          }
-      )
+$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "tag_"), omitNothingFields = True} ''Tag)
 
-instance FromJSON Release where
-  parseJSON =
-    genericParseJSON
-      ( defaultOptions
-          { fieldLabelModifier = releasePrefix
-          }
-      )
+-- instance FromJSON Tag where
+--   parseJSON =
+--     genericParseJSON
+--       ( defaultOptions
+--           { fieldLabelModifier = tagPrefix
+--           }
+--       )
 
-instance FromJSON CommitStats where
-  parseJSON =
-    genericParseJSON
-      ( defaultOptions
-          { fieldLabelModifier = bodyNoPrefix
-          }
-      )
+$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "release_"), omitNothingFields = True} ''Release)
+
+-- instance FromJSON Release where
+--   parseJSON =
+--     genericParseJSON
+--       ( defaultOptions
+--           { fieldLabelModifier = releasePrefix
+--           }
+--       )
+
+$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "commitstats_"), omitNothingFields = True} ''CommitStats)
+
+-- instance FromJSON CommitStats where
+--   parseJSON =
+--     genericParseJSON
+--       ( defaultOptions
+--           { fieldLabelModifier = bodyNoPrefix
+--           }
+--       )
 
 $(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "pipeline_"), omitNothingFields = True} ''Pipeline)
 
@@ -1349,13 +1358,15 @@ $(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "pipeline_"), o
 --           }
 --       )
 
-instance FromJSON Member where
-  parseJSON =
-    genericParseJSON
-      ( defaultOptions
-          { fieldLabelModifier = bodyNoPrefix
-          }
-      )
+$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "member_"), omitNothingFields = True} ''Member)
+
+-- instance FromJSON Member where
+--   parseJSON =
+--     genericParseJSON
+--       ( defaultOptions
+--           { fieldLabelModifier = bodyNoPrefix
+--           }
+--       )
 
 $(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "permissions_"), omitNothingFields = True} ''Permissions)
 
@@ -1503,29 +1514,35 @@ $(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "statistics_"),
 --           omitNothingFields = True
 --         }
 
-instance FromJSON Repository where
-  parseJSON =
-    genericParseJSON
-      ( defaultOptions
-          { fieldLabelModifier = bodyNoPrefix
-          }
-      )
+$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "repository_"), omitNothingFields = True} ''Repository)
 
-instance FromJSON Job where
-  parseJSON =
-    genericParseJSON
-      ( defaultOptions
-          { fieldLabelModifier = bodyNoPrefix
-          }
-      )
+-- instance FromJSON Repository where
+--   parseJSON =
+--     genericParseJSON
+--       ( defaultOptions
+--           { fieldLabelModifier = bodyNoPrefix
+--           }
+--       )
 
-instance FromJSON Artifact where
-  parseJSON =
-    genericParseJSON
-      ( defaultOptions
-          { fieldLabelModifier = bodyNoPrefix
-          }
-      )
+$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "job_"), omitNothingFields = True} ''Job)
+
+-- instance FromJSON Job where
+--   parseJSON =
+--     genericParseJSON
+--       ( defaultOptions
+--           { fieldLabelModifier = bodyNoPrefix
+--           }
+--       )
+
+$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "artifact_"), omitNothingFields = True} ''Artifact)
+
+-- instance FromJSON Artifact where
+--   parseJSON =
+--     genericParseJSON
+--       ( defaultOptions
+--           { fieldLabelModifier = bodyNoPrefix
+--           }
+--       )
 
 -- instance FromJSON Group where
 --   parseJSON =
@@ -1535,13 +1552,15 @@ instance FromJSON Artifact where
 --           }
 --       )
 
-instance FromJSON GroupShare where
-  parseJSON =
-    genericParseJSON
-      ( defaultOptions
-          { fieldLabelModifier = bodyNoPrefix
-          }
-      )
+$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "groupshare_"), omitNothingFields = True} ''GroupShare)
+
+-- instance FromJSON GroupShare where
+--   parseJSON =
+--     genericParseJSON
+--       ( defaultOptions
+--           { fieldLabelModifier = bodyNoPrefix
+--           }
+--       )
 
 instance FromJSON Branch where
   parseJSON =
@@ -1615,21 +1634,25 @@ $(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "edit_issue_"),
 --           omitNothingFields = True
 --         }
 
-instance FromJSON Discussion where
-  parseJSON =
-    genericParseJSON
-      ( defaultOptions
-          { fieldLabelModifier = bodyNoPrefix
-          }
-      )
+$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "discussion_"), omitNothingFields = True} ''Discussion)
 
-instance FromJSON Note where
-  parseJSON =
-    genericParseJSON
-      ( defaultOptions
-          { fieldLabelModifier = bodyNoPrefix
-          }
-      )
+-- instance FromJSON Discussion where
+--   parseJSON =
+--     genericParseJSON
+--       ( defaultOptions
+--           { fieldLabelModifier = bodyNoPrefix
+--           }
+--       )
+
+$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "note_"), omitNothingFields = True} ''Note)
+
+-- instance FromJSON Note where
+--   parseJSON =
+--     genericParseJSON
+--       ( defaultOptions
+--           { fieldLabelModifier = bodyNoPrefix
+--           }
+--       )
 
 instance FromJSON IssueCounts where
   parseJSON =
@@ -1731,21 +1754,25 @@ instance FromJSON TestReport where
   parseJSON =
     genericParseJSON defaultOptions
 
-instance FromJSON TestSuite where
-  parseJSON =
-    genericParseJSON
-      ( defaultOptions
-          { fieldLabelModifier = testsuitePrefix
-          }
-      )
+$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "testsuite_"), omitNothingFields = True} ''TestSuite)
 
-instance FromJSON TestCase where
-  parseJSON =
-    genericParseJSON
-      ( defaultOptions
-          { fieldLabelModifier = testcasePrefix
-          }
-      )
+-- instance FromJSON TestSuite where
+--   parseJSON =
+--     genericParseJSON
+--       ( defaultOptions
+--           { fieldLabelModifier = testsuitePrefix
+--           }
+--       )
+
+$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "testcase_"), omitNothingFields = True} ''TestCase)
+
+-- instance FromJSON TestCase where
+--   parseJSON =
+--     genericParseJSON
+--       ( defaultOptions
+--           { fieldLabelModifier = testcasePrefix
+--           }
+--       )
 
 $(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "time_estimate_"), omitNothingFields = True} ''TimeEstimate)
 
@@ -1939,19 +1966,21 @@ instance FromJSON Todo where
       <*> v .: "state"
       <*> v .: "created_at"
 
-instance ToJSON Todo where
-  toJSON =
-    genericToJSON
-      defaultOptions
-        { fieldLabelModifier = drop (T.length "todo_"),
-          omitNothingFields = True
-        }
-  toEncoding =
-    genericToEncoding
-      defaultOptions
-        { fieldLabelModifier = drop (T.length "todo_"),
-          omitNothingFields = True
-        }
+$(deriveToJSON defaultOptions {fieldLabelModifier = drop (T.length "todo_"), omitNothingFields = True} ''Todo)
+
+-- instance ToJSON Todo where
+--   toJSON =
+--     genericToJSON
+--       defaultOptions
+--         { fieldLabelModifier = drop (T.length "todo_"),
+--           omitNothingFields = True
+--         }
+--   toEncoding =
+--     genericToEncoding
+--       defaultOptions
+--         { fieldLabelModifier = drop (T.length "todo_"),
+--           omitNothingFields = True
+--         }
 
 instance FromJSON TodoTargetType where
   parseJSON (String "MergeRequest") = return MergeRequestTarget
@@ -1998,12 +2027,12 @@ data Starrer = Starrer
   { starrer_starred_since :: UTCTime,
     starrer_user :: User
   }
-  deriving (Generic, Show, Eq)
+  deriving (Show, Eq)
 
 data ProjectAvatar = ProjectAvatar
   { project_avatar_avatar_url :: Text
   }
-  deriving (Generic, Show, Eq)
+  deriving (Show, Eq)
 
 $(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "license_"), omitNothingFields = True} ''License)
 
