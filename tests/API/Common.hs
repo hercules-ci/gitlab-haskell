@@ -1,5 +1,7 @@
+{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE StandaloneDeriving #-}
 
 module API.Common where
 
@@ -12,6 +14,7 @@ import Data.Maybe
 import Data.TreeDiff.Class
 import Data.TreeDiff.Pretty
 import qualified Data.Vector as Vec
+import GHC.Generics
 import GitLab
 import GitLab.SystemHooks.GitLabSystemHooks
 import GitLab.SystemHooks.Types
@@ -86,6 +89,111 @@ parseMany bs =
   case eitherDecode bs of
     Left err -> assertFailure err
     Right xs -> return xs
+
+-------------
+-- Generic instances
+
+deriving instance Generic ArchiveFormat
+
+deriving instance Generic Member
+
+deriving instance Generic Namespace
+
+deriving instance Generic Links
+
+deriving instance Generic Owner
+
+deriving instance Generic Permissions
+
+deriving instance Generic Project
+
+deriving instance Generic License
+
+deriving instance Generic ExpirationPolicy
+
+deriving instance Generic RepositoryStorage
+
+deriving instance Generic Statistics
+
+deriving instance Generic User
+
+deriving instance Generic MilestoneState
+
+deriving instance Generic Milestone
+
+deriving instance Generic TimeStats
+
+deriving instance Generic Issue
+
+deriving instance Generic Pipeline
+
+deriving instance Generic DetailedStatus
+
+deriving instance Generic Commit
+
+deriving instance Generic CommitTodo
+
+deriving instance Generic CommitStats
+
+deriving instance Generic Tag
+
+deriving instance Generic Release
+
+deriving instance Generic Repository
+
+deriving instance Generic Job
+
+deriving instance Generic Artifact
+
+deriving instance Generic Group
+
+deriving instance Generic GroupShare
+
+deriving instance Generic MergeRequest
+
+deriving instance Generic TaskCompletionStatus
+
+deriving instance Generic References
+
+deriving instance Generic Change
+
+deriving instance Generic DiffRefs
+
+deriving instance Generic TodoAction
+
+deriving instance Generic TodoTarget
+
+deriving instance Generic TodoState
+
+deriving instance Generic TodoProject
+
+deriving instance Generic Todo
+
+deriving instance Generic TodoTargetType
+
+deriving instance Generic EditIssueReq
+
+deriving instance Generic Discussion
+
+deriving instance Generic Note
+
+deriving instance Generic IssueBoard
+
+deriving instance Generic BoardIssue
+
+deriving instance Generic BoardIssueLabel
+
+deriving instance Generic Visibility
+
+deriving instance Generic TestSuite
+
+deriving instance Generic TestCase
+
+deriving instance Generic TimeEstimate
+
+deriving instance Generic ProjectAvatar
+
+deriving instance Generic Starrer
 
 -------------
 -- ToExpr instances
