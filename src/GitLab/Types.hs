@@ -3,6 +3,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE StrictData #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 -- |
 -- Module      : GitLab.Types
@@ -73,11 +74,17 @@ module GitLab.Types
     Change (..),
     DiffRefs (..),
     DetailedStatus (..),
+    License (..),
+    ExpirationPolicy (..),
+    RepositoryStorage (..),
+    Starrer (..),
+    ProjectAvatar (..),
   )
 where
 
 import Control.Monad.Trans.Reader
 import Data.Aeson
+import Data.Aeson.TH
 import Data.Aeson.Types
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -173,6 +180,8 @@ data Namespace = Namespace
     namespace_path :: Text,
     namespace_kind :: Text,
     namespace_full_path :: Text,
+    namespace_avatar_url :: Maybe Text,
+    namespace_web_url :: Maybe Text,
     namespace_parent_id :: Maybe Int
   }
   deriving (Generic, Show, Eq)
@@ -224,7 +233,9 @@ data Project = Project
     project_http_url_to_repo :: Maybe Text,
     project_web_url :: Text,
     project_readme_url :: Maybe Text, -- check
-    project_avatar_url :: Maybe Text, -- check
+    project_avatar_url :: Maybe Text,
+    project_license_url :: Maybe Text,
+    project_license :: Maybe License,
     project_star_count :: Maybe Int,
     project_runners_token :: Maybe Text, -- "b8547b1dc37721d05889db52fa2f02"
     project_ci_default_git_depth :: Maybe Int,
@@ -238,6 +249,7 @@ data Project = Project
     project_resolve_outdated_diff_discussions :: Maybe Bool,
     project_container_registry_enabled :: Maybe Bool,
     project_container_registry_access_level :: Maybe Text, -- TODO
+    project_container_expiration_policy :: Maybe ExpirationPolicy,
     -- type for "disabled"
     project_issues_enabled :: Maybe Bool,
     project_merge_requests_enabled :: Maybe Bool,
@@ -245,6 +257,16 @@ data Project = Project
     project_jobs_enabled :: Maybe Bool,
     project_snippets_enabled :: Maybe Bool,
     project_can_create_merge_request_in :: Maybe Bool,
+    project_issues_access_level :: Maybe Text, -- TODO a type for "enabled"
+    project_repository_access_level :: Maybe Text, -- TODO a type for "enabled"
+    project_merge_requests_access_level :: Maybe Text, -- TODO a type for "enabled"
+    project_forking_access_level :: Maybe Text, -- TODO a type for "enabled"
+    project_analytics_access_level :: Maybe Text, -- TODO a type for "enabled"
+    project_wiki_access_level :: Maybe Text, -- TODO a type for "enabled"
+    project_builds_access_level :: Maybe Text, -- TODO a type for "enabled"
+    project_snippets_access_level :: Maybe Text, -- TODO a type for "enabled"
+    project_pages_access_level :: Maybe Text, -- TODO a type for "enabled"
+    project_emails_disabled :: Maybe Bool, -- check
     project_shared_runners_enabled :: Maybe Bool,
     project_lfs_enabled :: Maybe Bool,
     project_creator_id :: Maybe Int,
@@ -252,6 +274,8 @@ data Project = Project
     project_import_status :: Maybe String,
     project_open_issues_count :: Maybe Int,
     project_public_jobs :: Maybe Bool,
+    project_build_timeout :: Maybe Int,
+    project_auto_cancel_pending_pipelines :: Maybe Text, -- TODO a type for "enabled"
     project_ci_config_path :: Maybe Text, -- check null
     project_shared_with_groups :: Maybe [Object],
     project_only_allow_merge_if_pipeline_succeeds :: Maybe Bool,
@@ -260,13 +284,14 @@ data Project = Project
     project_request_access_enabled :: Maybe Bool,
     project_only_allow_merge_if_all_discussions_are_resolved :: Maybe Bool,
     project_remove_source_branch_after_merge :: Maybe Bool,
-    project_printing_merge_request_links_enabled :: Maybe Bool,
+    project_printing_merge_requests_link_enabled :: Maybe Bool,
     project_merge_method :: Maybe Text,
     project_squash_option :: Maybe Text, -- TODO type for "default_on"
     project_autoclose_referenced_issues :: Maybe Bool,
     project_suggestion_commit_message :: Maybe Text,
     project_marked_for_deletion_at :: Maybe Text, -- TODO "2020-04-03"
     project_marked_for_deletion_on :: Maybe Text, -- TODO "2020-04-03"
+    project_compliance_frameworks :: Maybe [Text],
     project_statistics :: Maybe Statistics,
     project_permissions :: Maybe Permissions,
     project_container_registry_image_prefix :: Maybe Text,
@@ -280,8 +305,38 @@ data Project = Project
     project_approvals_before_merge :: Maybe Int,
     project_mirror_user_id :: Maybe Int,
     project_packages_enabled :: Maybe Bool,
+    project_empty_repo :: Maybe Bool,
     project_only_mirror_protected_branches :: Maybe Bool,
     project_repository_storage :: Maybe Text -- TODO type for "default"
+  }
+  deriving (Generic, Show, Eq)
+
+data License = License
+  { license_key :: Maybe Text,
+    license_name :: Maybe Text,
+    license_nickname :: Maybe Text,
+    license_html_url :: Maybe Text,
+    license_source_url :: Maybe Text
+  }
+  deriving (Generic, Show, Eq)
+
+data ExpirationPolicy = ExpirationPolicy
+  { expiration_policy_cadence :: Maybe Text,
+    expiration_policy_enabled :: Maybe Bool,
+    expiration_policy_keep_n :: Maybe Object, -- TODO
+    expiration_policy_older_than :: Maybe Object, -- TODO
+    expiration_policy_name_regex :: Maybe Object, -- TODO
+    expiration_policy_name_regex_delete :: Maybe Object, -- TODO
+    expiration_policy_name_regex_keep :: Maybe Object, -- TODO
+    expiration_policy_next_run_at :: Maybe UTCTime
+  }
+  deriving (Generic, Show, Eq)
+
+data RepositoryStorage = RepositoryStorage
+  { repository_storage_project_id :: Int,
+    repository_storage_disk_path :: Maybe Text,
+    repository_storage_created_at :: Maybe UTCTime,
+    repository_storage_repository_storage :: Maybe Text
   }
   deriving (Generic, Show, Eq)
 
@@ -340,8 +395,8 @@ data Milestone = Milestone
   }
   deriving (Generic, Show, Eq)
 
-instance FromJSON Milestone where
-  parseJSON = genericParseJSON (defaultOptions {fieldLabelModifier = drop 10})
+-- instance FromJSON Milestone where
+--   parseJSON = genericParseJSON (defaultOptions {fieldLabelModifier = drop 10})
 
 -- | time stats.
 data TimeStats = TimeStats
@@ -536,13 +591,13 @@ data Artifact = Artifact
 data Group = Group
   { group_id :: Int,
     group_name :: Text,
-    group_path :: Text,
-    group_description :: Text,
-    group_visibility :: Text,
-    group_lfs_enabled :: Bool,
+    group_path :: Maybe Text,
+    group_description :: Maybe Text,
+    group_visibility :: Maybe Text,
+    group_lfs_enabled :: Maybe Bool,
     group_avatar_url :: Maybe Text,
     group_web_url :: Text,
-    group_request_access_enabled :: Bool,
+    group_request_access_enabled :: Maybe Bool,
     group_full_name :: Text,
     group_full_path :: Text,
     group_file_template_project_id :: Maybe Int,
@@ -1156,57 +1211,77 @@ issueStatsPrefix s = s
 -- boardsPrefix "project_board_web_url" = "web_url"
 -- boardsPrefix s = s
 
-instance FromJSON TimeStats where
-  parseJSON =
-    genericParseJSON
-      ( defaultOptions
-          { fieldLabelModifier = drop (T.length "time_stats_")
-          }
-      )
+$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "time_stats_"), omitNothingFields = True} ''TimeStats)
 
-instance ToJSON TimeStats where
-  toJSON =
-    genericToJSON
-      defaultOptions
-        { fieldLabelModifier = drop (T.length "time_stats_"),
-          omitNothingFields = True
-        }
-  toEncoding =
-    genericToEncoding
-      defaultOptions
-        { fieldLabelModifier = drop (T.length "time_stats_"),
-          omitNothingFields = True
-        }
+-- instance FromJSON TimeStats where
+--   parseJSON =
+--     genericParseJSON
+--       ( defaultOptions
+--           { fieldLabelModifier = drop (T.length "time_stats_")
+--           }
+--       )
 
-instance FromJSON Issue where
-  parseJSON =
-    genericParseJSON
-      ( defaultOptions
-          { fieldLabelModifier = drop (T.length "issue_")
-          }
-      )
+-- instance ToJSON TimeStats where
+--   toJSON =
+--     genericToJSON
+--       defaultOptions
+--         { fieldLabelModifier = drop (T.length "time_stats_"),
+--           omitNothingFields = True
+--         }
+--   toEncoding =
+--     genericToEncoding
+--       defaultOptions
+--         { fieldLabelModifier = drop (T.length "time_stats_"),
+--           omitNothingFields = True
+--         }
 
-instance ToJSON Issue where
-  toJSON =
-    genericToJSON
-      defaultOptions
-        { fieldLabelModifier = drop (T.length "issue_"),
-          omitNothingFields = True
-        }
-  toEncoding =
-    genericToEncoding
-      defaultOptions
-        { fieldLabelModifier = drop (T.length "issue_"),
-          omitNothingFields = True
-        }
+$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "issue_"), omitNothingFields = True} ''Issue)
 
-instance FromJSON User where
-  parseJSON =
-    genericParseJSON
-      ( defaultOptions
-          { fieldLabelModifier = drop (T.length "user_")
-          }
-      )
+-- instance FromJSON Issue where
+--   parseJSON =
+--     genericParseJSON
+--       ( defaultOptions
+--           { fieldLabelModifier = drop (T.length "issue_")
+--           }
+--       )
+
+-- instance ToJSON Issue where
+--   toJSON =
+--     genericToJSON
+--       defaultOptions
+--         { fieldLabelModifier = drop (T.length "issue_"),
+--           omitNothingFields = True
+--         }
+--   toEncoding =
+--     genericToEncoding
+--       defaultOptions
+--         { fieldLabelModifier = drop (T.length "issue_"),
+--           omitNothingFields = True
+--         }
+
+$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "user_"), omitNothingFields = True} ''User)
+
+-- instance FromJSON User where
+--   parseJSON =
+--     genericParseJSON
+--       ( defaultOptions
+--           { fieldLabelModifier = drop (T.length "user_")
+--           }
+--       )
+
+-- instance ToJSON User where
+--   toJSON =
+--     genericToJSON
+--       defaultOptions
+--         { fieldLabelModifier = drop (T.length "user_"),
+--           omitNothingFields = True
+--         }
+--   toEncoding =
+--     genericToEncoding
+--       defaultOptions
+--         { fieldLabelModifier = drop (T.length "user_"),
+--           omitNothingFields = True
+--         }
 
 instance FromJSON Commit where
   parseJSON =
@@ -1216,13 +1291,13 @@ instance FromJSON Commit where
           }
       )
 
-instance FromJSON CommitTodo where
-  parseJSON =
-    genericParseJSON
-      ( defaultOptions
-          { fieldLabelModifier = bodyNoPrefix
-          }
-      )
+-- instance FromJSON CommitTodo where
+--   parseJSON =
+--     genericParseJSON
+--       ( defaultOptions
+--           { fieldLabelModifier = bodyNoPrefix
+--           }
+--       )
 
 instance FromJSON Tag where
   parseJSON =
@@ -1248,29 +1323,31 @@ instance FromJSON CommitStats where
           }
       )
 
-instance FromJSON Pipeline where
-  parseJSON =
-    genericParseJSON
-      ( defaultOptions
-          { fieldLabelModifier = drop (T.length "pipeline_")
-          }
-      )
+$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "pipeline_"), omitNothingFields = True} ''Pipeline)
 
-instance ToJSON Pipeline where
-  toJSON =
-    genericToJSON
-      ( defaultOptions
-          { fieldLabelModifier = drop (T.length "pipeline_"),
-            omitNothingFields = True
-          }
-      )
-  toEncoding =
-    genericToEncoding
-      ( defaultOptions
-          { fieldLabelModifier = drop (T.length "pipeline_"),
-            omitNothingFields = True
-          }
-      )
+-- instance FromJSON Pipeline where
+--   parseJSON =
+--     genericParseJSON
+--       ( defaultOptions
+--           { fieldLabelModifier = drop (T.length "pipeline_")
+--           }
+--       )
+
+-- instance ToJSON Pipeline where
+--   toJSON =
+--     genericToJSON
+--       ( defaultOptions
+--           { fieldLabelModifier = drop (T.length "pipeline_"),
+--             omitNothingFields = True
+--           }
+--       )
+--   toEncoding =
+--     genericToEncoding
+--       ( defaultOptions
+--           { fieldLabelModifier = drop (T.length "pipeline_"),
+--             omitNothingFields = True
+--           }
+--       )
 
 instance FromJSON Member where
   parseJSON =
@@ -1280,139 +1357,151 @@ instance FromJSON Member where
           }
       )
 
-instance FromJSON Permissions where
-  parseJSON =
-    genericParseJSON
-      ( defaultOptions
-          { fieldLabelModifier = drop (T.length "permissions_")
-          }
-      )
+$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "permissions_"), omitNothingFields = True} ''Permissions)
 
-instance ToJSON Permissions where
-  toJSON =
-    genericToJSON
-      ( defaultOptions
-          { fieldLabelModifier = drop (T.length "permissions_"),
-            omitNothingFields = True
-          }
-      )
-  toEncoding =
-    genericToEncoding
-      ( defaultOptions
-          { fieldLabelModifier = drop (T.length "permissions_"),
-            omitNothingFields = True
-          }
-      )
+-- instance FromJSON Permissions where
+--   parseJSON =
+--     genericParseJSON
+--       ( defaultOptions
+--           { fieldLabelModifier = drop (T.length "permissions_")
+--           }
+--       )
 
-instance FromJSON Owner where
-  parseJSON =
-    genericParseJSON
-      ( defaultOptions
-          { fieldLabelModifier = drop (T.length "owner_")
-          }
-      )
+-- instance ToJSON Permissions where
+--   toJSON =
+--     genericToJSON
+--       ( defaultOptions
+--           { fieldLabelModifier = drop (T.length "permissions_"),
+--             omitNothingFields = True
+--           }
+--       )
+--   toEncoding =
+--     genericToEncoding
+--       ( defaultOptions
+--           { fieldLabelModifier = drop (T.length "permissions_"),
+--             omitNothingFields = True
+--           }
+--       )
 
-instance ToJSON Owner where
-  toJSON =
-    genericToJSON
-      defaultOptions
-        { fieldLabelModifier = drop (T.length "owner_"),
-          omitNothingFields = True
-        }
-  toEncoding =
-    genericToEncoding
-      defaultOptions
-        { fieldLabelModifier = drop (T.length "owner_"),
-          omitNothingFields = True
-        }
+$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "owner_"), omitNothingFields = True} ''Owner)
 
-instance FromJSON Links where
-  parseJSON =
-    genericParseJSON
-      ( defaultOptions
-          { fieldLabelModifier = drop (T.length "links_")
-          }
-      )
+-- instance FromJSON Owner where
+--   parseJSON =
+--     genericParseJSON
+--       ( defaultOptions
+--           { fieldLabelModifier = drop (T.length "owner_")
+--           }
+--       )
 
-instance ToJSON Links where
-  toJSON =
-    genericToJSON
-      defaultOptions
-        { fieldLabelModifier = drop (T.length "links_"),
-          omitNothingFields = True
-        }
-  toEncoding =
-    genericToEncoding
-      defaultOptions
-        { fieldLabelModifier = drop (T.length "links_"),
-          omitNothingFields = True
-        }
+-- instance ToJSON Owner where
+--   toJSON =
+--     genericToJSON
+--       defaultOptions
+--         { fieldLabelModifier = drop (T.length "owner_"),
+--           omitNothingFields = True
+--         }
+--   toEncoding =
+--     genericToEncoding
+--       defaultOptions
+--         { fieldLabelModifier = drop (T.length "owner_"),
+--           omitNothingFields = True
+--         }
 
-instance FromJSON Namespace where
-  parseJSON =
-    genericParseJSON
-      ( defaultOptions
-          { fieldLabelModifier = drop (T.length "namespace_")
-          }
-      )
+$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "links_"), omitNothingFields = True} ''Links)
 
-instance ToJSON Namespace where
-  toJSON =
-    genericToJSON
-      defaultOptions
-        { fieldLabelModifier = drop (T.length "namespace_"),
-          omitNothingFields = True
-        }
-  toEncoding =
-    genericToEncoding
-      defaultOptions
-        { fieldLabelModifier = drop (T.length "namespace_"),
-          omitNothingFields = True
-        }
+-- instance FromJSON Links where
+--   parseJSON =
+--     genericParseJSON
+--       ( defaultOptions
+--           { fieldLabelModifier = drop (T.length "links_")
+--           }
+--       )
 
-instance FromJSON Project where
-  parseJSON =
-    genericParseJSON
-      ( defaultOptions
-          { fieldLabelModifier = drop (T.length "project_")
-          }
-      )
+-- instance ToJSON Links where
+--   toJSON =
+--     genericToJSON
+--       defaultOptions
+--         { fieldLabelModifier = drop (T.length "links_"),
+--           omitNothingFields = True
+--         }
+--   toEncoding =
+--     genericToEncoding
+--       defaultOptions
+--         { fieldLabelModifier = drop (T.length "links_"),
+--           omitNothingFields = True
+--         }
 
-instance ToJSON Project where
-  toJSON =
-    genericToJSON
-      defaultOptions
-        { fieldLabelModifier = drop (T.length "project_"),
-          omitNothingFields = True
-        }
-  toEncoding =
-    genericToEncoding
-      defaultOptions
-        { fieldLabelModifier = drop (T.length "project_"),
-          omitNothingFields = True
-        }
+$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "namespace_"), omitNothingFields = True} ''Namespace)
 
-instance FromJSON Statistics where
-  parseJSON =
-    genericParseJSON
-      ( defaultOptions
-          { fieldLabelModifier = drop (T.length "statistics_")
-          }
-      )
+-- instance FromJSON Namespace where
+--   parseJSON =
+--     genericParseJSON
+--       ( defaultOptions
+--           { fieldLabelModifier = drop (T.length "namespace_")
+--           }
+--       )
 
-instance ToJSON Statistics where
-  toJSON =
-    genericToJSON
-      defaultOptions
-        { fieldLabelModifier = drop (T.length "statistics_"),
-          omitNothingFields = True
-        }
-  toEncoding =
-    genericToEncoding
-      defaultOptions
-        { fieldLabelModifier = drop (T.length "statistics_"),
-          omitNothingFields = True
-        }
+-- instance ToJSON Namespace where
+--   toJSON =
+--     genericToJSON
+--       defaultOptions
+--         { fieldLabelModifier = drop (T.length "namespace_"),
+--           omitNothingFields = True
+--         }
+--   toEncoding =
+--     genericToEncoding
+--       defaultOptions
+--         { fieldLabelModifier = drop (T.length "namespace_"),
+--           omitNothingFields = True
+--         }
+
+$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "project_"), omitNothingFields = True} ''Project)
+
+-- instance FromJSON Project where
+--   parseJSON =
+--     genericParseJSON
+--       ( defaultOptions
+--           { fieldLabelModifier = drop (T.length "project_")
+--           }
+--       )
+
+-- instance ToJSON Project where
+--   toJSON =
+--     genericToJSON
+--       defaultOptions
+--         { fieldLabelModifier = drop (T.length "project_"),
+--           omitNothingFields = True
+--         }
+--   toEncoding =
+--     genericToEncoding
+--       defaultOptions
+--         { fieldLabelModifier = drop (T.length "project_"),
+--           omitNothingFields = True
+--         }
+
+$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "statistics_"), omitNothingFields = True} ''Statistics)
+
+-- instance FromJSON Statistics where
+--   parseJSON =
+--     genericParseJSON
+--       ( defaultOptions
+--           { fieldLabelModifier = drop (T.length "statistics_")
+--           }
+--       )
+
+-- instance ToJSON Statistics where
+--   toJSON =
+--     genericToJSON
+--       defaultOptions
+--         { fieldLabelModifier = drop (T.length "statistics_"),
+--           omitNothingFields = True
+--         }
+--   toEncoding =
+--     genericToEncoding
+--       defaultOptions
+--         { fieldLabelModifier = drop (T.length "statistics_"),
+--           omitNothingFields = True
+--         }
 
 instance FromJSON Repository where
   parseJSON =
@@ -1438,13 +1527,13 @@ instance FromJSON Artifact where
           }
       )
 
-instance FromJSON Group where
-  parseJSON =
-    genericParseJSON
-      ( defaultOptions
-          { fieldLabelModifier = bodyNoPrefix
-          }
-      )
+-- instance FromJSON Group where
+--   parseJSON =
+--     genericParseJSON
+--       ( defaultOptions
+--           { fieldLabelModifier = bodyNoPrefix
+--           }
+--       )
 
 instance FromJSON GroupShare where
   parseJSON =
@@ -1470,27 +1559,29 @@ instance FromJSON RepositoryFile where
           }
       )
 
-instance FromJSON MergeRequest where
-  parseJSON =
-    genericParseJSON
-      ( defaultOptions
-          { fieldLabelModifier = drop (T.length "merge_request_")
-          }
-      )
+$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "merge_request_"), omitNothingFields = True} ''MergeRequest)
 
-instance ToJSON MergeRequest where
-  toJSON =
-    genericToJSON
-      defaultOptions
-        { fieldLabelModifier = drop (T.length "merge_request_"),
-          omitNothingFields = True
-        }
-  toEncoding =
-    genericToEncoding
-      defaultOptions
-        { fieldLabelModifier = drop (T.length "merge_request_"),
-          omitNothingFields = True
-        }
+-- instance FromJSON MergeRequest where
+--   parseJSON =
+--     genericParseJSON
+--       ( defaultOptions
+--           { fieldLabelModifier = drop (T.length "merge_request_")
+--           }
+--       )
+
+-- instance ToJSON MergeRequest where
+--   toJSON =
+--     genericToJSON
+--       defaultOptions
+--         { fieldLabelModifier = drop (T.length "merge_request_"),
+--           omitNothingFields = True
+--         }
+--   toEncoding =
+--     genericToEncoding
+--       defaultOptions
+--         { fieldLabelModifier = drop (T.length "merge_request_"),
+--           omitNothingFields = True
+--         }
 
 instance FromJSON Diff where
   parseJSON =
@@ -1508,19 +1599,21 @@ instance FromJSON Version where
           }
       )
 
-instance ToJSON EditIssueReq where
-  toJSON =
-    genericToJSON
-      defaultOptions
-        { fieldLabelModifier = drop (T.length "edit_issue_"),
-          omitNothingFields = True
-        }
-  toEncoding =
-    genericToEncoding
-      defaultOptions
-        { fieldLabelModifier = drop (T.length "edit_issue_"),
-          omitNothingFields = True
-        }
+$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "edit_issue_"), omitNothingFields = True} ''EditIssueReq)
+
+-- instance ToJSON EditIssueReq where
+--   toJSON =
+--     genericToJSON
+--       defaultOptions
+--         { fieldLabelModifier = drop (T.length "edit_issue_"),
+--           omitNothingFields = True
+--         }
+--   toEncoding =
+--     genericToEncoding
+--       defaultOptions
+--         { fieldLabelModifier = drop (T.length "edit_issue_"),
+--           omitNothingFields = True
+--         }
 
 instance FromJSON Discussion where
   parseJSON =
@@ -1562,71 +1655,77 @@ instance FromJSON IssueStatistics where
           }
       )
 
-instance FromJSON IssueBoard where
-  parseJSON =
-    genericParseJSON
-      ( defaultOptions
-          { fieldLabelModifier = drop (T.length "board_")
-          }
-      )
+$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "board_"), omitNothingFields = True} ''IssueBoard)
 
-instance ToJSON IssueBoard where
-  toJSON =
-    genericToJSON
-      defaultOptions
-        { fieldLabelModifier = drop (T.length "board_"),
-          omitNothingFields = True
-        }
-  toEncoding =
-    genericToEncoding
-      defaultOptions
-        { fieldLabelModifier = drop (T.length "board_"),
-          omitNothingFields = True
-        }
+-- instance FromJSON IssueBoard where
+--   parseJSON =
+--     genericParseJSON
+--       ( defaultOptions
+--           { fieldLabelModifier = drop (T.length "board_")
+--           }
+--       )
 
-instance FromJSON BoardIssue where
-  parseJSON =
-    genericParseJSON
-      ( defaultOptions
-          { fieldLabelModifier = drop (T.length "board_issue_")
-          }
-      )
+-- instance ToJSON IssueBoard where
+--   toJSON =
+--     genericToJSON
+--       defaultOptions
+--         { fieldLabelModifier = drop (T.length "board_"),
+--           omitNothingFields = True
+--         }
+--   toEncoding =
+--     genericToEncoding
+--       defaultOptions
+--         { fieldLabelModifier = drop (T.length "board_"),
+--           omitNothingFields = True
+--         }
 
-instance ToJSON BoardIssue where
-  toJSON =
-    genericToJSON
-      defaultOptions
-        { fieldLabelModifier = drop (T.length "board_issue_"),
-          omitNothingFields = True
-        }
-  toEncoding =
-    genericToEncoding
-      defaultOptions
-        { fieldLabelModifier = drop (T.length "board_issue_"),
-          omitNothingFields = True
-        }
+$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "board_issue_"), omitNothingFields = True} ''BoardIssue)
 
-instance FromJSON BoardIssueLabel where
-  parseJSON =
-    genericParseJSON
-      ( defaultOptions
-          { fieldLabelModifier = drop (T.length "board_issue_label_")
-          }
-      )
+-- instance FromJSON BoardIssue where
+--   parseJSON =
+--     genericParseJSON
+--       ( defaultOptions
+--           { fieldLabelModifier = drop (T.length "board_issue_")
+--           }
+--       )
 
-instance ToJSON BoardIssueLabel where
-  toJSON =
-    genericToJSON
-      defaultOptions
-        { fieldLabelModifier = drop (T.length "board_issue_label_"),
-          omitNothingFields = True
-        }
-  toEncoding =
-    genericToEncoding
-      defaultOptions
-        { fieldLabelModifier = drop (T.length "board_issue_label_"),
-          omitNothingFields = True
-        }
+-- instance ToJSON BoardIssue where
+--   toJSON =
+--     genericToJSON
+--       defaultOptions
+--         { fieldLabelModifier = drop (T.length "board_issue_"),
+--           omitNothingFields = True
+--         }
+--   toEncoding =
+--     genericToEncoding
+--       defaultOptions
+--         { fieldLabelModifier = drop (T.length "board_issue_"),
+--           omitNothingFields = True
+--         }
+
+$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "board_issue_label_"), omitNothingFields = True} ''BoardIssueLabel)
+
+-- instance FromJSON BoardIssueLabel where
+--   parseJSON =
+--     genericParseJSON
+--       ( defaultOptions
+--           { fieldLabelModifier = drop (T.length "board_issue_label_")
+--           }
+--       )
+
+-- instance ToJSON BoardIssueLabel where
+--   toJSON =
+--     genericToJSON
+--       defaultOptions
+--         { fieldLabelModifier = drop (T.length "board_issue_label_"),
+--           omitNothingFields = True
+--         }
+--   toEncoding =
+--     genericToEncoding
+--       defaultOptions
+--         { fieldLabelModifier = drop (T.length "board_issue_label_"),
+--           omitNothingFields = True
+--         }
 
 instance FromJSON TestReport where
   parseJSON =
@@ -1648,77 +1747,69 @@ instance FromJSON TestCase where
           }
       )
 
-instance FromJSON TimeEstimate where
-  parseJSON =
-    genericParseJSON
-      ( defaultOptions
-          { fieldLabelModifier = drop (T.length "time_estimate_")
-          }
-      )
+$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "time_estimate_"), omitNothingFields = True} ''TimeEstimate)
 
-instance ToJSON TimeEstimate where
-  toJSON =
-    genericToJSON
-      defaultOptions
-        { fieldLabelModifier = drop (T.length "time_estimate_"),
-          omitNothingFields = True
-        }
-  toEncoding =
-    genericToEncoding
-      defaultOptions
-        { fieldLabelModifier = drop (T.length "time_estimate_"),
-          omitNothingFields = True
-        }
+-- instance FromJSON TimeEstimate where
+--   parseJSON =
+--     genericParseJSON
+--       ( defaultOptions
+--           { fieldLabelModifier = drop (T.length "time_estimate_")
+--           }
+--       )
 
-instance ToJSON User where
-  toJSON =
-    genericToJSON
-      defaultOptions
-        { fieldLabelModifier = drop (T.length "user_"),
-          omitNothingFields = True
-        }
-  toEncoding =
-    genericToEncoding
-      defaultOptions
-        { fieldLabelModifier = drop (T.length "user_"),
-          omitNothingFields = True
-        }
+-- instance ToJSON TimeEstimate where
+--   toJSON =
+--     genericToJSON
+--       defaultOptions
+--         { fieldLabelModifier = drop (T.length "time_estimate_"),
+--           omitNothingFields = True
+--         }
+--   toEncoding =
+--     genericToEncoding
+--       defaultOptions
+--         { fieldLabelModifier = drop (T.length "time_estimate_"),
+--           omitNothingFields = True
+--         }
 
-instance ToJSON Milestone where
-  toJSON =
-    genericToJSON
-      defaultOptions
-        { fieldLabelModifier = drop (T.length "milestone_"),
-          omitNothingFields = True
-        }
-  toEncoding =
-    genericToEncoding
-      defaultOptions
-        { fieldLabelModifier = drop (T.length "milestone_"),
-          omitNothingFields = True
-        }
+$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "milestone_"), omitNothingFields = True} ''Milestone)
 
-instance FromJSON TaskCompletionStatus where
-  parseJSON =
-    genericParseJSON
-      ( defaultOptions
-          { fieldLabelModifier = drop (T.length "task_completion_status_")
-          }
-      )
+-- instance ToJSON Milestone where
+--   toJSON =
+--     genericToJSON
+--       defaultOptions
+--         { fieldLabelModifier = drop (T.length "milestone_"),
+--           omitNothingFields = True
+--         }
+--   toEncoding =
+--     genericToEncoding
+--       defaultOptions
+--         { fieldLabelModifier = drop (T.length "milestone_"),
+--           omitNothingFields = True
+--         }
 
-instance ToJSON TaskCompletionStatus where
-  toJSON =
-    genericToJSON
-      defaultOptions
-        { fieldLabelModifier = drop (T.length "task_completion_status_"),
-          omitNothingFields = True
-        }
-  toEncoding =
-    genericToEncoding
-      defaultOptions
-        { fieldLabelModifier = drop (T.length "task_completion_status_"),
-          omitNothingFields = True
-        }
+$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "task_completion_status_"), omitNothingFields = True} ''TaskCompletionStatus)
+
+-- instance FromJSON TaskCompletionStatus where
+--   parseJSON =
+--     genericParseJSON
+--       ( defaultOptions
+--           { fieldLabelModifier = drop (T.length "task_completion_status_")
+--           }
+--       )
+
+-- instance ToJSON TaskCompletionStatus where
+--   toJSON =
+--     genericToJSON
+--       defaultOptions
+--         { fieldLabelModifier = drop (T.length "task_completion_status_"),
+--           omitNothingFields = True
+--         }
+--   toEncoding =
+--     genericToEncoding
+--       defaultOptions
+--         { fieldLabelModifier = drop (T.length "task_completion_status_"),
+--           omitNothingFields = True
+--         }
 
 instance ToJSON MilestoneState where
   toJSON MSActive = String "active"
@@ -1733,93 +1824,101 @@ instance ToJSON TodoAction where
   toJSON TAUnmergeable = String "unmergeable"
   toJSON TADirectlyAddressed = String "directly_addressed"
 
-instance FromJSON References where
-  parseJSON =
-    genericParseJSON
-      ( defaultOptions
-          { fieldLabelModifier = drop (T.length "references_")
-          }
-      )
+$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "references_"), omitNothingFields = True} ''References)
 
-instance ToJSON References where
-  toJSON =
-    genericToJSON
-      defaultOptions
-        { fieldLabelModifier = drop (T.length "references_"),
-          omitNothingFields = True
-        }
-  toEncoding =
-    genericToEncoding
-      defaultOptions
-        { fieldLabelModifier = drop (T.length "references_"),
-          omitNothingFields = True
-        }
+-- instance FromJSON References where
+--   parseJSON =
+--     genericParseJSON
+--       ( defaultOptions
+--           { fieldLabelModifier = drop (T.length "references_")
+--           }
+--       )
 
-instance FromJSON DiffRefs where
-  parseJSON =
-    genericParseJSON
-      ( defaultOptions
-          { fieldLabelModifier = drop (T.length "diff_refs_")
-          }
-      )
+-- instance ToJSON References where
+--   toJSON =
+--     genericToJSON
+--       defaultOptions
+--         { fieldLabelModifier = drop (T.length "references_"),
+--           omitNothingFields = True
+--         }
+--   toEncoding =
+--     genericToEncoding
+--       defaultOptions
+--         { fieldLabelModifier = drop (T.length "references_"),
+--           omitNothingFields = True
+--         }
 
-instance ToJSON DiffRefs where
-  toJSON =
-    genericToJSON
-      defaultOptions
-        { fieldLabelModifier = drop (T.length "diff_refs_"),
-          omitNothingFields = True
-        }
-  toEncoding =
-    genericToEncoding
-      defaultOptions
-        { fieldLabelModifier = drop (T.length "diff_refs_"),
-          omitNothingFields = True
-        }
+$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "diff_refs_"), omitNothingFields = True} ''DiffRefs)
 
-instance FromJSON Change where
-  parseJSON =
-    genericParseJSON
-      ( defaultOptions
-          { fieldLabelModifier = drop (T.length "change_")
-          }
-      )
+-- instance FromJSON DiffRefs where
+--   parseJSON =
+--     genericParseJSON
+--       ( defaultOptions
+--           { fieldLabelModifier = drop (T.length "diff_refs_")
+--           }
+--       )
 
-instance ToJSON Change where
-  toJSON =
-    genericToJSON
-      defaultOptions
-        { fieldLabelModifier = drop (T.length "change_"),
-          omitNothingFields = True
-        }
-  toEncoding =
-    genericToEncoding
-      defaultOptions
-        { fieldLabelModifier = drop (T.length "change_"),
-          omitNothingFields = True
-        }
+-- instance ToJSON DiffRefs where
+--   toJSON =
+--     genericToJSON
+--       defaultOptions
+--         { fieldLabelModifier = drop (T.length "diff_refs_"),
+--           omitNothingFields = True
+--         }
+--   toEncoding =
+--     genericToEncoding
+--       defaultOptions
+--         { fieldLabelModifier = drop (T.length "diff_refs_"),
+--           omitNothingFields = True
+--         }
 
-instance FromJSON DetailedStatus where
-  parseJSON =
-    genericParseJSON
-      ( defaultOptions
-          { fieldLabelModifier = drop (T.length "detailed_status_")
-          }
-      )
+$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "change_"), omitNothingFields = True} ''Change)
 
-instance ToJSON DetailedStatus where
-  toJSON =
-    genericToJSON
-      defaultOptions
-        { fieldLabelModifier = drop (T.length "detailed_status_"),
-          omitNothingFields = True
-        }
-  toEncoding =
-    genericToEncoding
-      defaultOptions
-        { fieldLabelModifier = drop (T.length "detailed_status_"),
-          omitNothingFields = True
-        }
+-- instance FromJSON Change where
+--   parseJSON =
+--     genericParseJSON
+--       ( defaultOptions
+--           { fieldLabelModifier = drop (T.length "change_")
+--           }
+--       )
+
+-- instance ToJSON Change where
+--   toJSON =
+--     genericToJSON
+--       defaultOptions
+--         { fieldLabelModifier = drop (T.length "change_"),
+--           omitNothingFields = True
+--         }
+--   toEncoding =
+--     genericToEncoding
+--       defaultOptions
+--         { fieldLabelModifier = drop (T.length "change_"),
+--           omitNothingFields = True
+--         }
+
+$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "detailed_status_"), omitNothingFields = True} ''DetailedStatus)
+
+-- instance FromJSON DetailedStatus where
+--   parseJSON =
+--     genericParseJSON
+--       ( defaultOptions
+--           { fieldLabelModifier = drop (T.length "detailed_status_")
+--           }
+--       )
+
+-- instance ToJSON DetailedStatus where
+--   toJSON =
+--     genericToJSON
+--       defaultOptions
+--         { fieldLabelModifier = drop (T.length "detailed_status_"),
+--           omitNothingFields = True
+--         }
+--   toEncoding =
+--     genericToEncoding
+--       defaultOptions
+--         { fieldLabelModifier = drop (T.length "detailed_status_"),
+--           omitNothingFields = True
+--         }
 
 instance FromJSON Todo where
   parseJSON = withObject "Todo" $ \v ->
@@ -1879,16 +1978,41 @@ instance ToJSON TodoTarget where
   toJSON (TTMergeRequest x) = toJSON x
   toJSON (TTCommit x) = toJSON x
 
-instance ToJSON CommitTodo where
-  toJSON =
-    genericToJSON
-      defaultOptions
-        { fieldLabelModifier = drop (T.length "commit_todo_"),
-          omitNothingFields = True
-        }
-  toEncoding =
-    genericToEncoding
-      defaultOptions
-        { fieldLabelModifier = drop (T.length "commit_todo_"),
-          omitNothingFields = True
-        }
+$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "commit_todo_"), omitNothingFields = True} ''CommitTodo)
+
+-- instance ToJSON CommitTodo where
+--   toJSON =
+--     genericToJSON
+--       defaultOptions
+--         { fieldLabelModifier = drop (T.length "commit_todo_"),
+--           omitNothingFields = True
+--         }
+--   toEncoding =
+--     genericToEncoding
+--       defaultOptions
+--         { fieldLabelModifier = drop (T.length "commit_todo_"),
+--           omitNothingFields = True
+--         }
+
+data Starrer = Starrer
+  { starrer_starred_since :: UTCTime,
+    starrer_user :: User
+  }
+  deriving (Generic, Show, Eq)
+
+data ProjectAvatar = ProjectAvatar
+  { project_avatar_avatar_url :: Text
+  }
+  deriving (Generic, Show, Eq)
+
+$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "license_"), omitNothingFields = True} ''License)
+
+$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "expiration_policy_"), omitNothingFields = True} ''ExpirationPolicy)
+
+$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "repository_storage_"), omitNothingFields = True} ''RepositoryStorage)
+
+$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "starrer_"), omitNothingFields = True} ''Starrer)
+
+$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "project_avatar_"), omitNothingFields = True} ''ProjectAvatar)
+
+$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "group_"), omitNothingFields = True} ''Group)
