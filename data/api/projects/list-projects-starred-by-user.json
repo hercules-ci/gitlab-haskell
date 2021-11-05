@@ -8,7 +8,7 @@
     "http_url_to_repo": "http://example.com/diaspora/diaspora-client.git",
     "web_url": "http://example.com/diaspora/diaspora-client",
     "readme_url": "http://example.com/diaspora/diaspora-client/blob/master/README.md",
-    "tag_list": [ //deprecated, use `topics` instead
+    "tag_list": [
       "example",
       "disapora client"
     ],
@@ -33,7 +33,7 @@
     "snippets_enabled": false,
     "can_create_merge_request_in": true,
     "resolve_outdated_diff_discussions": false,
-    "container_registry_enabled": false, // deprecated, use container_registry_access_level instead
+    "container_registry_enabled": false,
     "container_registry_access_level": "disabled",
     "created_at": "2013-09-30T13:46:02Z",
     "last_activity_at": "2013-09-30T13:46:02Z",
@@ -69,7 +69,7 @@
       "storage_size": 1038090,
       "repository_size": 1038090,
       "lfs_objects_size": 0,
-      "job_artifacts_size": 0
+      "job_artifacts_size": 0,
       "pipeline_artifacts_size": 0,
       "packages_size": 0,
       "snippets_size": 0,
@@ -95,7 +95,7 @@
     "http_url_to_repo": "http://example.com/brightbox/puppet.git",
     "web_url": "http://example.com/brightbox/puppet",
     "readme_url": "http://example.com/brightbox/puppet/blob/master/README.md",
-    "tag_list": [ //deprecated, use `topics` instead
+    "tag_list": [
       "example",
       "puppet"
     ],
@@ -120,7 +120,7 @@
     "snippets_enabled": false,
     "can_create_merge_request_in": true,
     "resolve_outdated_diff_discussions": false,
-    "container_registry_enabled": false, // deprecated, use container_registry_access_level instead
+    "container_registry_enabled": false,
     "container_registry_access_level": "disabled",
     "created_at": "2013-09-30T13:46:02Z",
     "last_activity_at": "2013-09-30T13:46:02Z",
@@ -180,7 +180,7 @@
       "storage_size": 2066080,
       "repository_size": 2066080,
       "lfs_objects_size": 0,
-      "job_artifacts_size": 0
+      "job_artifacts_size": 0,
       "pipeline_artifacts_size": 0,
       "packages_size": 0,
       "snippets_size": 0,
