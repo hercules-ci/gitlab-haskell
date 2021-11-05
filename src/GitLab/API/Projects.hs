@@ -145,7 +145,7 @@ commitsEmailAddresses' projectId = do
   case attempt of
     Left resp -> return (Left resp)
     Right (commits :: [Commit]) ->
-      return (Right (map author_email commits))
+      return (Right (map commit_author_email commits))
 
 -- | gets all projects for a user given their username.
 --
