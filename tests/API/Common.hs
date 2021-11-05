@@ -197,3 +197,13 @@ instance ToExpr DiffRefs
 instance ToExpr DetailedStatus
 
 instance ToExpr TodoTargetType
+
+instance ToExpr License
+
+instance ToExpr ExpirationPolicy
+
+instance ToExpr RepositoryStorage
+
+instance ToExpr Starrer
+
+instance ToExpr ProjectAvatar
