@@ -2,6 +2,7 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE StrictData #-}
 {-# LANGUAGE TemplateHaskell #-}
 
@@ -57,6 +58,7 @@ module GitLab.Types
     URL,
     EditIssueReq (..),
     Discussion (..),
+    CommitNote (..),
     Note (..),
     IssueStatistics (..),
     IssueStats (..),
@@ -359,10 +361,12 @@ data User = User
   { user_id :: Int,
     user_username :: Text,
     user_name :: Text,
+    user_email :: Maybe Text,
     user_state :: Text,
     user_avatar_url :: Maybe Text,
     user_web_url :: Maybe Text,
-    user_discussion_locked :: Maybe Bool -- only for author of 'TODO' type
+    user_discussion_locked :: Maybe Bool, -- only for author of 'TODO' type
+    user_created_at :: Maybe UTCTime
   }
   deriving (Show, Eq)
 
@@ -483,16 +487,17 @@ data Commit = Commit
     commit_title :: Text,
     commit_author_name :: Text,
     commit_author_email :: Text,
-    commit_authored_date :: Text,
+    commit_authored_date :: Maybe Text, -- ZonedTime ?
     commit_committer_name :: Text,
     commit_committer_email :: Text,
-    commit_committed_date :: Text,
-    commit_created_at :: UTCTime,
+    commit_committed_date :: Maybe Text, -- ZonedTime ?
+    commit_created_at :: Maybe Text, -- ZonedTime ?
     commit_message :: Text,
     commit_parent_ids :: Maybe [String],
     commit_last_pipeline :: Maybe Pipeline,
     commit_stats :: Maybe CommitStats,
-    commit_status :: Maybe Text
+    commit_status :: Maybe Text,
+    commit_web_url :: Maybe Text
   }
   deriving (Show, Eq)
 
@@ -533,16 +538,16 @@ data Release = Release
 
 -- | diff between two commits.
 data Diff = Diff
-  { diff :: Text,
-    new_path :: Text,
-    old_path :: Text,
-    a_mode :: Maybe Text,
-    b_mode :: Maybe Text,
-    new_file :: Bool,
-    renamed_file :: Bool,
-    deleted_file :: Bool
+  { diff_diff :: Text,
+    diff_new_path :: Text,
+    diff_old_path :: Text,
+    diff_a_mode :: Maybe Text,
+    diff_b_mode :: Maybe Text,
+    diff_new_file :: Bool,
+    diff_renamed_file :: Bool,
+    diff_deleted_file :: Bool
   }
-  deriving (Generic, Show, Eq)
+  deriving (Show, Eq)
 
 -- | repositories.
 data Repository = Repository
@@ -617,15 +622,16 @@ data GroupShare = GroupShare
 -- | code branches.
 data Branch = Branch
   { branch_name :: Text,
-    merged :: Bool,
-    protected :: Bool,
+    branch_merged :: Bool,
+    branch_protected :: Bool,
     branch_default :: Bool,
-    developers_can_push :: Bool,
-    developers_can_merge :: Bool,
-    can_push :: Bool,
+    branch_developers_can_push :: Bool,
+    branch_developers_can_merge :: Bool,
+    branch_can_push :: Bool,
+    branch_web_url :: Maybe Text,
     branch_commit :: Commit
   }
-  deriving (Generic, Show, Eq)
+  deriving (Show, Eq)
 
 -- | files in a repository.
 data RepositoryFile = RepositoryFile
@@ -897,6 +903,12 @@ data Discussion = Discussion
   }
   deriving (Show)
 
+data CommitNote = CommitNote
+  { commitnote_note :: Text,
+    commitnote_author :: User
+  }
+  deriving (Show, Eq)
+
 -- | Notes
 data Note = Note
   { note_id :: Int,
@@ -1100,9 +1112,9 @@ bodyNoPrefix "link_labels" = "labels"
 -- bodyNoPrefix "repository_type" = "type"
 bodyNoPrefix "event_title" = "title"
 bodyNoPrefix "event_project_id" = "project_id"
-bodyNoPrefix "branch_name" = "name"
-bodyNoPrefix "branch_default" = "default"
-bodyNoPrefix "branch_commit" = "commit"
+-- bodyNoPrefix "branch_name" = "name"
+-- bodyNoPrefix "branch_default" = "default"
+-- bodyNoPrefix "branch_commit" = "commit"
 bodyNoPrefix "repository_file_file_name" = "file_name"
 bodyNoPrefix "repository_file_file_path" = "file_path"
 bodyNoPrefix "repository_file_size" = "size"
@@ -1562,13 +1574,29 @@ $(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "groupshare_"),
 --           }
 --       )
 
-instance FromJSON Branch where
-  parseJSON =
-    genericParseJSON
-      ( defaultOptions
-          { fieldLabelModifier = bodyNoPrefix
-          }
-      )
+$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "branch_"), omitNothingFields = True} ''Branch)
+
+-- instance FromJSON Branch where
+--   parseJSON =
+--     genericParseJSON
+--       ( defaultOptions
+--           { fieldLabelModifier = bodyNoPrefix
+--           }
+--       )
+
+-- instance ToJSON Branch where
+--   toJSON =
+--     genericToJSON
+--       defaultOptions
+--         { fieldLabelModifier = bodyNoPrefix,
+--           omitNothingFields = True
+--         }
+--   toEncoding =
+--     genericToEncoding
+--       defaultOptions
+--         { fieldLabelModifier = bodyNoPrefix,
+--           omitNothingFields = True
+--         }
 
 instance FromJSON RepositoryFile where
   parseJSON =
@@ -1602,13 +1630,15 @@ $(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "merge_request_
 --           omitNothingFields = True
 --         }
 
-instance FromJSON Diff where
-  parseJSON =
-    genericParseJSON
-      ( defaultOptions
-          { fieldLabelModifier = bodyNoPrefix
-          }
-      )
+$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "diff_"), omitNothingFields = True} ''Diff)
+
+-- instance FromJSON Diff where
+--   parseJSON =
+--     genericParseJSON
+--       ( defaultOptions
+--           { fieldLabelModifier = bodyNoPrefix
+--           }
+--       )
 
 instance FromJSON Version where
   parseJSON =
@@ -2045,3 +2075,5 @@ $(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "starrer_"), om
 $(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "project_avatar_"), omitNothingFields = True} ''ProjectAvatar)
 
 $(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "group_"), omitNothingFields = True} ''Group)
+
+$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "commitnote_"), omitNothingFields = True} ''CommitNote)
