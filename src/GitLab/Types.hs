@@ -901,7 +901,7 @@ data Discussion = Discussion
     discussion_individual_note :: Bool,
     discussion_notes :: [Note]
   }
-  deriving (Show)
+  deriving (Show, Eq)
 
 data CommitNote = CommitNote
   { commitnote_note :: Text,
@@ -923,9 +923,11 @@ data Note = Note
     note_noteable_id :: Maybe Int,
     note_noteable_type :: Maybe Text, -- create type e.g. from "Commit"
     note_noteable_iid :: Maybe Int,
-    note_resolvable :: Bool
+    note_resolved :: Maybe Bool,
+    note_resolvable :: Maybe Bool,
+    note_resolved_by :: Maybe User -- TODO check
   }
-  deriving (Show)
+  deriving (Show, Eq)
 
 -- | Statistics and an issue
 newtype IssueStatistics = IssueStatistics
