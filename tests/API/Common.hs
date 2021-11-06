@@ -175,6 +175,8 @@ deriving instance Generic EditIssueReq
 
 deriving instance Generic Discussion
 
+deriving instance Generic CommitNote
+
 deriving instance Generic Note
 
 deriving instance Generic IssueBoard
@@ -194,6 +196,10 @@ deriving instance Generic TimeEstimate
 deriving instance Generic ProjectAvatar
 
 deriving instance Generic Starrer
+
+deriving instance Generic Branch
+
+deriving instance Generic Diff
 
 -------------
 -- ToExpr instances
@@ -269,6 +275,8 @@ instance ToExpr Version
 instance ToExpr EditIssueReq
 
 instance ToExpr Discussion
+
+instance ToExpr CommitNote
 
 instance ToExpr Note
 
