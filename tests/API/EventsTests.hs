@@ -17,3 +17,11 @@ import Test.Tasty.HUnit
 eventsTests :: [TestTree]
 eventsTests =
   []
+
+{-
+
+get-user-contributions-events.json
+list-current-authenticated-users-events.json
+list-projects-visible-events.json
+
+-}
