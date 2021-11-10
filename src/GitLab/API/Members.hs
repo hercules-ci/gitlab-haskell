@@ -59,21 +59,6 @@ import GitLab.WebRequests.GitLabWebCalls
 import Network.HTTP.Client
 import Network.HTTP.Types.URI
 
--- | the access levels for project members. See <https://docs.gitlab.com/ee/user/permissions.html#project-members-permissions>
-data AccessLevel
-  = Guest
-  | Reporter
-  | Developer
-  | Maintainer
-  | Owner
-
-instance Show AccessLevel where
-  show Guest = "10"
-  show Reporter = "20"
-  show Developer = "30"
-  show Maintainer = "40"
-  show Owner = "50"
-
 -- | the members of a project.
 membersOfProject :: Project -> GitLab [Member]
 membersOfProject p = do
