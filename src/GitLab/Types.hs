@@ -19,6 +19,7 @@ module GitLab.Types
     GitLabServerConfig (..),
     defaultGitLabServer,
     ArchiveFormat (..),
+    AccessLevel (..),
     Member (..),
     Namespace (..),
     Links (..),
@@ -161,6 +162,22 @@ instance Show ArchiveFormat where
   show Tar = ".tar"
   show Zip = ".zip"
 
+-- | the access levels for project members. See <https://docs.gitlab.com/ee/user/permissions.html#project-members-permissions>
+data AccessLevel
+  = Guest
+  | Reporter
+  | Developer
+  | Maintainer
+  | Owner
+  deriving (Eq)
+
+instance Show AccessLevel where
+  show Guest = "10"
+  show Reporter = "20"
+  show Developer = "30"
+  show Maintainer = "40"
+  show Owner = "50"
+
 -- | member of a project.
 data Member = Member
   { member_id :: Int,
@@ -180,7 +197,7 @@ data Namespace = Namespace
     namespace_name :: Text,
     namespace_path :: Text,
     namespace_kind :: Text,
-    namespace_full_path :: Text,
+    namespace_full_path :: Maybe Text,
     namespace_avatar_url :: Maybe Text,
     namespace_web_url :: Maybe Text,
     namespace_parent_id :: Maybe Int
@@ -228,7 +245,7 @@ data Project = Project
     project_path_with_namespace :: Text,
     project_created_at :: Maybe UTCTime,
     project_default_branch :: Maybe Text,
-    project_tag_list :: Maybe [Text],
+    project_tag_list :: Maybe [Text], --  GitLab Docs: "deprecated, use `topics` instead"
     project_topics :: Maybe [Text],
     project_ssh_url_to_repo :: Maybe Text,
     project_http_url_to_repo :: Maybe Text,
@@ -278,15 +295,16 @@ data Project = Project
     project_build_timeout :: Maybe Int,
     project_auto_cancel_pending_pipelines :: Maybe Text, -- TODO a type for "enabled"
     project_ci_config_path :: Maybe Text, -- check null
-    project_shared_with_groups :: Maybe [Object],
+    project_shared_with_groups :: Maybe [GroupShare],
     project_only_allow_merge_if_pipeline_succeeds :: Maybe Bool,
     project_allow_merge_on_skipped_pipeline :: Maybe Bool,
     project_restrict_user_defined_variables :: Maybe Bool,
     project_request_access_enabled :: Maybe Bool,
     project_only_allow_merge_if_all_discussions_are_resolved :: Maybe Bool,
     project_remove_source_branch_after_merge :: Maybe Bool,
+    project_printing_merge_request_link_enabled :: Maybe Bool,
     project_printing_merge_requests_link_enabled :: Maybe Bool,
-    project_merge_method :: Maybe Text,
+    project_merge_method :: Maybe Text, -- TODO type for "merge"
     project_squash_option :: Maybe Text, -- TODO type for "default_on"
     project_autoclose_referenced_issues :: Maybe Bool,
     project_suggestion_commit_message :: Maybe Text,
@@ -343,7 +361,7 @@ data RepositoryStorage = RepositoryStorage
 
 -- | project statistics.
 data Statistics = Statistics
-  { statistics_commit_count :: Int,
+  { statistics_commit_count :: Maybe Int,
     statistics_storage_size :: Int,
     statistics_repository_size :: Int,
     statistics_wiki_size :: Maybe Int,
@@ -609,22 +627,28 @@ data Group = Group
     group_default_branch_protection :: Maybe Int,
     group_lfs_enabled :: Maybe Bool,
     group_avatar_url :: Maybe Text,
-    group_web_url :: Text,
+    group_web_url :: Maybe Text,
     group_request_access_enabled :: Maybe Bool,
-    group_full_name :: Text,
-    group_full_path :: Text,
+    group_full_name :: Maybe Text,
+    group_full_path :: Maybe Text,
+    group_runners_token :: Maybe Text,
     group_file_template_project_id :: Maybe Int,
     group_parent_id :: Maybe Int,
-    group_created_at :: Maybe UTCTime
+    group_created_at :: Maybe UTCTime,
+    group_statistics :: Maybe Statistics,
+    group_shared_with_groups :: Maybe [GroupShare],
+    group_prevent_sharing_groups_outside_hierarchy :: Maybe Bool
   }
   deriving (Show, Eq)
 
 -- | response to sharing a project with a group.
 data GroupShare = GroupShare
-  { groupshare_id :: Int,
-    groupshare_project_id :: Int,
+  { groupshare_id :: Maybe Int,
+    groupshare_project_id :: Maybe Int,
     groupshare_group_id :: Int,
-    groupshare_group_access :: Int,
+    groupshare_group_name :: Maybe Text,
+    groupshare_group_full_path :: Maybe Text,
+    groupshare_group_access_level :: Int, -- TODO change this to 'AccessLevel'
     groupshare_expires_at :: Maybe Text
   }
   deriving (Show, Eq)
