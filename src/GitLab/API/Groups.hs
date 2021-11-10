@@ -37,7 +37,7 @@ groupsWithNameOrPath groupName = do
               ( \group ->
                   groupName == group_name group
                     || groupName == fromJust (group_path group)
-                    || groupName == group_full_path group
+                    || groupName == fromJust (group_full_path group)
               )
               groups
         )
