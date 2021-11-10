@@ -14,7 +14,7 @@ module GitLab.API.Projects
     projectForks,
     searchProjectId,
     projectsWithName,
-    projectsWithNameAndUser,
+    projectWithPathAndName,
     multipleCommitters,
     commitsEmailAddresses,
     commitsEmailAddresses',
@@ -108,17 +108,22 @@ projectsWithName projectName = do
       return $
         filter (\project -> projectName == project_path project) projects
 
--- | gets a project with the given name for the given username. E.g.
+-- | gets a project with the given name for the given full path of the
+--   namespace. E.g.
 --
--- > projectsWithNameAndUser "user1" "project1"
+-- > projectWithPathAndName "user1" "project1"
 --
 -- looks for "user1/project1"
-projectsWithNameAndUser :: Text -> Text -> GitLab (Either (Response BSL.ByteString) (Maybe Project))
-projectsWithNameAndUser username projectName =
+--
+-- > projectWithPathAndName "group1/subgroup1" "project1"
+--
+-- looks for "project1" within the namespace with full path "group1/subgroup1"
+projectWithPathAndName :: Text -> Text -> GitLab (Either (Response BSL.ByteString) (Maybe Project))
+projectWithPathAndName namespaceFullPath projectName = do
   gitlabGetOne
     ( "/projects/"
         <> T.decodeUtf8
-          (urlEncode False (T.encodeUtf8 (username <> "/" <> projectName)))
+          (urlEncode False (T.encodeUtf8 (namespaceFullPath <> "/" <> projectName)))
     )
     [("statistics", Just "true")]
 
