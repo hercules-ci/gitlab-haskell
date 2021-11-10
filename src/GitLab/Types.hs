@@ -213,8 +213,8 @@ data Owner = Ownwer
 
 -- | permissions.
 data Permissions = Permissions
-  { permissions_project_access :: Maybe Object,
-    permissions_group_access :: Maybe Object
+  { permissions_project_access :: Maybe Value,
+    permissions_group_access :: Maybe Value
   }
   deriving (Show, Eq)
 
@@ -324,11 +324,11 @@ data License = License
 data ExpirationPolicy = ExpirationPolicy
   { expiration_policy_cadence :: Maybe Text,
     expiration_policy_enabled :: Maybe Bool,
-    expiration_policy_keep_n :: Maybe Object, -- TODO
-    expiration_policy_older_than :: Maybe Object, -- TODO
-    expiration_policy_name_regex :: Maybe Object, -- TODO
-    expiration_policy_name_regex_delete :: Maybe Object, -- TODO
-    expiration_policy_name_regex_keep :: Maybe Object, -- TODO
+    expiration_policy_keep_n :: Maybe Int,
+    expiration_policy_older_than :: Maybe Text,
+    expiration_policy_name_regex :: Maybe Text,
+    expiration_policy_name_regex_delete :: Maybe Value, -- TODO
+    expiration_policy_name_regex_keep :: Maybe Value, -- TODO
     expiration_policy_next_run_at :: Maybe UTCTime
   }
   deriving (Show, Eq)
@@ -598,6 +598,15 @@ data Group = Group
     group_path :: Maybe Text,
     group_description :: Maybe Text,
     group_visibility :: Maybe Text,
+    group_share_with_group_lock :: Maybe Bool,
+    group_require_two_factor_authentication :: Maybe Bool,
+    group_two_factor_grace_period :: Maybe Int,
+    group_project_creation_level :: Maybe Text, -- TODO type for "developer"
+    group_auto_devops_enabled :: Maybe Bool,
+    group_subgroup_creation_level :: Maybe Text, -- TODO type for "owner"
+    group_emails_disabled :: Maybe Bool,
+    group_mentions_disabled :: Maybe Bool,
+    group_default_branch_protection :: Maybe Int,
     group_lfs_enabled :: Maybe Bool,
     group_avatar_url :: Maybe Text,
     group_web_url :: Text,
@@ -605,7 +614,8 @@ data Group = Group
     group_full_name :: Text,
     group_full_path :: Text,
     group_file_template_project_id :: Maybe Int,
-    group_parent_id :: Maybe Int
+    group_parent_id :: Maybe Int,
+    group_created_at :: Maybe UTCTime
   }
   deriving (Show, Eq)
 
