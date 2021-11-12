@@ -20,6 +20,10 @@ module GitLab.Types
     defaultGitLabServer,
     ArchiveFormat (..),
     AccessLevel (..),
+    SearchIn (..),
+    Scope (..),
+    SortBy (..),
+    OrderBy (..),
     Member (..),
     Namespace (..),
     Links (..),
@@ -177,6 +181,60 @@ instance Show AccessLevel where
   show Developer = "30"
   show Maintainer = "40"
   show Owner = "50"
+
+-- | Where to filter a search within
+data SearchIn
+  = JustTitle
+  | JustDescription
+  | TitleAndDescription
+
+instance Show SearchIn where
+  show JustTitle = "title"
+  show JustDescription = "description"
+  show TitleAndDescription = "title,description"
+
+-- | Scope of search results
+data Scope
+  = CreatedByMe
+  | AssignedToMe
+  | All
+
+instance Show Scope where
+  show CreatedByMe = "created_by_me"
+  show AssignedToMe = "assigned_to_me"
+  show All = "all"
+
+-- | Sort objects in ascending or descending order
+data SortBy
+  = Ascending
+  | Descending
+
+instance Show SortBy where
+  show Ascending = "asc"
+  show Descending = "desc"
+
+-- | Ordering search results
+data OrderBy
+  = CreatedAt
+  | UpdatedAt
+  | Priority
+  | DueDate
+  | RelativePosition
+  | LabelPriority
+  | MilestoneDue
+  | Popularity
+  | Weight
+
+instance Show OrderBy where
+  show CreatedAt = "created_at"
+  show UpdatedAt = "updated_at"
+  show Priority = "priority"
+  show DueDate = "due_date"
+  show RelativePosition = "relative_position"
+  show LabelPriority = "label_priority"
+  show MilestoneDue = "milestone_due"
+  show Popularity = "popularity"
+  show Weight = "weight"
 
 -- | member of a project.
 data Member = Member

@@ -12,10 +12,6 @@ module GitLab.API.Issues
   ( defaultIssueFilters,
     IssueAttrs (..),
     DueDate (..),
-    IssueSearchIn (..),
-    IssueOrderBy (..),
-    IssueScope (..),
-    IssueSortBy (..),
     IssueState (..),
     projectIssues,
     projectIssues',
@@ -62,60 +58,6 @@ instance Show DueDate where
   show Week = "week"
   show Month = "month"
   show NextMonthPreviousTwoWeeks = "next_month_and_previous_two_weeks"
-
--- | Where to filter a search within
-data IssueSearchIn
-  = JustTitle
-  | JustDescription
-  | TitleAndDescription
-
-instance Show IssueSearchIn where
-  show JustTitle = "title"
-  show JustDescription = "description"
-  show TitleAndDescription = "title,description"
-
--- | Ordering search results
-data IssueOrderBy
-  = CreatedAt
-  | UpdatedAt
-  | Priority
-  | DueDate
-  | RelativePosition
-  | LabelPriority
-  | MilestoneDue
-  | Popularity
-  | Weight
-
-instance Show IssueOrderBy where
-  show CreatedAt = "created_at"
-  show UpdatedAt = "updated_at"
-  show Priority = "priority"
-  show DueDate = "due_date"
-  show RelativePosition = "relative_position"
-  show LabelPriority = "label_priority"
-  show MilestoneDue = "milestone_due"
-  show Popularity = "popularity"
-  show Weight = "weight"
-
--- | Scope of issue search results
-data IssueScope
-  = CreatedByMe
-  | AssignedToMe
-  | All
-
-instance Show IssueScope where
-  show CreatedByMe = "created_by_me"
-  show AssignedToMe = "assigned_to_me"
-  show All = "all"
-
--- | Sort issues in ascending or descending order
-data IssueSortBy
-  = Ascending
-  | Descending
-
-instance Show IssueSortBy where
-  show Ascending = "asc"
-  show Descending = "desc"
 
 -- | Is a project issues open or closed
 data IssueState
@@ -312,17 +254,17 @@ data IssueAttrs = IssueAttrs
     issueFilter_created_before :: Maybe UTCTime,
     issueFilter_due_date :: Maybe DueDate,
     issueFilter_iids :: Maybe Int,
-    issueFilter_in :: Maybe IssueSearchIn,
+    issueFilter_in :: Maybe SearchIn,
     issueFilter_iteration_id :: Maybe Int,
     issueFilter_iteration_title :: Maybe String,
     issueFilter_milestone :: Maybe String,
     issueFilter_labels :: Maybe String,
     issueFilter_my_reaction_emoji :: Maybe String,
     issueFilter_non_archived :: Maybe Bool,
-    issueFilter_order_by :: Maybe IssueOrderBy,
-    issueFilter_scope :: Maybe IssueScope,
+    issueFilter_order_by :: Maybe OrderBy,
+    issueFilter_scope :: Maybe Scope,
     issueFilter_search :: Maybe String,
-    issueFilter_sort :: Maybe IssueSortBy,
+    issueFilter_sort :: Maybe SortBy,
     issueFilter_state :: Maybe IssueState,
     issueFilter_updated_after :: Maybe UTCTime,
     issueFilter_updated_before :: Maybe UTCTime,
