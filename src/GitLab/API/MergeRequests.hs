@@ -7,7 +7,23 @@
 -- License     : BSD3
 -- Maintainer  : robstewart57@gmail.com
 -- Stability   : stable
-module GitLab.API.MergeRequests where
+module GitLab.API.MergeRequests
+  ( mergeRequest,
+    mergeRequest',
+    mergeRequests,
+    mergeRequests',
+    mergeRequestsWith,
+    mergeRequestsWith',
+    createMergeRequest,
+    createMergeRequest',
+    acceptMergeRequest,
+    acceptMergeRequest',
+    deleteMergeRequest,
+    deleteMergeRequest',
+    mrAttrs,
+    MergeProjectAttrs (..),
+  )
+where
 
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as BSL
@@ -59,6 +75,19 @@ mergeRequests p = do
   result <- mergeRequests' (project_id p)
   return (fromRight (error "mergeRequests error") result)
 
+-- | returns the merge requests for a project given its project ID.
+mergeRequests' ::
+  -- | project ID
+  Int ->
+  GitLab (Either (Response BSL.ByteString) [MergeRequest])
+mergeRequests' projectId =
+  gitlabGetMany addr [("scope", Just "all")]
+  where
+    addr =
+      "/projects/"
+        <> T.pack (show projectId)
+        <> "/merge_requests"
+
 -- | returns the merge requests for a project and a set of search
 -- attributes as 'Just' values in 'MergeProjectAttrs'.
 --
@@ -74,19 +103,6 @@ mergeRequestsWith ::
 mergeRequestsWith p attrs = do
   result <- mergeRequestsWith' (project_id p) attrs
   return (fromRight (error "mergeRequests error") result)
-
--- | returns the merge requests for a project given its project ID.
-mergeRequests' ::
-  -- | project ID
-  Int ->
-  GitLab (Either (Response BSL.ByteString) [MergeRequest])
-mergeRequests' projectId =
-  gitlabGetMany addr [("scope", Just "all")]
-  where
-    addr =
-      "/projects/"
-        <> T.pack (show projectId)
-        <> "/merge_requests"
 
 -- | returns the merge requests for a project given its project ID and
 -- a set of search attributes as 'Just' values in 'MergeProjectAttrs'.
