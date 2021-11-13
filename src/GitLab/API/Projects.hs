@@ -33,8 +33,9 @@ module GitLab.API.Projects
     transferProject',
     editProject,
     editProject',
-    defaultEditProjectAttrs,
-    EditProjectAttrs (..),
+    projectAttrs,
+    projectAttrsParams,
+    ProjectAttrs (..),
     EnabledDisabled (..),
     AutoDeployStrategy (..),
     GitStrategy (..),
@@ -331,21 +332,34 @@ transferProject' projId namespaceString = do
     Right Nothing -> error "transferProject error"
     Right (Just proj) -> return (Right proj)
 
--- | edit a project.
+-- | Edit a project. The 'projectAttrs' value has default project
+-- search values, which is a record that can be modified with 'Just'
+-- values.
+--
+-- For example to disable project specific email notifications:
+--
+-- > editProject myProject (projectAttrs { project_edit_emails_disabled = Just True })
 editProject ::
   -- | project
   Project ->
-  -- | EditProjectAttributes
-  EditProjectAttrs ->
+  -- | project attributes
+  ProjectAttrs ->
   GitLab (Either (Response BSL.ByteString) Project)
 editProject prj = editProject' (project_id prj)
 
--- | edit a project.
+-- | Edit a project. The 'projectAttrs' value has default project
+-- search values, which is a record that can be modified with 'Just'
+-- values.
+--
+-- For example to disable project specific email notifications for a
+-- project with project ID 11744514:
+--
+-- > editProject' 11744514 (projectAttrs { project_edit_emails_disabled = Just True })
 editProject' ::
   -- | project ID
   Int ->
-  -- | EditProjectAttributes
-  EditProjectAttrs ->
+  -- | project attributes
+  ProjectAttrs ->
   GitLab (Either (Response BSL.ByteString) Project)
 editProject' projId attrs = do
   let urlPath =
@@ -354,23 +368,25 @@ editProject' projId attrs = do
   result <-
     gitlabPut
       urlPath
-      (editProjectAttrs attrs)
+      (projectAttrsParams attrs)
   case result of
     Left resp -> return (Left resp)
     Right Nothing -> error "editProject error"
     Right (Just proj) -> return (Right proj)
 
 -- | A default set of project attributes to override with the
--- 'editProject' functions.
-defaultEditProjectAttrs ::
+-- 'editProject' functions. Only the project ID value is set is a
+-- search parameter, all other search parameters are not set and can
+-- be overwritten.
+projectAttrs ::
   -- | project ID
   Int ->
-  EditProjectAttrs
-defaultEditProjectAttrs projId =
-  EditProjectAttrs Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing projId Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing
+  ProjectAttrs
+projectAttrs projId =
+  ProjectAttrs Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing projId Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing
 
-editProjectAttrs :: EditProjectAttrs -> [GitLabParam]
-editProjectAttrs filters =
+projectAttrsParams :: ProjectAttrs -> [GitLabParam]
+projectAttrsParams filters =
   catMaybes
     [ (\b -> Just ("allow_merge_on_skipped_pipeline", textToBS (showBool b))) =<< project_edit_allow_merge_on_skipped_pipeline filters,
       (\x -> Just ("analytics_access_level", textToBS (T.pack (show x)))) =<< project_edit_analytics_access_level filters,
@@ -441,7 +457,7 @@ editProjectAttrs filters =
 
 -- | Attributes for updating when editing a project with the
 -- 'editProject' functions.
-data EditProjectAttrs = EditProjectAttrs
+data ProjectAttrs = ProjectAttrs
   { -- | Set whether or not merge requests can be merged with skipped jobs.
     project_edit_allow_merge_on_skipped_pipeline :: Maybe Bool,
     -- | One of disabled, private or enabled.
