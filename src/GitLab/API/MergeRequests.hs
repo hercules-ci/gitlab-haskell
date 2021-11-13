@@ -22,6 +22,8 @@ module GitLab.API.MergeRequests
     deleteMergeRequest',
     mrAttrs,
     MergeProjectAttrs (..),
+    MergeRequestState (..),
+    WIP (..),
   )
 where
 
@@ -89,7 +91,9 @@ mergeRequests' projectId =
         <> "/merge_requests"
 
 -- | returns the merge requests for a project and a set of search
--- attributes as 'Just' values in 'MergeProjectAttrs'.
+-- attributes as 'Just' values in 'MergeProjectAttrs'. The 'mrAttrs'
+-- value has default merge request search values, which is a record
+-- that can be modified with 'Just' values.
 --
 -- For example to search only for open merge requests for a project:
 --
@@ -106,6 +110,8 @@ mergeRequestsWith p attrs = do
 
 -- | returns the merge requests for a project given its project ID and
 -- a set of search attributes as 'Just' values in 'MergeProjectAttrs'.
+-- The 'mrAttrs' value has default merge request search values, which
+-- is a record that can be modified with 'Just' values.
 --
 -- For example to search only for open merge requests for project with
 -- ID 11744514:
@@ -225,16 +231,16 @@ deleteMergeRequest' projectId mergeRequestIid = gitlabDelete addr
         "/projects/" <> show projectId <> "/merge_requests/"
           <> show mergeRequestIid
 
--- | Attributes for updating when editing a project with the
--- 'editProject' functions.
+-- | Attributes when searching for merge requests with the
+-- 'mergeRequestsWith' functions.
 data MergeProjectAttrs = MergeProjectAttrs
   { -- | Return all merge requests or just those that are opened,
     -- closed, locked, or merged.
     mr_attr_state :: Maybe MergeRequestState,
     -- | Return requests ordered by created_at or updated_at
     -- fields. Default is created_at. Note that the 'OrderBy' type has
-    -- more options, only these two are applicable for ordering merge
-    -- requests.
+    -- more options, but only 'CreatedAt' and 'UpdatedAt' are
+    -- applicable for ordering merge requests.
     mr_attr_order_by :: Maybe OrderBy,
     -- | Return requests sorted in asc or desc order. Default is desc.
     mr_attr_sort :: Maybe SortBy,
@@ -323,10 +329,14 @@ data MergeProjectAttrs = MergeProjectAttrs
 -- TODO create types for merge_request_my_reaction_emoji
 
 data MergeRequestState
-  = MROpened
-  | MRClosed
-  | MRLocked
-  | MRMerged
+  = -- | return only opened merge requests
+    MROpened
+  | -- | return only closed merge requests
+    MRClosed
+  | -- | return only locked merge requests
+    MRLocked
+  | -- | return only merged merge requests
+    MRMerged
 
 instance Show MergeRequestState where
   show MROpened = "opened"
@@ -336,8 +346,10 @@ instance Show MergeRequestState where
 
 -- | WIP status of merge requests
 data WIP
-  = WIPYes
-  | WIPNo
+  = -- | return only draft merge requests
+    WIPYes
+  | -- | return non-draft merge requests
+    WIPNo
 
 instance Show WIP where
   show WIPYes = "yes"
