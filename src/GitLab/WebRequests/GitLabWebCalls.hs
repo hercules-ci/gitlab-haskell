@@ -180,8 +180,7 @@ gitlabHTTP httpMethod contentType urlPath urlParams contentParams = do
               ],
             requestBody = RequestBodyBS (renderQuery False contentParams)
           }
-  response <- liftIO $ tryGitLab 0 request (retries cfg) manager Nothing
-  return response
+  liftIO $ tryGitLab 0 request (retries cfg) manager Nothing
 
 gitlabHTTPOne ::
   FromJSON a =>

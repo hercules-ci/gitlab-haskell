@@ -1,5 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
-
 -- |
 -- Module      : GitLab.SystemHooks.Rules
 -- Description : Common GitLab system hook rules

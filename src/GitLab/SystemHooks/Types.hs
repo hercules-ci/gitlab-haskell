@@ -680,7 +680,7 @@ data ObjectAttributes = ObjectAttributes
   deriving (Typeable, Show, Eq, Generic)
 
 -- | Merge parameters associated with a merge request
-data MergeParams = MergeParams
+newtype MergeParams = MergeParams
   { mergeParams_force_remove_source_branch :: Maybe Text
   }
   deriving (Typeable, Show, Eq, Generic)

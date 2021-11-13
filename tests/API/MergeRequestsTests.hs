@@ -21,7 +21,7 @@ import Test.Tasty.HUnit
 -- | https://docs.gitlab.com/ee/api/merge_requests.html
 mergeRequestsTests :: [TestTree]
 mergeRequestsTests =
-  concat $
+  concat
     [ let fname = "data/api/merge-requests/accept-merge-request.json"
        in gitlabJsonParserTests
             "accept-merge-request"

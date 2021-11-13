@@ -16,7 +16,7 @@ import Test.Tasty.HUnit
 -- | https://docs.gitlab.com/ee/api/branches.html
 branchesTests :: [TestTree]
 branchesTests =
-  concat $
+  concat
     [ let fname = "data/api/branches/list-repository-branches.json"
        in gitlabJsonParserTests
             "list-repository-branches"

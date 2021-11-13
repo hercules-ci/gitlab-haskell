@@ -16,7 +16,7 @@ import Test.Tasty.HUnit
 -- | https://docs.gitlab.com/ee/api/discussions.html
 discussionsTests :: [TestTree]
 discussionsTests =
-  concat $
+  concat
     [ let fname = "data/api/discussions/list-group-epic-discussion-items.json"
        in gitlabJsonParserTests
             "list-group-epic-discussion-items"

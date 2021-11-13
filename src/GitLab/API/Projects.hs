@@ -411,7 +411,7 @@ projectAttrsParams filters =
       (\b -> Just ("emails_disabled", textToBS (showBool b))) =<< project_edit_emails_disabled filters,
       (\t -> Just ("external_authorization_classification_label", textToBS t)) =<< project_edit_external_authorization_classification_label filters,
       (\x -> Just ("forking_access_level", textToBS (T.pack (show x)))) =<< project_edit_forking_access_level filters,
-      (Just ("id", textToBS (T.pack (show (project_edit_id filters))))),
+      Just ("id", textToBS (T.pack (show (project_edit_id filters)))),
       (\t -> Just ("import_url", textToBS t)) =<< project_edit_import_url filters,
       (\x -> Just ("issues_access_level", textToBS (T.pack (show x)))) =<< project_edit_issues_access_level filters,
       (\b -> Just ("lfs_enabled", textToBS (showBool b))) =<< project_edit_lfs_enabled filters,

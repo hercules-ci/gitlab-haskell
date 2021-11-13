@@ -16,7 +16,7 @@ import Test.Tasty.HUnit
 -- | https://docs.gitlab.com/ee/api/groups.html
 groupsTests :: [TestTree]
 groupsTests =
-  concat $
+  concat
     [ let fname = "data/api/groups/list-groups.json"
        in gitlabJsonParserTests
             "list-groups"

@@ -16,7 +16,7 @@ import Test.Tasty.HUnit
 -- | https://docs.gitlab.com/ee/api/commits.html
 commitsTests :: [TestTree]
 commitsTests =
-  concat $
+  concat
     [ let fname = "data/api/commits/list-repository-commits.json"
        in gitlabJsonParserTests
             "list-repository-commits"

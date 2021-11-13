@@ -2153,7 +2153,7 @@ data Starrer = Starrer
   }
   deriving (Show, Eq)
 
-data ProjectAvatar = ProjectAvatar
+newtype ProjectAvatar = ProjectAvatar
   { project_avatar_avatar_url :: Text
   }
   deriving (Show, Eq)

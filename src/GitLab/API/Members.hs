@@ -231,8 +231,8 @@ removeUserFromProject ::
   -- | user
   User ->
   GitLab (Either (Response BSL.ByteString) (Maybe ()))
-removeUserFromProject grpName usr =
-  removeUserFromEntity grpName "projects" usr
+removeUserFromProject grpName =
+  removeUserFromEntity grpName "projects"
 
 -- | Removes a user from a project where the user has been explicitly assigned a role
 removeUserFromProject' ::
@@ -241,8 +241,8 @@ removeUserFromProject' ::
   -- | user ID
   Int ->
   GitLab (Either (Response BSL.ByteString) (Maybe ()))
-removeUserFromProject' grpName usrId =
-  removeUserFromEntity' grpName "projects" usrId
+removeUserFromProject' grpName =
+  removeUserFromEntity' grpName "projects"
 
 -- | Removes a user from a group where the user has been explicitly assigned a role
 removeUserFromGroup ::
@@ -251,8 +251,8 @@ removeUserFromGroup ::
   -- | user
   User ->
   GitLab (Either (Response BSL.ByteString) (Maybe ()))
-removeUserFromGroup grpName usr =
-  removeUserFromEntity grpName "groups" usr
+removeUserFromGroup grpName =
+  removeUserFromEntity grpName "groups"
 
 -- | Removes a user from a group where the user has been explicitly assigned a role
 removeUserFromGroup' ::
@@ -261,8 +261,8 @@ removeUserFromGroup' ::
   -- | user ID
   Int ->
   GitLab (Either (Response BSL.ByteString) (Maybe ()))
-removeUserFromGroup' grpName usrId =
-  removeUserFromEntity' grpName "groups" usrId
+removeUserFromGroup' grpName =
+  removeUserFromEntity' grpName "groups"
 
 -----------------------
 -- Internal functions.

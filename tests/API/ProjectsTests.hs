@@ -16,7 +16,7 @@ import Test.Tasty.HUnit
 -- | https://docs.gitlab.com/ee/api/projects.html
 projectsTests :: [TestTree]
 projectsTests =
-  concat $
+  concat
     [ let fname = "data/api/projects/list-all-projects.json"
        in gitlabJsonParserTests
             "list-all-projects"

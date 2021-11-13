@@ -20,7 +20,6 @@ import GitLab.SystemHooks.GitLabSystemHooks
 import GitLab.SystemHooks.Types
 import Test.Tasty
 import Test.Tasty.HUnit
-import Test.Tasty.HUnit (AssertionPredicable)
 import Test.Tasty.Runners (Result (resultDescription))
 import qualified Text.PrettyPrint.ANSI.Leijen as WL
 

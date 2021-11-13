@@ -107,7 +107,7 @@ issueStatisticsUser attrs =
   gitlabUnsafe (gitlabGetOne urlPath (issuesAttrs attrs))
   where
     urlPath =
-      T.pack $
+      T.pack
         "/issues_statistics"
 
 -- | Gets issues count statistics for a given group.
@@ -306,7 +306,7 @@ issuesAttrs filters =
     [ (\i -> Just ("assignee_id", textToBS (T.pack (show i)))) =<< issueFilter_assignee_id filters,
       (\t -> Just ("assignee_username", textToBS (T.pack t))) =<< issueFilter_assignee_username filters,
       (\i -> Just ("author_id", textToBS (T.pack (show i)))) =<< issueFilter_author_id filters,
-      (\i -> Just ("author_username", textToBS ((T.pack (show i))))) =<< issueFilter_author_username filters,
+      (\i -> Just ("author_username", textToBS (T.pack (show i)))) =<< issueFilter_author_username filters,
       (\b -> Just ("confidential", textToBS (showBool b))) =<< issueFilter_confidential filters,
       (\t -> Just ("created_after", textToBS (showTime t))) =<< issueFilter_created_after filters,
       (\t -> Just ("created_before", textToBS (showTime t))) =<< issueFilter_created_before filters,
