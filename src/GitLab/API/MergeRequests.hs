@@ -124,7 +124,7 @@ mergeRequestsWith' ::
   MergeProjectAttrs ->
   GitLab (Either (Response BSL.ByteString) [MergeRequest])
 mergeRequestsWith' projectId attrs =
-  gitlabGetMany addr (mergeReqAttrs attrs)
+  gitlabGetMany addr (mrAttrsParams attrs)
   where
     addr =
       "/projects/"
@@ -360,8 +360,8 @@ mrAttrs :: MergeProjectAttrs
 mrAttrs =
   MergeProjectAttrs Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing
 
-mergeReqAttrs :: MergeProjectAttrs -> [GitLabParam]
-mergeReqAttrs attrs =
+mrAttrsParams :: MergeProjectAttrs -> [GitLabParam]
+mrAttrsParams attrs =
   catMaybes
     [ (\x -> Just ("state", showAttr x)) =<< mr_attr_state attrs,
       (\x -> Just ("order_by", showAttr x)) =<< mr_attr_order_by attrs,
