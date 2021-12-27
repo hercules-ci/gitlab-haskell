@@ -200,6 +200,10 @@ deriving instance Generic Branch
 
 deriving instance Generic Diff
 
+deriving instance Generic Epic
+
+deriving instance Generic CommandsChanges
+
 -------------
 -- ToExpr instances
 
@@ -322,3 +326,7 @@ instance ToExpr RepositoryStorage
 instance ToExpr Starrer
 
 instance ToExpr ProjectAvatar
+
+instance ToExpr Epic
+
+instance ToExpr CommandsChanges
