@@ -18,6 +18,7 @@ import GHC.Generics
 import GitLab
 import GitLab.SystemHooks.GitLabSystemHooks
 import GitLab.SystemHooks.Types
+import GitLab.Types (Contributor)
 import Test.Tasty
 import Test.Tasty.HUnit
 import Test.Tasty.Runners (Result (resultDescription))
@@ -204,6 +205,8 @@ deriving instance Generic Epic
 
 deriving instance Generic CommandsChanges
 
+deriving instance Generic Contributor
+
 -------------
 -- ToExpr instances
 
@@ -330,3 +333,5 @@ instance ToExpr ProjectAvatar
 instance ToExpr Epic
 
 instance ToExpr CommandsChanges
+
+instance ToExpr Contributor
