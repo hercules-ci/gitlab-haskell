@@ -43,6 +43,7 @@ module GitLab.Types
     Commit (..),
     CommitTodo (..),
     CommitStats (..),
+    Contributor (..),
     Tag (..),
     Release (..),
     Diff (..),
@@ -616,6 +617,16 @@ data CommitTodo = CommitTodo
   }
   deriving (Show, Eq)
 
+-- | repository contributors.
+data Contributor = Contributor
+  { contributor_name :: Text,
+    contributor_email :: Text,
+    contributor_commits :: Int,
+    contributor_additions :: Int,
+    contributor_deletions :: Int
+  }
+  deriving (Show, Eq)
+
 -- | commit stats.
 data CommitStats = CommitStats
   { commitstats_additions :: Int,
@@ -661,7 +672,7 @@ data Repository = Repository
     repository_name :: Text,
     repository_type :: Text,
     repository_path :: Text,
-    mode :: Text
+    repository_mode :: Text
   }
   deriving (Show, Eq)
 
@@ -1468,6 +1479,8 @@ $(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "release_"), om
 --           { fieldLabelModifier = releasePrefix
 --           }
 --       )
+
+$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "contributor_"), omitNothingFields = True} ''Contributor)
 
 $(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "commitstats_"), omitNothingFields = True} ''CommitStats)
 
