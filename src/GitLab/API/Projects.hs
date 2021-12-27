@@ -180,7 +180,8 @@ userProjects theUser =
 -- was created.
 projectOfIssue :: Issue -> GitLab Project
 projectOfIssue issue = do
-  result <- searchProjectId (issue_project_id issue)
+  let prId = fromJust (error "projectOfIssue error") (issue_project_id issue)
+  result <- searchProjectId prId
   case fromRight (error "projectOfIssue error") result of
     Nothing -> error "projectOfIssue error"
     Just proj -> return proj
@@ -218,7 +219,7 @@ issuesOnForks projectName = do
       GitLab (Project, [Issue], [User])
     processProject proj = do
       (openIssues :: [Issue]) <- projectIssues proj defaultIssueFilters
-      let authors = map issue_author openIssues
+      let authors = map (fromJust (error "issuesOnForks error") . issue_author) openIssues
       return (proj, openIssues, authors)
 
 -- | returns a (namespace,members) tuple for the given 'Project',
