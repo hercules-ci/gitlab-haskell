@@ -38,6 +38,7 @@ module GitLab.Types
     TimeStats (..),
     IssueId,
     Issue (..),
+    Epic (..),
     Pipeline (..),
     Commit (..),
     CommitTodo (..),
@@ -65,6 +66,7 @@ module GitLab.Types
     Discussion (..),
     CommitNote (..),
     Note (..),
+    CommandsChanges (..),
     IssueStatistics (..),
     IssueStats (..),
     IssueCounts (..),
@@ -266,11 +268,14 @@ data Namespace = Namespace
 data Links = Links
   { links_self :: Text,
     links_issues :: Maybe Text,
+    links_notes :: Maybe Text,
+    links_award_emoji :: Maybe Text,
+    links_project :: Maybe Text,
     links_merge_requests :: Maybe Text,
-    links_repo_branches :: Text,
-    links_labels :: Text,
-    links_events :: Text,
-    links_members :: Text
+    links_repo_branches :: Maybe Text,
+    links_labels :: Maybe Text,
+    links_events :: Maybe Text,
+    links_members :: Maybe Text
   }
   deriving (Show, Eq)
 
@@ -467,6 +472,7 @@ data Milestone = Milestone
     milestone_start_date :: Maybe Text,
     milestone_iid :: Maybe Int,
     milestone_created_at :: Maybe UTCTime,
+    milestone_closed_at :: Maybe UTCTime,
     milestone_title :: Text,
     milestone_id :: Int,
     milestone_updated_at :: Maybe UTCTime,
@@ -496,28 +502,51 @@ type IssueId = Int
 data Issue = Issue
   { issue_state :: Text,
     issue_description :: Maybe Text,
-    issue_author :: User,
+    issue_health_status :: Maybe Text, -- TODO type for "on_track"
+    issue_author :: Maybe User,
     issue_milestone :: Maybe Milestone,
-    issue_project_id :: ProjectId,
+    issue_project_id :: Maybe ProjectId,
     issue_assignees :: Maybe [User],
     issue_assignee :: Maybe User,
-    issue_updated_at :: UTCTime,
+    issue_updated_at :: Maybe UTCTime,
     issue_closed_at :: Maybe Text,
     issue_closed_by :: Maybe User,
     issue_id :: IssueId,
     issue_title :: Text,
-    issue_created_at :: UTCTime,
+    issue_created_at :: Maybe UTCTime,
     issue_iid :: Int,
-    issue_labels :: [Text],
+    -- TODO: what is the difference between the two below?
+    issue_type :: Maybe Text, -- type for this e.g. "ISSUE"
+    issue_issue_type :: Maybe Text, -- type for this e.g. "issue"
+    issue_labels :: Maybe [Text],
     issue_upvotes :: Int,
     issue_downvotes :: Int,
-    issue_user_notes_count :: Int,
+    issue_merge_requests_count :: Maybe Int,
+    issue_user_notes_count :: Maybe Int,
     issue_due_date :: Maybe Text,
     issue_web_url :: Text,
-    issue_confidential :: Bool,
+    issue_references :: Maybe References,
+    issue_confidential :: Maybe Bool,
     issue_weight :: Maybe Text, -- Int?
+    issue_epic :: Maybe Epic, -- Int?
     issue_discussion_locked :: Maybe Bool,
-    issue_time_stats :: Maybe TimeStats
+    issue_time_stats :: Maybe TimeStats,
+    issue_has_tasks :: Maybe Bool,
+    issue_task_status :: Maybe Text,
+    issue__links :: Maybe Links,
+    issue_task_completion_status :: Maybe TaskCompletionStatus,
+    issue_blocking_issues_count :: Maybe Int,
+    issue_subscribed :: Maybe Bool,
+    issue_service_desk_reply_to :: Maybe Text
+  }
+  deriving (Show, Eq)
+
+data Epic = Epic
+  { epic_id :: Int,
+    epic_iid :: Int,
+    epic_title :: Text,
+    epic_url :: Text,
+    epic_group_id :: Int
   }
   deriving (Show, Eq)
 
@@ -538,6 +567,7 @@ data Pipeline = Pipeline
     pipeline_finished_at :: Maybe UTCTime,
     pipelined_committed_at :: Maybe UTCTime,
     pipeline_duration :: Maybe Int,
+    pipeline_coverage :: Maybe Text,
     pipeline_detailed_status :: Maybe DetailedStatus
   }
   deriving (Show, Eq)
@@ -778,7 +808,7 @@ data MergeRequest = MergeRequest
     merge_request_allow_maintainer_to_push :: Maybe Bool,
     merge_request_web_url :: Text,
     merge_request_time_stats :: Maybe TimeStats,
-    merge_request_squash :: Bool,
+    merge_request_squash :: Maybe Bool,
     merge_request_subscribed :: Maybe Bool,
     merge_request_changes_count :: Maybe String,
     merge_request_merged_by :: Maybe User,
@@ -789,6 +819,7 @@ data MergeRequest = MergeRequest
     merge_request_latest_build_finished_at :: Maybe UTCTime,
     merge_request_first_deployed_to_production_at :: Maybe UTCTime,
     merge_request_pipeline :: Maybe Pipeline,
+    merge_request_head_pipeline :: Maybe Pipeline,
     merge_request_diverged_commits_count :: Maybe Int,
     merge_request_rebase_in_progress :: Maybe Bool,
     merge_request_first_contribution :: Maybe Bool,
@@ -797,6 +828,7 @@ data MergeRequest = MergeRequest
     merge_request_approvals_before_merge :: Maybe Int,
     merge_request_mirror :: Maybe Bool,
     merge_request_task_completion_status :: Maybe TaskCompletionStatus,
+    merge_request_reference :: Maybe Text,
     merge_request_references :: Maybe References,
     merge_request_changes :: Maybe [Change],
     merge_request_overflow :: Maybe Bool,
@@ -1015,9 +1047,16 @@ data Note = Note
     note_noteable_id :: Maybe Int,
     note_noteable_type :: Maybe Text, -- create type e.g. from "Commit"
     note_noteable_iid :: Maybe Int,
+    note_commands_changes :: Maybe CommandsChanges,
     note_resolved :: Maybe Bool,
     note_resolvable :: Maybe Bool,
+    note_confidential :: Maybe Bool,
     note_resolved_by :: Maybe User -- TODO check
+  }
+  deriving (Show, Eq)
+
+data CommandsChanges = CommanandsChanges
+  { commands_changes_promote_to_epic :: Bool
   }
   deriving (Show, Eq)
 
@@ -1365,6 +1404,8 @@ $(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "issue_"), omit
 --         { fieldLabelModifier = drop (T.length "issue_"),
 --           omitNothingFields = True
 --         }
+
+$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "epic_"), omitNothingFields = True} ''Epic)
 
 $(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "user_"), omitNothingFields = True} ''User)
 
@@ -1769,6 +1810,8 @@ $(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "discussion_"),
 --       )
 
 $(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "note_"), omitNothingFields = True} ''Note)
+
+$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "commands_changes_"), omitNothingFields = True} ''CommandsChanges)
 
 -- instance FromJSON Note where
 --   parseJSON =
