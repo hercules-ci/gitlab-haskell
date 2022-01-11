@@ -8,7 +8,7 @@
 module GitLab.SystemHooks.Rules (ruleAddMembers, ruleAddNewUserToGroups) where
 
 import Control.Monad
-import Data.Text
+import Data.Text (Text)
 import GitLab.API.Members
 import GitLab.API.Projects
 import GitLab.API.Users
