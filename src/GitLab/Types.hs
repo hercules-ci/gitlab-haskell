@@ -302,6 +302,7 @@ data Owner = Ownwer
   { owner_id :: Int,
     owner_name :: Text,
     owner_username :: Maybe Text,
+    owner_email :: Maybe Text,
     owner_state :: Maybe Text,
     owner_avatar_url :: Maybe Text,
     owner_web_url :: Maybe Text,
@@ -1042,14 +1043,16 @@ data CommitNote = CommitNote
 -- | Notes
 data Note = Note
   { note_id :: Int,
+    note_title :: Maybe Text, -- for snippets
+    note_file_name :: Maybe Text, -- for snippets
     -- https://docs.gitlab.com/ee/api/discussions.html#list-project-commit-discussion-items
     note_type :: Maybe Text, -- TODO create type for this, e.g. from "DiscussionNote"
-    note_body :: Text,
+    note_body :: Maybe Text,
     note_attachment :: Maybe Text,
     note_author :: Owner,
     note_created_at :: UTCTime,
     note_updated_at :: UTCTime,
-    note_system :: Bool,
+    note_system :: Maybe Bool,
     note_noteable_id :: Maybe Int,
     note_noteable_type :: Maybe Text, -- create type e.g. from "Commit"
     note_noteable_iid :: Maybe Int,
