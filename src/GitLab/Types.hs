@@ -1186,51 +1186,71 @@ data TimeEstimate = TimeEstimate
 
 $(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "time_stats_"), omitNothingFields = True} ''TimeStats)
 
-$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "issue_"), omitNothingFields = True} ''Issue)
+$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "user_"), omitNothingFields = True} ''User)
+
+instance ToJSON MilestoneState where
+  toJSON MSActive = String "active"
+  toJSON MSClosed = String "closed"
+
+$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "milestone_"), omitNothingFields = True} ''Milestone)
+
+$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "references_"), omitNothingFields = True} ''References)
 
 $(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "epic_"), omitNothingFields = True} ''Epic)
 
-$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "user_"), omitNothingFields = True} ''User)
+$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "links_"), omitNothingFields = True} ''Links)
 
-$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "commit_"), omitNothingFields = True} ''Commit)
+$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "task_completion_status_"), omitNothingFields = True} ''TaskCompletionStatus)
 
-$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "tag_"), omitNothingFields = True} ''Tag)
+$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "issue_"), omitNothingFields = True} ''Issue)
 
-$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "release_"), omitNothingFields = True} ''Release)
-
-$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "contributor_"), omitNothingFields = True} ''Contributor)
-
-$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "commitstats_"), omitNothingFields = True} ''CommitStats)
+$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "detailed_status_"), omitNothingFields = True} ''DetailedStatus)
 
 $(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "pipeline_"), omitNothingFields = True} ''Pipeline)
 
-$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "member_"), omitNothingFields = True} ''Member)
+$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "commitstats_"), omitNothingFields = True} ''CommitStats)
+
+$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "commit_"), omitNothingFields = True} ''Commit)
+
+$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "release_"), omitNothingFields = True} ''Release)
+
+$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "tag_"), omitNothingFields = True} ''Tag)
+
+$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "contributor_"), omitNothingFields = True} ''Contributor)
 
 $(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "saml_identity_"), omitNothingFields = True} ''SamlIdentity)
+
+$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "member_"), omitNothingFields = True} ''Member)
 
 $(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "permissions_"), omitNothingFields = True} ''Permissions)
 
 $(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "owner_"), omitNothingFields = True} ''Owner)
 
-$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "links_"), omitNothingFields = True} ''Links)
-
 $(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "namespace_"), omitNothingFields = True} ''Namespace)
 
-$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "project_"), omitNothingFields = True} ''Project)
+$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "expiration_policy_"), omitNothingFields = True} ''ExpirationPolicy)
+
+$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "license_"), omitNothingFields = True} ''License)
+
+$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "groupshare_"), omitNothingFields = True} ''GroupShare)
 
 $(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "statistics_"), omitNothingFields = True} ''Statistics)
 
-$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "repository_"), omitNothingFields = True} ''Repository)
+$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "project_"), omitNothingFields = True} ''Project)
 
-$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "job_"), omitNothingFields = True} ''Job)
+$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "repository_"), omitNothingFields = True} ''Repository)
 
 $(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "artifact_"), omitNothingFields = True} ''Artifact)
 
-$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "groupshare_"), omitNothingFields = True} ''GroupShare)
+$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "job_"), omitNothingFields = True} ''Job)
 
 $(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "branch_"), omitNothingFields = True} ''Branch)
 
 $(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "repository_file_"), omitNothingFields = True} ''RepositoryFile)
+
+$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "change_"), omitNothingFields = True} ''Change)
+
+$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "diff_refs_"), omitNothingFields = True} ''DiffRefs)
 
 $(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "merge_request_"), omitNothingFields = True} ''MergeRequest)
 
@@ -1240,39 +1260,31 @@ $(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "version_"), om
 
 $(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "edit_issue_"), omitNothingFields = True} ''EditIssueReq)
 
-$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "discussion_"), omitNothingFields = True} ''Discussion)
+$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "commands_changes_"), omitNothingFields = True} ''CommandsChanges)
 
 $(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "note_"), omitNothingFields = True} ''Note)
 
-$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "commands_changes_"), omitNothingFields = True} ''CommandsChanges)
-
-$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "issue_statistics_"), omitNothingFields = True} ''IssueStatistics)
-
-$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "issue_stats_"), omitNothingFields = True} ''IssueStats)
+$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "discussion_"), omitNothingFields = True} ''Discussion)
 
 $(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "issue_counts_"), omitNothingFields = True} ''IssueCounts)
 
-$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "board_"), omitNothingFields = True} ''IssueBoard)
+$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "issue_stats_"), omitNothingFields = True} ''IssueStats)
 
-$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "board_issue_"), omitNothingFields = True} ''BoardIssue)
+$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "issue_statistics_"), omitNothingFields = True} ''IssueStatistics)
 
 $(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "board_issue_label_"), omitNothingFields = True} ''BoardIssueLabel)
 
-$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "test_report_"), omitNothingFields = True} ''TestReport)
+$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "board_issue_"), omitNothingFields = True} ''BoardIssue)
 
-$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "testsuite_"), omitNothingFields = True} ''TestSuite)
+$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "board_"), omitNothingFields = True} ''IssueBoard)
 
 $(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "testcase_"), omitNothingFields = True} ''TestCase)
 
+$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "testsuite_"), omitNothingFields = True} ''TestSuite)
+
+$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "test_report_"), omitNothingFields = True} ''TestReport)
+
 $(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "time_estimate_"), omitNothingFields = True} ''TimeEstimate)
-
-$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "milestone_"), omitNothingFields = True} ''Milestone)
-
-$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "task_completion_status_"), omitNothingFields = True} ''TaskCompletionStatus)
-
-instance ToJSON MilestoneState where
-  toJSON MSActive = String "active"
-  toJSON MSClosed = String "closed"
 
 instance ToJSON TodoAction where
   toJSON TAAssigned = String "assigned"
@@ -1283,13 +1295,18 @@ instance ToJSON TodoAction where
   toJSON TAUnmergeable = String "unmergeable"
   toJSON TADirectlyAddressed = String "directly_addressed"
 
-$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "references_"), omitNothingFields = True} ''References)
+instance FromJSON TodoState where
+  parseJSON (String "pending") = return TSPending
+  parseJSON (String "done") = return TSDone
+  parseJSON x = unexpected x
 
-$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "diff_refs_"), omitNothingFields = True} ''DiffRefs)
+$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "commit_todo_"), omitNothingFields = True} ''CommitTodo)
 
-$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "change_"), omitNothingFields = True} ''Change)
-
-$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "detailed_status_"), omitNothingFields = True} ''DetailedStatus)
+instance FromJSON TodoTargetType where
+  parseJSON (String "MergeRequest") = return MergeRequestTarget
+  parseJSON (String "Issue") = return IssueTarget
+  parseJSON (String "Commit") = return CommitTarget
+  parseJSON x = unexpected x
 
 instance FromJSON Todo where
   parseJSON = withObject "Todo" $ \v ->
@@ -1312,21 +1329,10 @@ instance FromJSON Todo where
 
 $(deriveToJSON defaultOptions {fieldLabelModifier = drop (T.length "todo_"), omitNothingFields = True} ''Todo)
 
-instance FromJSON TodoTargetType where
-  parseJSON (String "MergeRequest") = return MergeRequestTarget
-  parseJSON (String "Issue") = return IssueTarget
-  parseJSON (String "Commit") = return CommitTarget
-  parseJSON x = unexpected x
-
 instance ToJSON TodoTargetType where
   toJSON MergeRequestTarget = String "MergeRequest"
   toJSON IssueTarget = String "Issue"
   toJSON CommitTarget = String "Commit"
-
-instance FromJSON TodoState where
-  parseJSON (String "pending") = return TSPending
-  parseJSON (String "done") = return TSDone
-  parseJSON x = unexpected x
 
 instance ToJSON TodoState where
   toJSON TSPending = String "pending"
@@ -1336,8 +1342,6 @@ instance ToJSON TodoTarget where
   toJSON (TTIssue x) = toJSON x
   toJSON (TTMergeRequest x) = toJSON x
   toJSON (TTCommit x) = toJSON x
-
-$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "commit_todo_"), omitNothingFields = True} ''CommitTodo)
 
 data Starrer = Starrer
   { starrer_starred_since :: UTCTime,
@@ -1349,10 +1353,6 @@ newtype ProjectAvatar = ProjectAvatar
   { project_avatar_avatar_url :: Text
   }
   deriving (Show, Eq)
-
-$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "license_"), omitNothingFields = True} ''License)
-
-$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "expiration_policy_"), omitNothingFields = True} ''ExpirationPolicy)
 
 $(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "repository_storage_"), omitNothingFields = True} ''RepositoryStorage)
 
