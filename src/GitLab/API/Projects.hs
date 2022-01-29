@@ -235,7 +235,7 @@ projectMemebersCount project = do
       let addr =
             "/projects/" <> T.pack (show (project_id project)) <> "/members/all"
       (res :: [Member]) <- fromRight (error "projectMembersCount error") <$> gitlabGetMany addr []
-      return (map (\x -> (member_username x, member_name x)) res)
+      return (map (\x -> (fromJust (member_username x), fromJust (member_name x))) res)
 
 -- | returns 'True' is the last commit for a project passes all
 -- continuous integration tests.
