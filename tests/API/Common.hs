@@ -97,6 +97,8 @@ deriving instance Generic ArchiveFormat
 
 deriving instance Generic Member
 
+deriving instance Generic SamlIdentity
+
 deriving instance Generic Namespace
 
 deriving instance Generic Links
@@ -213,6 +215,8 @@ deriving instance Generic Contributor
 instance ToExpr ArchiveFormat
 
 instance ToExpr Member
+
+instance ToExpr SamlIdentity
 
 instance ToExpr Namespace
 
