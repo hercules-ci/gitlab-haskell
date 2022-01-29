@@ -2,11 +2,10 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE StandaloneDeriving #-}
+{-# OPTIONS_GHC -fno-warn-orphans #-}
 
 module API.Common where
 
-import Control.Exception
-import Control.Monad.IO.Class
 import Data.Aeson
 import qualified Data.ByteString.Lazy.Char8 as BSL
 import qualified Data.HashMap.Strict as HashMap
@@ -16,12 +15,8 @@ import Data.TreeDiff.Pretty
 import qualified Data.Vector as Vec
 import GHC.Generics
 import GitLab
-import GitLab.SystemHooks.GitLabSystemHooks
-import GitLab.SystemHooks.Types
-import GitLab.Types (Contributor)
 import Test.Tasty
 import Test.Tasty.HUnit
-import Test.Tasty.Runners (Result (resultDescription))
 import qualified Text.PrettyPrint.ANSI.Leijen as WL
 
 removeNulls :: Value -> Maybe Value

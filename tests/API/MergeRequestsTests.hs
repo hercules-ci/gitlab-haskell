@@ -4,19 +4,10 @@
 module API.MergeRequestsTests (mergeRequestsTests) where
 
 import API.Common
-import Control.Monad.IO.Class
 import Data.Aeson
-import Data.Aeson.Types (Value)
 import qualified Data.ByteString.Lazy.Char8 as BSL
-import Data.Maybe
-import Data.TreeDiff.Class
-import Data.TreeDiff.Pretty
 import GitLab
-import GitLab.SystemHooks.GitLabSystemHooks
-import GitLab.SystemHooks.Types
-import GitLab.Types (TimeEstimate)
 import Test.Tasty
-import Test.Tasty.HUnit
 
 -- | https://docs.gitlab.com/ee/api/merge_requests.html
 mergeRequestsTests :: [TestTree]
