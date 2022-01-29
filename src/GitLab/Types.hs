@@ -572,6 +572,8 @@ data Epic = Epic
 -- | project pipelines
 data Pipeline = Pipeline
   { pipeline_id :: Int,
+    pipeline_iid :: Maybe Int,
+    pipeline_project_id :: Maybe Int,
     pipeline_sha :: Text,
     pipeline_ref :: Text,
     pipeline_status :: Text,
@@ -586,6 +588,7 @@ data Pipeline = Pipeline
     pipeline_finished_at :: Maybe UTCTime,
     pipelined_committed_at :: Maybe UTCTime,
     pipeline_duration :: Maybe Int,
+    pipeline_queued_duration :: Maybe Double,
     pipeline_coverage :: Maybe Text,
     pipeline_detailed_status :: Maybe DetailedStatus
   }
