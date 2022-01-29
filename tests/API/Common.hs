@@ -209,6 +209,18 @@ deriving instance Generic CommandsChanges
 
 deriving instance Generic Contributor
 
+deriving instance Generic RepositoryFile
+
+deriving instance Generic Version
+
+deriving instance Generic IssueStatistics
+
+deriving instance Generic IssueStats
+
+deriving instance Generic IssueCounts
+
+deriving instance Generic TestReport
+
 -------------
 -- ToExpr instances
 
