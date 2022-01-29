@@ -180,7 +180,7 @@ userProjects theUser =
 -- was created.
 projectOfIssue :: Issue -> GitLab Project
 projectOfIssue issue = do
-  let prId = fromJust (error "projectOfIssue error") (issue_project_id issue)
+  let prId = fromMaybe (error "projectOfIssue error") (issue_project_id issue)
   result <- searchProjectId prId
   case fromRight (error "projectOfIssue error") result of
     Nothing -> error "projectOfIssue error"
@@ -219,7 +219,7 @@ issuesOnForks projectName = do
       GitLab (Project, [Issue], [User])
     processProject proj = do
       (openIssues :: [Issue]) <- projectIssues proj defaultIssueFilters
-      let authors = map (fromJust (error "issuesOnForks error") . issue_author) openIssues
+      let authors = map (fromMaybe (error "issuesOnForks error") . issue_author) openIssues
       return (proj, openIssues, authors)
 
 -- | returns a (namespace,members) tuple for the given 'Project',
@@ -229,13 +229,13 @@ issuesOnForks projectName = do
 projectMemebersCount :: Project -> GitLab (Text, [(Text, Text)])
 projectMemebersCount project = do
   friends <- count
-  return (namespace_name (fromJust (project_namespace project)), friends)
+  return (namespace_name (fromMaybe (error "projectMemebersCount error") (project_namespace project)), friends)
   where
     count = do
       let addr =
             "/projects/" <> T.pack (show (project_id project)) <> "/members/all"
       (res :: [Member]) <- fromRight (error "projectMembersCount error") <$> gitlabGetMany addr []
-      return (map (\x -> (fromJust (member_username x), fromJust (member_name x))) res)
+      return (map (\x -> (fromMaybe (error "projectMemebersCount error") (member_username x), fromMaybe (error "projectMemebersCount error") (member_name x))) res)
 
 -- | returns 'True' is the last commit for a project passes all
 -- continuous integration tests.

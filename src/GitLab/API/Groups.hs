@@ -11,7 +11,6 @@
 module GitLab.API.Groups where
 
 import qualified Data.ByteString.Lazy as BSL
-import Data.Maybe
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
@@ -35,9 +34,12 @@ groupsWithNameOrPath groupName = do
         ( Right $
             filter
               ( \group ->
-                  groupName == group_name group
-                    || groupName == fromJust (group_path group)
-                    || groupName == fromJust (group_full_path group)
+                  case (group_path group, group_full_path group) of
+                    (Just grpPath, Just grpFullPath) ->
+                      groupName == group_name group
+                        || groupName == grpPath
+                        || groupName == grpFullPath
+                    (_, _) -> False
               )
               groups
         )
