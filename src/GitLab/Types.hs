@@ -25,6 +25,7 @@ module GitLab.Types
     SortBy (..),
     OrderBy (..),
     Member (..),
+    SamlIdentity (..),
     Namespace (..),
     Links (..),
     Owner (..),
@@ -242,13 +243,31 @@ instance Show OrderBy where
 -- | member of a project.
 data Member = Member
   { member_id :: Int,
-    member_name :: Text,
-    member_username :: Text,
-    member_state :: Text,
+    member_name :: Maybe Text,
+    member_email :: Maybe Text, --- TODO type for email address e.g. zhang@example.com
+    member_username :: Maybe Text,
+    member_state :: Maybe Text,
     member_avatar_uri :: Maybe Text,
     member_web_url :: Maybe Text,
-    member_access_level :: Int,
-    member_expires_at :: Maybe Text
+    member_access_level :: Maybe Int,
+    member_group_saml_identity :: Maybe SamlIdentity,
+    member_expires_at :: Maybe Text,
+    member_invited :: Maybe Bool,
+    member_override :: Maybe Bool,
+    member_avatar_url :: Maybe Text, -- TODO type for  URL
+    member_approved :: Maybe Bool,
+    member_membership_type :: Maybe Text, -- TODO type for "group_member"
+    member_last_activity_on :: Maybe Text, -- TODO type for "2021-01-27"
+    member_created_at :: Maybe UTCTime,
+    member_removable :: Maybe Bool,
+    member_membership_state :: Maybe Text -- type for "active"
+  }
+  deriving (Show, Eq)
+
+data SamlIdentity = SamlIdentity
+  { saml_identity_extern_uid :: Text,
+    saml_identity_provider :: Text,
+    saml_identity_saml_provider_id :: Int
   }
   deriving (Show, Eq)
 
@@ -1519,6 +1538,8 @@ $(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "pipeline_"), o
 --       )
 
 $(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "member_"), omitNothingFields = True} ''Member)
+
+$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "saml_identity_"), omitNothingFields = True} ''SamlIdentity)
 
 -- instance FromJSON Member where
 --   parseJSON =
