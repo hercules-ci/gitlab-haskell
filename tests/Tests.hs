@@ -77,6 +77,9 @@ main = do
             "api-repositories"
             repositoriesTests,
           testGroup
+            "api-repository-files"
+            repositoryFilesTests,
+          testGroup
             "api-tags"
             tagsTests,
           testGroup
