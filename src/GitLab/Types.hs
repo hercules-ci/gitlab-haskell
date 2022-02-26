@@ -25,6 +25,7 @@ module GitLab.Types
     OrderBy (..),
     Member (..),
     SamlIdentity (..),
+    Identity (..),
     Namespace (..),
     Links (..),
     Owner (..),
@@ -89,6 +90,11 @@ module GitLab.Types
     RepositoryStorage (..),
     Starrer (..),
     ProjectAvatar (..),
+    Email (..),
+    Key (..),
+    UserPrefs (..),
+    UserStatus (..),
+    UserCount (..),
   )
 where
 
@@ -262,10 +268,19 @@ data Member = Member
   }
   deriving (Show, Eq)
 
+-- TODO merge Identity and SamlIdentity into a single type.
+
+data Identity = Identity
+  { identity_extern_uid :: Text,
+    identity_provider :: Text,
+    identity_provider_id :: Maybe Int
+  }
+  deriving (Show, Eq)
+
 data SamlIdentity = SamlIdentity
   { saml_identity_extern_uid :: Text,
     saml_identity_provider :: Text,
-    saml_identity_saml_provider_id :: Int
+    saml_identity_saml_provider_id :: Maybe Int
   }
   deriving (Show, Eq)
 
@@ -460,8 +475,32 @@ data Statistics = Statistics
 data User = User
   { user_id :: Int,
     user_username :: Text,
+    user_bio :: Maybe Text,
+    user_two_factor_enabled :: Maybe Bool,
+    user_last_sign_in_at :: Maybe UTCTime,
+    user_current_sign_in_at :: Maybe UTCTime,
+    user_last_activity_on :: Maybe Text, -- test current-user has '2012-05-23'
+    user_skype :: Maybe Text,
+    user_twitter :: Maybe Text,
+    user_website_url :: Maybe Text,
+    user_theme_id :: Maybe Int,
+    user_color_scheme_id :: Maybe Int,
+    user_external :: Maybe Bool,
+    user_private_profile :: Maybe Bool,
+    user_projects_limit :: Maybe Int,
+    user_can_create_group :: Maybe Bool,
+    user_can_create_project :: Maybe Bool,
+    user_public_email :: Maybe Text,
+    user_organization :: Maybe Text,
+    user_job_title :: Maybe Text,
+    user_linkedin :: Maybe Text,
+    user_confirmed_at :: Maybe UTCTime,
+    user_identities :: Maybe [Identity],
     user_name :: Text,
     user_email :: Maybe Text,
+    user_followers :: Maybe Int,
+    user_bot :: Maybe Bool,
+    user_following :: Maybe Int,
     user_state :: Text,
     user_avatar_url :: Maybe Text,
     user_web_url :: Maybe Text,
@@ -1186,6 +1225,48 @@ data TimeEstimate = TimeEstimate
   }
   deriving (Show, Eq)
 
+data Email = Email
+  { email_id :: Int,
+    email_email :: Text,
+    email_confirmed_at :: Maybe UTCTime
+  }
+  deriving (Show, Eq)
+
+data UserPrefs = UserPrefs
+  { user_prefs_id :: Int,
+    user_prefs_user_id :: Int,
+    user_prefs_view_diffs_file_by_file :: Bool,
+    user_prefs_show_whitespace_in_diffs :: Bool
+  }
+  deriving (Show, Eq)
+
+data Key = Key
+  { key_id :: Maybe Int,
+    key_title :: Maybe Text,
+    key_key :: Text,
+    key_created_at :: Maybe UTCTime,
+    key_expires_at :: Maybe UTCTime
+  }
+  deriving (Show, Eq)
+
+data UserStatus = UserStatus
+  { user_status_emoji :: Maybe Text, -- TODO type for "coffee"
+    user_status_availability :: Maybe Text, -- TODO type for "busy"
+    user_status_message :: Maybe Text,
+    user_status_message_html :: Maybe Text, -- TODO type for HTML content
+    user_status_clear_status_at :: Maybe UTCTime
+  }
+  deriving (Show, Eq)
+
+data UserCount = UserCount
+  { user_count_merge_requests :: Int, -- TODO type for "coffee"
+    user_count_assigned_issues :: Int, -- TODO type for "busy"
+    user_count_assigned_merge_requests :: Int,
+    user_count_review_requested_merge_requests :: Int, -- TODO type for HTML content
+    user_count_todos :: Int
+  }
+  deriving (Show, Eq)
+
 -----------------------------
 -- JSON GitLab parsers below
 -----------------------------
@@ -1225,6 +1306,8 @@ $(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "tag_"), omitNo
 $(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "contributor_"), omitNothingFields = True} ''Contributor)
 
 $(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "saml_identity_"), omitNothingFields = True} ''SamlIdentity)
+
+$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "identity_"), omitNothingFields = True} ''Identity)
 
 $(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "member_"), omitNothingFields = True} ''Member)
 
@@ -1369,3 +1452,13 @@ $(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "project_avatar
 $(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "group_"), omitNothingFields = True} ''Group)
 
 $(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "commitnote_"), omitNothingFields = True} ''CommitNote)
+
+$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "email_"), omitNothingFields = True} ''Email)
+
+$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "key_"), omitNothingFields = True} ''Key)
+
+$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "user_prefs_"), omitNothingFields = True} ''UserPrefs)
+
+$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "user_status_"), omitNothingFields = True} ''UserStatus)
+
+$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "user_count_"), omitNothingFields = True} ''UserCount)
