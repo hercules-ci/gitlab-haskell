@@ -15,6 +15,77 @@ import Data.TreeDiff.Pretty
 import qualified Data.Vector as Vec
 import GHC.Generics
 import GitLab
+  ( ArchiveFormat (..),
+    Artifact (Artifact),
+    BoardIssue (BoardIssue),
+    BoardIssueLabel (BoardIssueLabel),
+    Branch (Branch),
+    Change (Change),
+    CommandsChanges (CommanandsChanges),
+    Commit (Commit),
+    CommitNote (CommitNote),
+    CommitStats (CommitStats),
+    CommitTodo (CommitTodo),
+    Contributor (Contributor),
+    DetailedStatus (DetailedStatus),
+    Diff (Diff),
+    DiffRefs (DiffRefs),
+    Discussion (Discussion),
+    EditIssueReq (EditIssueReq),
+    Email (..),
+    Epic (Epic),
+    ExpirationPolicy (ExpirationPolicy),
+    Group (Group),
+    GroupShare (GroupShare),
+    Identity (Identity),
+    Issue (Issue),
+    IssueBoard (IssueBoard),
+    IssueCounts (IssueCounts),
+    IssueStatistics (IssueStatistics),
+    IssueStats (IssueStats),
+    Job (Job),
+    Key (..),
+    License (License),
+    Links (Links),
+    Member (Member),
+    MergeRequest (MergeRequest),
+    Milestone (Milestone),
+    MilestoneState (..),
+    Namespace (Namespace),
+    Note (Note),
+    Owner (Ownwer),
+    Permissions (Permissions),
+    Pipeline (Pipeline),
+    Project (Project),
+    ProjectAvatar (ProjectAvatar),
+    References (References),
+    Release (Release),
+    Repository (Repository),
+    RepositoryFile (RepositoryFile),
+    RepositoryStorage (RepositoryStorage),
+    SamlIdentity (SamlIdentity),
+    Starrer (Starrer),
+    Statistics (Statistics),
+    Tag (Tag),
+    TaskCompletionStatus (TaskCompletionStatus),
+    TestCase (TestCase),
+    TestReport (TestReport),
+    TestSuite (TestSuite),
+    TimeEstimate (TimeEstimate),
+    TimeStats (TimeStats),
+    Todo (Todo),
+    TodoAction (..),
+    TodoProject (TodoProject),
+    TodoState (..),
+    TodoTarget (..),
+    TodoTargetType (..),
+    User (User),
+    UserCount (..),
+    UserPrefs (..),
+    UserStatus (..),
+    Version (Version),
+    Visibility (..),
+  )
 import Test.Tasty
 import Test.Tasty.HUnit
 import qualified Text.PrettyPrint.ANSI.Leijen as WL
@@ -93,6 +164,8 @@ deriving instance Generic ArchiveFormat
 deriving instance Generic Member
 
 deriving instance Generic SamlIdentity
+
+deriving instance Generic Identity
 
 deriving instance Generic Namespace
 
@@ -216,6 +289,16 @@ deriving instance Generic IssueCounts
 
 deriving instance Generic TestReport
 
+deriving instance Generic Email
+
+deriving instance Generic Key
+
+deriving instance Generic UserPrefs
+
+deriving instance Generic UserStatus
+
+deriving instance Generic UserCount
+
 -------------
 -- ToExpr instances
 
@@ -224,6 +307,8 @@ instance ToExpr ArchiveFormat
 instance ToExpr Member
 
 instance ToExpr SamlIdentity
+
+instance ToExpr Identity
 
 instance ToExpr Namespace
 
@@ -346,3 +431,13 @@ instance ToExpr Epic
 instance ToExpr CommandsChanges
 
 instance ToExpr Contributor
+
+instance ToExpr Email
+
+instance ToExpr Key
+
+instance ToExpr UserPrefs
+
+instance ToExpr UserStatus
+
+instance ToExpr UserCount
