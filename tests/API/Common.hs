@@ -34,6 +34,9 @@ import GitLab
     EditIssueReq (EditIssueReq),
     Email (..),
     Epic (Epic),
+    Event (..),
+    EventActionName (..),
+    EventTargetType (..),
     ExpirationPolicy (ExpirationPolicy),
     Group (Group),
     GroupShare (GroupShare),
@@ -58,6 +61,7 @@ import GitLab
     Pipeline (Pipeline),
     Project (Project),
     ProjectAvatar (ProjectAvatar),
+    PushData (..),
     References (References),
     Release (Release),
     Repository (Repository),
@@ -299,6 +303,14 @@ deriving instance Generic UserStatus
 
 deriving instance Generic UserCount
 
+deriving instance Generic Event
+
+deriving instance Generic EventActionName
+
+deriving instance Generic EventTargetType
+
+deriving instance Generic PushData
+
 -------------
 -- ToExpr instances
 
@@ -441,3 +453,11 @@ instance ToExpr UserPrefs
 instance ToExpr UserStatus
 
 instance ToExpr UserCount
+
+instance ToExpr Event
+
+instance ToExpr EventActionName
+
+instance ToExpr EventTargetType
+
+instance ToExpr PushData
