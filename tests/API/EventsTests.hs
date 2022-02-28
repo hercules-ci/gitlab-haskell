@@ -15,12 +15,32 @@ import Test.Tasty.HUnit
 -- | https://docs.gitlab.com/ee/api/events.html
 eventsTests :: [TestTree]
 eventsTests =
-  []
-
-{-
-
-get-user-contributions-events.json
-list-current-authenticated-users-events.json
-list-projects-visible-events.json
-
--}
+  concat
+    [ let fname = "data/api/events/get-user-contributions-events.json"
+       in gitlabJsonParserTests
+            "get-user-contributions-events"
+            fname
+            (parseOne =<< BSL.readFile fname :: IO [Event])
+            ( do
+                decodedFile <- parseOne =<< BSL.readFile fname :: IO [Event]
+                parseOne (encode decodedFile) :: IO [Event]
+            ),
+      let fname = "data/api/events/list-current-authenticated-users-events.json"
+       in gitlabJsonParserTests
+            "list-current-authenticated-users-events"
+            fname
+            (parseOne =<< BSL.readFile fname :: IO [Event])
+            ( do
+                decodedFile <- parseOne =<< BSL.readFile fname :: IO [Event]
+                parseOne (encode decodedFile) :: IO [Event]
+            ),
+      let fname = "data/api/events/list-projects-visible-events.json"
+       in gitlabJsonParserTests
+            "list-projects-visible-events"
+            fname
+            (parseOne =<< BSL.readFile fname :: IO [Event])
+            ( do
+                decodedFile <- parseOne =<< BSL.readFile fname :: IO [Event]
+                parseOne (encode decodedFile) :: IO [Event]
+            )
+    ]
