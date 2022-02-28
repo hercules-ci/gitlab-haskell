@@ -95,6 +95,10 @@ module GitLab.Types
     UserPrefs (..),
     UserStatus (..),
     UserCount (..),
+    Event (..),
+    EventActionName (..),
+    EventTargetType (..),
+    PushData (..),
   )
 where
 
@@ -1093,7 +1097,7 @@ data Note = Note
     note_attachment :: Maybe Text,
     note_author :: Owner,
     note_created_at :: UTCTime,
-    note_updated_at :: UTCTime,
+    note_updated_at :: Maybe UTCTime,
     note_system :: Maybe Bool,
     note_noteable_id :: Maybe Int,
     note_noteable_type :: Maybe Text, -- create type e.g. from "Commit"
@@ -1266,6 +1270,91 @@ data UserCount = UserCount
     user_count_todos :: Int
   }
   deriving (Show, Eq)
+
+-- TODO this data type could be improved to remove redundant Maybe
+-- values. E.g. the push_data field will only be populated for the
+-- "pushed" action_name, but would be Nothing for all action_name
+-- values. Same for 'commented on' and the existence of a 'event_note'
+-- field value.
+
+-- | Events https://docs.gitlab.com/ee/api/events.html
+data Event = Event
+  { event_id :: Int,
+    event_title :: Maybe Text,
+    event_project_id :: Int,
+    event_action_name :: EventActionName,
+    event_target_id :: Maybe Int,
+    event_target_iid :: Maybe Int,
+    event_target_type :: Maybe EventTargetType,
+    event_author_id :: Int,
+    event_target_title :: Maybe Text,
+    event_created_at :: Maybe UTCTime,
+    event_author :: User,
+    event_author_username :: Text,
+    event_push_data :: Maybe PushData,
+    event_note :: Maybe Note
+  }
+  deriving (Show, Eq)
+
+data PushData = PushData
+  { push_data_commit_count :: Int,
+    push_data_action :: EventActionName,
+    push_data_ref_type :: Text, -- TODO type for "branch"
+    push_data_commit_from :: Text, -- sha hash
+    push_data_commit_to :: Text, -- sha hash
+    push_data_ref :: Text,
+    push_data_commit_title :: Text
+  }
+  deriving (Show, Eq)
+
+data EventActionName
+  = ANOpened
+  | ANClosed
+  | ANPushed
+  | ANCommentedOn
+  deriving (Show, Eq)
+
+instance ToJSON EventActionName where
+  toJSON ANOpened = String "opened"
+  toJSON ANClosed = String "closed"
+  toJSON ANPushed = String "pushed"
+  toJSON ANCommentedOn = String "commented on"
+
+instance FromJSON EventActionName where
+  parseJSON (String "opened") = return ANOpened
+  parseJSON (String "closed") = return ANClosed
+  parseJSON (String "pushed") = return ANPushed
+  parseJSON (String "commented on") = return ANCommentedOn
+  parseJSON x = unexpected x
+
+data EventTargetType
+  = ETTIssue
+  | ETTMilestone
+  | ETTMergeRequest
+  | ETTNote
+  | ETTProject
+  | ETTSnippet
+  | ETTUser
+  deriving (Show, Eq)
+
+instance ToJSON EventTargetType where
+  toJSON ETTIssue = String "Issue"
+  toJSON ETTMilestone = String "Milestone"
+  toJSON ETTMergeRequest = String "MergeRequest"
+  toJSON ETTNote = String "Note"
+  toJSON ETTProject = String "Project"
+  toJSON ETTSnippet = String "Snippet"
+  toJSON ETTUser = String "User"
+
+instance FromJSON EventTargetType where
+  parseJSON (String "Issue") = return ETTIssue
+  parseJSON (String "Milestone") = return ETTMilestone
+  parseJSON (String "MergeRequest") = return ETTMergeRequest
+  parseJSON (String "Note") = return ETTNote
+  parseJSON (String "Project") = return ETTProject
+  parseJSON (String "Snippet") = return ETTSnippet
+  parseJSON (String "User") = return ETTUser
+  parseJSON x = unexpected x
 
 -----------------------------
 -- JSON GitLab parsers below
@@ -1462,3 +1551,7 @@ $(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "user_prefs_"),
 $(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "user_status_"), omitNothingFields = True} ''UserStatus)
 
 $(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "user_count_"), omitNothingFields = True} ''UserCount)
+
+$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "event_"), omitNothingFields = True} ''Event)
+
+$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "push_data_"), omitNothingFields = True} ''PushData)
