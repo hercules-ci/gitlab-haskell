@@ -659,8 +659,8 @@ data Commit = Commit
     commit_author_name :: Text,
     commit_author_email :: Text,
     commit_authored_date :: Maybe Text, -- ZonedTime ?
-    commit_committer_name :: Text,
-    commit_committer_email :: Text,
+    commit_committer_name :: Maybe Text,
+    commit_committer_email :: Maybe Text,
     commit_committed_date :: Maybe Text, -- ZonedTime ?
     commit_created_at :: Maybe Text, -- ZonedTime ?
     commit_message :: Text,
@@ -740,32 +740,9 @@ data Repository = Repository
   }
   deriving (Show, Eq)
 
--- | jobs.
-data Job = Job
-  { job_commit :: Commit,
-    job_coverage :: Maybe Text, -- ?
-    job_created_at :: UTCTime,
-    job_started_at :: UTCTime,
-    job_finished_at :: UTCTime,
-    job_duration :: Double,
-    job_artifacts_expire_at :: Maybe Text,
-    job_id :: Int,
-    job_name :: Text,
-    job_pipeline :: Pipeline,
-    job_ref :: Text,
-    job_artifacts :: [Artifact],
-    -- , runner :: Maybe Text
-    job_stage :: Text,
-    job_status :: Text,
-    job_tag :: Bool,
-    job_web_url :: Text,
-    job_user :: User
-  }
-  deriving (Show, Eq)
-
 -- | artifacts.
 data Artifact = Artifact
-  { artifact_file_type :: Text,
+  { artifact_file_type :: Maybe Text,
     artifact_size :: Int,
     artifact_filename :: Text,
     artifact_file_format :: Maybe Text
@@ -1355,6 +1332,34 @@ instance FromJSON EventTargetType where
   parseJSON (String "Snippet") = return ETTSnippet
   parseJSON (String "User") = return ETTUser
   parseJSON x = unexpected x
+
+-- | Events https://docs.gitlab.com/ee/api/events.html
+data Job = Job
+  { job_commit :: Commit,
+    job_coverage :: Maybe Text, -- ??
+    job_allow_failure :: Bool,
+    job_created_at :: UTCTime,
+    job_started_at :: Maybe UTCTime,
+    job_finished_at :: Maybe UTCTime,
+    job_duration :: Maybe Double,
+    job_queued_duration :: Double,
+    job_artifacts_file :: Maybe Artifact,
+    job_artifacts :: Maybe [Artifact],
+    job_artifacts_expire_at :: Maybe UTCTime,
+    job_tag_list :: Maybe [Text],
+    job_id :: Int,
+    job_name :: Text,
+    job_pipeline :: Maybe Pipeline,
+    job_ref :: Text,
+    job_stage :: Maybe Text,
+    job_status :: Text, -- TODO type for "failed" and others
+    job_failure_reason :: Maybe Text, -- TODO type for "script_failure" and others
+    job_tag :: Bool,
+    job_web_url :: Text, -- TODO type for URL like "https://example.com/foo/bar/-/jobs/7"
+    job_user :: Maybe User,
+    job_downstream_pipeline :: Maybe Pipeline
+  }
+  deriving (Show, Eq)
 
 -----------------------------
 -- JSON GitLab parsers below
