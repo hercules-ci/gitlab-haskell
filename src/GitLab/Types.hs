@@ -849,7 +849,7 @@ data MergeRequest = MergeRequest
     merge_request_merge_when_pipeline_succeeds :: Bool,
     merge_request_merge_status :: Text, -- create type e.g. for "can_be_merged"
     merge_request_merge_error :: Maybe Text,
-    merge_request_sha :: Text,
+    merge_request_sha :: Maybe Text,
     merge_request_merge_commit_sha :: Maybe Text,
     merge_request_squash_commit_sha :: Maybe Text,
     merge_request_user_notes_count :: Int,
@@ -858,7 +858,7 @@ data MergeRequest = MergeRequest
     merge_request_force_remove_source_branch :: Maybe Bool,
     merge_request_allow_collaboration :: Maybe Bool,
     merge_request_allow_maintainer_to_push :: Maybe Bool,
-    merge_request_web_url :: Text,
+    merge_request_web_url :: Maybe Text,
     merge_request_time_stats :: Maybe TimeStats,
     merge_request_squash :: Maybe Bool,
     merge_request_subscribed :: Maybe Bool,
@@ -1012,7 +1012,8 @@ data Todo = Todo
     todo_target_url :: URL,
     todo_body :: Text,
     todo_state :: TodoState,
-    todo_created_at :: UTCTime
+    todo_created_at :: UTCTime,
+    todo_updated_at :: Maybe UTCTime
   }
   deriving (Show, Eq)
 
@@ -1509,6 +1510,7 @@ instance FromJSON Todo where
       <*> v .: "body"
       <*> v .: "state"
       <*> v .: "created_at"
+      <*> v .:? "updated_at"
 
 $(deriveToJSON defaultOptions {fieldLabelModifier = drop (T.length "todo_"), omitNothingFields = True} ''Todo)
 
