@@ -66,7 +66,7 @@ projectIssueBoards' projectId =
     boardsAddr projId =
       "/projects/" <> T.pack (show projId) <> "/boards"
 
--- | returns all issue boards for a project.
+-- | returns a single project issue board.
 projectIssueBoard ::
   -- | the project
   Project ->
@@ -76,7 +76,7 @@ projectIssueBoard ::
 projectIssueBoard project = do
   projectIssueBoard' (project_id project)
 
--- | returns all issue boards for a project.
+-- | returns a single project issue board.
 projectIssueBoard' ::
   -- | the project ID
   Int ->
@@ -187,7 +187,7 @@ projectBoardLists' projectId boardId =
     boardsAddr =
       "/projects/" <> T.pack (show projectId) <> "/boards/" <> T.pack (show boardId) <> "/lists"
 
--- | Get a list of the board’s lists. Does not include open and closed lists.
+-- | Get a single board list. Does not include open and closed lists.
 boardList ::
   -- | the project
   Project ->
@@ -201,7 +201,7 @@ boardList project board listId = do
   -- return an empty list if the repository could not be found.
   return (fromRight Nothing result)
 
--- | Get a list of the board’s lists. Does not include open and closed lists.
+-- | Get a single board list. Does not include open and closed lists.
 boardList' ::
   -- | project ID
   Int ->
