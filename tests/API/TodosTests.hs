@@ -15,4 +15,23 @@ import Test.Tasty.HUnit
 -- | https://docs.gitlab.com/ee/api/todos.html
 todosTests :: [TestTree]
 todosTests =
-  []
+  concat
+    [ let fname = "data/api/todos/todo-items.json"
+       in gitlabJsonParserTests
+            "todo-items"
+            fname
+            (parseOne =<< BSL.readFile fname :: IO [Todo])
+            ( do
+                decodedFile <- parseOne =<< BSL.readFile fname :: IO [Todo]
+                parseOne (encode decodedFile) :: IO [Todo]
+            ),
+      let fname = "data/api/todos/mark-todo-item-done.json"
+       in gitlabJsonParserTests
+            "mark-todo-item-done"
+            fname
+            (parseOne =<< BSL.readFile fname :: IO Todo)
+            ( do
+                decodedFile <- parseOne =<< BSL.readFile fname :: IO Todo
+                parseOne (encode decodedFile) :: IO Todo
+            )
+    ]
