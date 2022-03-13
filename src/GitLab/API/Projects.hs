@@ -10,7 +10,35 @@
 -- Maintainer  : robstewart57@gmail.com
 -- Stability   : stable
 module GitLab.API.Projects
-  ( allProjects,
+  ( -- * List all projects
+    allProjects,
+
+    -- * User projects
+    userProjects,
+    userProjects',
+
+    -- * starredProjects
+    starredProjects,
+    starredProjects',
+
+    -- * single project
+    project',
+
+    -- * project users
+    projectUsers,
+    projectUsers',
+
+    -- * project groups
+    projectGroups,
+    projectGroups',
+
+    -- * create project
+    createProject,
+    createProjectUser',
+
+    -- * edit project
+    editProject,
+    editProject',
     projectForks,
     searchProjectId,
     projectsWithName,
@@ -18,8 +46,6 @@ module GitLab.API.Projects
     multipleCommitters,
     commitsEmailAddresses,
     commitsEmailAddresses',
-    userProjects,
-    userProjects',
     projectOfIssue,
     issuesCreatedByUser,
     issuesOnForks,
@@ -31,8 +57,6 @@ module GitLab.API.Projects
     addGroupToProject,
     transferProject,
     transferProject',
-    editProject,
-    editProject',
     projectAttrs,
     projectAttrsParams,
     ProjectAttrs (..),
@@ -68,6 +92,170 @@ allProjects :: GitLab [Project]
 allProjects =
   fromRight (error "allProjects error")
     <$> gitlabGetMany "/projects" [("statistics", Just "true")]
+
+-- | gets all projects for a user given their username.
+--
+-- > userProjects "harry"
+userProjects' :: Text -> GitLab (Maybe [Project])
+userProjects' username = do
+  userMaybe <- searchUser username
+  case userMaybe of
+    Nothing -> return Nothing
+    Just usr -> do
+      result <- gitlabGetMany (urlPath (user_id usr)) []
+      case result of
+        Left _ -> error "userProjects' error"
+        Right projs -> return (Just projs)
+  where
+    urlPath usrId = "/users/" <> T.pack (show usrId) <> "/projects"
+
+-- | gets all projects for a user.
+--
+-- > userProjects myUser
+userProjects :: User -> GitLab (Maybe [Project])
+userProjects theUser =
+  userProjects' (user_username theUser)
+
+-- | Get a list of visible projects starred by the given user. When
+-- accessed without authentication, only public projects are returned.
+--
+-- > userProjects myUser
+starredProjects :: User -> GitLab [Project]
+starredProjects theUser = do
+  result <- starredProjects' (user_id theUser)
+  return (fromRight [] result)
+
+-- | Get a list of visible projects starred by the given user. When
+-- accessed without authentication, only public projects are returned.
+starredProjects' ::
+  Int ->
+  GitLab (Either (Response BSL.ByteString) [Project])
+starredProjects' usrId = do
+  gitlabGetMany urlPath []
+  where
+    urlPath =
+      "/users/"
+        <> T.pack (show usrId)
+        <> "/starred_projects"
+
+-- | Get a specific project. This endpoint can be accessed without
+-- authentication if the project is publicly accessible.
+project' ::
+  Int ->
+  GitLab (Either (Response BSL.ByteString) (Maybe Project))
+project' pId = do
+  gitlabGetOne urlPath []
+  where
+    urlPath =
+      "/projects/"
+        <> T.pack (show pId)
+
+-- | Get the users list of a project.
+projectUsers ::
+  Project ->
+  GitLab (Either (Response BSL.ByteString) [User])
+projectUsers prj = do
+  projectUsers' (project_id prj)
+
+-- | Get the users list of a project.
+projectUsers' ::
+  Int ->
+  GitLab (Either (Response BSL.ByteString) [User])
+projectUsers' pId = do
+  gitlabGetMany urlPath []
+  where
+    urlPath =
+      "/projects/"
+        <> T.pack (show pId)
+        <> "/users"
+
+-- | Get a list of ancestor groups for this project.
+projectGroups ::
+  Project ->
+  GitLab (Either (Response BSL.ByteString) [Group])
+projectGroups prj = do
+  projectGroups' (project_id prj)
+
+-- | Get a list of ancestor groups for this project.
+projectGroups' ::
+  Int ->
+  GitLab (Either (Response BSL.ByteString) [Group])
+projectGroups' gId = do
+  gitlabGetMany urlPath []
+  where
+    urlPath =
+      "/projects/"
+        <> T.pack (show gId)
+        <> "/groups"
+
+-- | Creates a new project owned by the authenticated user.
+createProject ::
+  Text ->
+  Text ->
+  GitLab (Either (Response BSL.ByteString) (Maybe Project))
+createProject nameTxt pathTxt = do
+  gitlabPost newProjectAddr [("name", Just (T.encodeUtf8 nameTxt)), ("path", Just (T.encodeUtf8 pathTxt))]
+  where
+    newProjectAddr :: Text
+    newProjectAddr =
+      "/projects"
+
+-- | Creates a new project owned by the specified user. Available only
+-- for administrators.
+createProjectUser' ::
+  Int ->
+  Text ->
+  GitLab (Either (Response BSL.ByteString) (Maybe Project))
+createProjectUser' usrId nameTxt = do
+  gitlabPost newProjectAddr [("name", Just (T.encodeUtf8 nameTxt))]
+  where
+    newProjectAddr :: Text
+    newProjectAddr =
+      "/projects"
+        <> "/user/"
+        <> T.pack (show usrId)
+
+-- | Edit a project. The 'projectAttrs' value has default project
+-- search values, which is a record that can be modified with 'Just'
+-- values.
+--
+-- For example to disable project specific email notifications:
+--
+-- > editProject myProject (projectAttrs { project_edit_emails_disabled = Just True })
+editProject ::
+  -- | project
+  Project ->
+  -- | project attributes
+  ProjectAttrs ->
+  GitLab (Either (Response BSL.ByteString) Project)
+editProject prj = editProject' (project_id prj)
+
+-- | Edit a project. The 'projectAttrs' value has default project
+-- search values, which is a record that can be modified with 'Just'
+-- values.
+--
+-- For example to disable project specific email notifications for a
+-- project with project ID 11744514:
+--
+-- > editProject' 11744514 (projectAttrs { project_edit_emails_disabled = Just True })
+editProject' ::
+  -- | project ID
+  Int ->
+  -- | project attributes
+  ProjectAttrs ->
+  GitLab (Either (Response BSL.ByteString) Project)
+editProject' projId attrs = do
+  let urlPath =
+        "/projects/"
+          <> T.pack (show projId)
+  result <-
+    gitlabPut
+      urlPath
+      (projectAttrsParams attrs)
+  case result of
+    Left resp -> return (Left resp)
+    Right Nothing -> error "editProject error"
+    Right (Just proj) -> return (Right proj)
 
 -- | gets all forks of a project. Supports use of namespaces.
 --
@@ -152,29 +340,6 @@ commitsEmailAddresses' projectId = do
     Left resp -> return (Left resp)
     Right (commits :: [Commit]) ->
       return (Right (map commit_author_email commits))
-
--- | gets all projects for a user given their username.
---
--- > userProjects "harry"
-userProjects' :: Text -> GitLab (Maybe [Project])
-userProjects' username = do
-  userMaybe <- searchUser username
-  case userMaybe of
-    Nothing -> return Nothing
-    Just usr -> do
-      result <- gitlabGetMany (urlPath (user_id usr)) []
-      case result of
-        Left _ -> error "userProjects' error"
-        Right projs -> return (Just projs)
-  where
-    urlPath usrId = "/users/" <> T.pack (show usrId) <> "/projects"
-
--- | gets all projects for a user.
---
--- > userProjects myUser
-userProjects :: User -> GitLab (Maybe [Project])
-userProjects theUser =
-  userProjects' (user_username theUser)
 
 -- | gets the 'GitLab.Types.Project' against which the given 'Issue'
 -- was created.
@@ -331,48 +496,6 @@ transferProject' projId namespaceString = do
   case result of
     Left resp -> return (Left resp)
     Right Nothing -> error "transferProject error"
-    Right (Just proj) -> return (Right proj)
-
--- | Edit a project. The 'projectAttrs' value has default project
--- search values, which is a record that can be modified with 'Just'
--- values.
---
--- For example to disable project specific email notifications:
---
--- > editProject myProject (projectAttrs { project_edit_emails_disabled = Just True })
-editProject ::
-  -- | project
-  Project ->
-  -- | project attributes
-  ProjectAttrs ->
-  GitLab (Either (Response BSL.ByteString) Project)
-editProject prj = editProject' (project_id prj)
-
--- | Edit a project. The 'projectAttrs' value has default project
--- search values, which is a record that can be modified with 'Just'
--- values.
---
--- For example to disable project specific email notifications for a
--- project with project ID 11744514:
---
--- > editProject' 11744514 (projectAttrs { project_edit_emails_disabled = Just True })
-editProject' ::
-  -- | project ID
-  Int ->
-  -- | project attributes
-  ProjectAttrs ->
-  GitLab (Either (Response BSL.ByteString) Project)
-editProject' projId attrs = do
-  let urlPath =
-        "/projects/"
-          <> T.pack (show projId)
-  result <-
-    gitlabPut
-      urlPath
-      (projectAttrsParams attrs)
-  case result of
-    Left resp -> return (Left resp)
-    Right Nothing -> error "editProject error"
     Right (Just proj) -> return (Right proj)
 
 -- | A default set of project attributes to override with the
