@@ -22,7 +22,7 @@ module GitLab.API.Projects
     starredProjects',
 
     -- * single project
-    project',
+    projectLookup,
 
     -- * project users
     projectUsers,
@@ -140,10 +140,10 @@ starredProjects' usrId = do
 
 -- | Get a specific project. This endpoint can be accessed without
 -- authentication if the project is publicly accessible.
-project' ::
+projectLookup ::
   Int ->
   GitLab (Either (Response BSL.ByteString) (Maybe Project))
-project' pId = do
+projectLookup pId = do
   gitlabGetOne urlPath []
   where
     urlPath =

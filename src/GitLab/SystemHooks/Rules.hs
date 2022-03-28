@@ -9,6 +9,7 @@ module GitLab.SystemHooks.Rules (ruleAddMembers, ruleAddNewUserToGroups) where
 
 import Control.Monad
 import Data.Text (Text)
+import GitLab.API.Groups
 import GitLab.API.Members
 import GitLab.API.Projects
 import GitLab.API.Users
@@ -33,10 +34,18 @@ ruleAddNewUserToGroups lbl nonRegisteredUsernames groupNames =
     )
     ( \event@UserCreate {} -> do
         mapM_
-          ( \groupName ->
-              -- will return value of type `Left Status` if user already
-              -- member of the group, `void` silently ignores any outcome.
-              addUserToGroup' groupName Reporter (userCreate_user_id event)
+          ( \groupName -> do
+              grps <- groupsWithNameOrPath groupName
+              case grps of
+                Left _ -> return ()
+                Right [grp] -> do
+                  result <- userLookup (userCreate_user_id event)
+                  case result of
+                    Nothing -> return ()
+                    Just usr ->
+                      void $
+                        addUserToGroup grp Reporter usr
+                Right _ -> return ()
           )
           groupNames
     )
@@ -71,12 +80,16 @@ ruleAddMembers label projectNames userNames =
               request <- searchUser userName
               case request of
                 Nothing -> return ()
-                Just foundUser ->
-                  void $
-                    addMemberToProject'
-                      (projectCreate_project_id event)
-                      Reporter
-                      (user_id foundUser)
+                Just foundUser -> do
+                  result <- projectLookup (projectCreate_project_id event)
+                  case result of
+                    Right (Just prj) ->
+                      void $
+                        addMemberToProject
+                          prj
+                          Reporter
+                          foundUser
+                    _ -> return ()
           )
           userNames
     )

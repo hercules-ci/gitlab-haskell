@@ -18,7 +18,7 @@ import GitLab.Types
 import GitLab.WebRequests.GitLabWebCalls
 import Network.HTTP.Client
 
--- | returns all commits for a project.
+-- | Get a list of repository commits in a project.
 projectCommits ::
   -- | the project
   Project ->
@@ -28,7 +28,7 @@ projectCommits project = do
   -- return an empty list if the repository could not be found.
   return (fromRight [] result)
 
--- | returns all commits for a project given its project ID.
+-- | Get a list of repository commits in a project.
 projectCommits' ::
   -- | project ID
   Int ->

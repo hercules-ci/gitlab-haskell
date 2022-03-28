@@ -27,11 +27,11 @@ allUsers = do
 
 -- | searches for a user given a user ID. Returns @Just User@ if the
 -- user is found, otherwise @Nothing@.
-userId ::
+userLookup ::
   -- | username to search for
   Int ->
   GitLab (Maybe User)
-userId usrId = do
+userLookup usrId = do
   let path =
         "/users/"
           <> T.pack (show usrId)
