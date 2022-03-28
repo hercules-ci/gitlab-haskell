@@ -3,7 +3,7 @@
 
 -- |
 -- Module      : Members
--- Description : Queries about and updates to members of projects
+-- Description : Queries about and updates to members of projects and groups
 -- Copyright   : (c) Rob Stewart, Heriot-Watt University, 2021
 -- License     : BSD3
 -- Maintainer  : robstewart57@gmail.com
@@ -14,41 +14,48 @@ module GitLab.API.Members
     -- * Projects
 
     -- * Project membership
+    memberOfProject,
     membersOfProject,
-    membersOfProject',
+    memberOfProjectWithInherited,
+    membersOfProjectWithInherited,
 
     -- ** Adding project members
     addMemberToProject,
-    addMemberToProject',
     addMembersToProject,
-    addMembersToProject',
+
+    -- ** Editing project members
+    editMemberOfProject,
 
     -- ** Removing project members
     removeUserFromProject,
-    removeUserFromProject',
 
     -- * Groups
 
     -- * Group membership
+    memberOfGroup,
     membersOfGroup,
-    membersOfGroup',
+    memberOfGroupWithInherited,
+    membersOfGroupWithInherited,
 
     -- ** Adding group members
     addAllUsersToGroup,
     addUserToGroup,
-    addUserToGroup',
     addUsersToGroup,
-    addUsersToGroup',
+
+    -- ** Editing group members
+    editMemberOfGroup,
 
     -- ** Removing group members
     removeUserFromGroup,
-    removeUserFromGroup',
+
+    -- ** Pending members
+    approvePendingMember,
+    approveAllPendingMembers,
+    pendingMembers,
   )
 where
 
 import qualified Data.ByteString.Lazy as BSL
-import Data.Either
-import Data.Maybe
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
@@ -59,52 +66,104 @@ import GitLab.WebRequests.GitLabWebCalls
 import Network.HTTP.Client
 import Network.HTTP.Types.URI
 
--- | the members of a project.
-membersOfProject :: Project -> GitLab [Member]
-membersOfProject p = do
-  result <- membersOfProject' (project_id p)
-  return (fromRight (error "membersOfProject error") result)
+-----------
+-- projects
+-----------
 
--- | the members of a project given its ID.
-membersOfProject' :: Int -> GitLab (Either (Response BSL.ByteString) [Member])
-membersOfProject' projectId =
-  membersOfEntity' projectId "projects"
+-- | Gets a list of project members viewable by the authenticated
+-- user. Returns only direct members and not inherited members through
+-- ancestors groups.
+membersOfProject :: Project -> GitLab (Either (Response BSL.ByteString) [Member])
+membersOfProject prj =
+  gitlabGetMany addr []
+  where
+    addr =
+      "/projects/"
+        <> T.pack (show (project_id prj))
+        <> "/members"
 
--- | adds a user to a project with the given access level. Returns
--- 'Right Member' for each successful action, otherwise it returns
--- 'Left Status'.
+-- | Gets a list of project members viewable by the authenticated
+-- user, including inherited members, invited users, and permissions
+-- through ancestor groups.
+--
+-- If a user is a member of this project and also of one or more
+-- ancestor groups, only its membership with the highest access_level
+-- is returned. This represents the effective permission of the user.
+--
+-- Members from an invited group are returned if either: the invited
+-- group is public, or the requester is also a member of the invited group.
+membersOfProjectWithInherited :: Project -> GitLab (Either (Response BSL.ByteString) [Member])
+membersOfProjectWithInherited prj =
+  gitlabGetMany addr []
+  where
+    addr =
+      "/projects/"
+        <> T.pack (show (project_id prj))
+        <> "/members"
+        <> "/all"
+
+-- | Gets a member of a project. Returns only direct members and not
+-- inherited members through ancestor groups.
+memberOfProject ::
+  -- | The project
+  Project ->
+  -- | The user ID of the member
+  Int ->
+  GitLab (Either (Response BSL.ByteString) (Maybe Member))
+memberOfProject prj usrId =
+  gitlabGetOne addr []
+  where
+    addr =
+      "/projects/"
+        <> T.pack (show (project_id prj))
+        <> "/members/"
+        <> T.pack (show usrId)
+
+-- | Gets a member of a project, including members inherited or
+-- invited through ancestor groups.
+--
+-- If a user is a member of this project and also of one or more
+-- ancestor groups, only its membership with the highest access_level
+-- is returned. This represents the effective permission of the user.
+--
+-- Members from an invited group are returned if either: the invited
+-- group is public, or the requester is also a member of the invited
+-- group.
+memberOfProjectWithInherited ::
+  -- | The project
+  Project ->
+  -- | The user ID of the member
+  Int ->
+  GitLab (Either (Response BSL.ByteString) (Maybe Member))
+memberOfProjectWithInherited prj usrId =
+  gitlabGetOne addr []
+  where
+    addr =
+      "/projects/"
+        <> T.pack (show (project_id prj))
+        <> "/members"
+        <> "/all/"
+        <> T.pack (show usrId)
+
+-- | Adds a member to a project.
 addMemberToProject ::
-  -- | the project
+  -- | project ID
   Project ->
   -- | level of access
   AccessLevel ->
-  -- | the user
+  -- | user ID
   User ->
   GitLab (Either (Response BSL.ByteString) (Maybe Member))
-addMemberToProject project access usr =
-  addMemberToProject' (project_id project) access (user_id usr)
-
--- | adds a user to a project with the given access level, given the
--- project's ID and the user's ID. Returns @Right Member@ for each
--- successful action, otherwise it returns @Left Status@.
-addMemberToProject' ::
-  -- | project ID
-  Int ->
-  -- | level of access
-  AccessLevel ->
-  -- | user ID
-  Int ->
-  GitLab (Either (Response BSL.ByteString) (Maybe Member))
-addMemberToProject' projectId access usrId =
+addMemberToProject prj access usr =
   gitlabPost addr params
   where
     params :: [GitLabParam]
     params =
-      [ ("user_id", Just (T.encodeUtf8 (T.pack (show usrId)))),
+      [ ("user_id", Just (T.encodeUtf8 (T.pack (show (user_id usr))))),
         ("access_level", Just (T.encodeUtf8 (T.pack (show access))))
       ]
     addr =
-      "/projects/" <> T.pack (show projectId) <> "/members"
+      "/projects/" <> T.pack (show (project_id prj)) <> "/members"
 
 -- | adds a list of users to a project with the given access
 -- level. Returns 'Right Member' for each successful action, otherwise
@@ -120,152 +179,263 @@ addMembersToProject ::
 addMembersToProject project access =
   mapM (addMemberToProject project access)
 
--- | adds a list of users to a project with the given access level,
--- given the project's ID and the user IDs. Returns @Right Member@ for
--- each successful action, otherwise it returns @Left Status@.
-addMembersToProject' ::
-  -- | project ID
-  Int ->
-  -- | level of acces
+-- | Updates a member of a project.
+editMemberOfProject ::
+  -- | the project
+  Project ->
+  -- | the new level of access
   AccessLevel ->
-  -- | IDs of users to add to the project
-  [Int] ->
-  GitLab [Either (Response BSL.ByteString) (Maybe Member)]
-addMembersToProject' projectId access =
-  mapM (addMemberToProject' projectId access)
+  -- | user ID
+  User ->
+  GitLab (Either (Response BSL.ByteString) (Maybe Member))
+editMemberOfProject prj access usr =
+  gitlabPut addr params
+  where
+    params :: [GitLabParam]
+    params =
+      [ ("access_level", Just (T.encodeUtf8 (T.pack (show access))))
+      ]
+    addr =
+      "/projects/"
+        <> T.pack (show (project_id prj))
+        <> "/members/"
+        <> T.pack (show (user_id usr))
 
--- | the members of a group.
-membersOfGroup :: Group -> GitLab [Member]
-membersOfGroup p = do
-  result <- membersOfGroup' (group_id p)
-  return (fromRight (error "membersOfGroup error") result)
+---------
+-- groups
+---------
 
--- | the members of a group given its ID.
-membersOfGroup' :: Int -> GitLab (Either (Response BSL.ByteString) [Member])
-membersOfGroup' projectId =
-  membersOfEntity' projectId "groups"
+-- | Gets a list of group members viewable by the authenticated
+-- user. Returns only direct members and not inherited members through
+-- ancestors groups.
+membersOfGroup :: Group -> GitLab (Either (Response BSL.ByteString) [Member])
+membersOfGroup grp =
+  gitlabGetMany addr []
+  where
+    addr =
+      "/groups/"
+        <> T.pack (show (group_id grp))
+        <> "/members"
+
+-- | Gets a member of a group. Returns only direct members
+-- and not inherited members through ancestor groups.
+memberOfGroup ::
+  -- | The group
+  Group ->
+  -- | The user ID of the member
+  Int ->
+  GitLab (Either (Response BSL.ByteString) (Maybe Member))
+memberOfGroup grp usrId =
+  gitlabGetOne addr []
+  where
+    addr =
+      "/projects/"
+        <> T.pack (show (group_id grp))
+        <> "/members/"
+        <> T.pack (show usrId)
+
+-- | Gets a member of a group, including members inherited or invited
+-- through ancestor groups.
+--
+-- If a user is a member of this group and also of one or more
+-- ancestor groups, only its membership with the highest access_level
+-- is returned. This represents the effective permission of the user.
+--
+-- Members from an invited group are returned if either: the invited
+-- group is public, or the requester is also a member of the invited
+-- group.
+memberOfGroupWithInherited ::
+  -- | The group
+  Group ->
+  -- | The user ID of the member
+  Int ->
+  GitLab (Either (Response BSL.ByteString) (Maybe Member))
+memberOfGroupWithInherited prj usrId =
+  gitlabGetOne addr []
+  where
+    addr =
+      "/groups/"
+        <> T.pack (show (group_id prj))
+        <> "/members"
+        <> "/all/"
+        <> T.pack (show usrId)
+
+-- | Gets a list of group members viewable by the authenticated
+-- user, including inherited members, invited users, and permissions
+-- through ancestor groups.
+--
+-- If a user is a member of this group and also of one or more
+-- ancestor groups, only its membership with the highest access_level
+-- is returned. This represents the effective permission of the user.
+--
+-- Members from an invited group are returned if either: the invited
+-- group is public, or the requester is also a member of the invited group.
+membersOfGroupWithInherited :: Group -> GitLab (Either (Response BSL.ByteString) [Member])
+membersOfGroupWithInherited prj =
+  gitlabGetMany addr []
+  where
+    addr =
+      "/groups/"
+        <> T.pack (show (group_id prj))
+        <> "/members"
+        <> "/all"
 
 -- | adds all registered users to a group.
 addAllUsersToGroup ::
-  -- | group name
-  Text ->
+  -- | the group
+  Group ->
   -- | level of access granted
   AccessLevel ->
   GitLab [Either (Response BSL.ByteString) (Maybe Member)]
-addAllUsersToGroup groupName access = do
+addAllUsersToGroup grp access = do
   allRegisteredUsers <- allUsers
-  let allUserIds = map user_username allRegisteredUsers
-  addUsersToGroup' groupName access allUserIds
+  addUsersToGroup grp access allRegisteredUsers
 
--- | adds a user to a group.
+-- | Adds a member to a group.
 addUserToGroup ::
-  -- | group name
-  Text ->
+  -- | the group
+  Group ->
   -- | level of access granted
   AccessLevel ->
   -- | the user
   User ->
   GitLab (Either (Response BSL.ByteString) (Maybe Member))
-addUserToGroup groupName access usr =
-  addUserToGroup' groupName access (user_id usr)
-
--- | adds a user with a given user ID to a group.
-addUserToGroup' ::
-  -- | group name
-  Text ->
-  -- | level of access granted
-  AccessLevel ->
-  -- | user ID
-  Int ->
-  GitLab (Either (Response BSL.ByteString) (Maybe Member))
-addUserToGroup' groupName access usrId = do
-  attempt <- groupsWithNameOrPath groupName
-  case attempt of
-    Left resp -> return (Left resp)
-    Right [] ->
-      return (Right Nothing)
-    Right [grp] ->
-      gitlabPost addr params
-      where
-        params :: [GitLabParam]
-        params =
-          [ ("user_id", Just (T.encodeUtf8 (T.pack (show usrId)))),
-            ("access_level", Just (T.encodeUtf8 (T.pack (show access))))
-          ]
-        addr =
-          "/groups/"
-            <> T.decodeUtf8 (urlEncode False (T.encodeUtf8 (T.pack (show (group_id grp)))))
-            <> "/members"
-    Right (_ : _) ->
-      return (Right Nothing)
+addUserToGroup grp access usr = do
+  gitlabPost addr params
+  where
+    params :: [GitLabParam]
+    params =
+      [ ("user_id", Just (T.encodeUtf8 (T.pack (show (user_id usr))))),
+        ("access_level", Just (T.encodeUtf8 (T.pack (show access))))
+      ]
+    addr =
+      "/groups/"
+        <> T.decodeUtf8 (urlEncode False (T.encodeUtf8 (T.pack (show (group_id grp)))))
+        <> "/members"
 
 -- | adds a list of users to a group.
 addUsersToGroup ::
-  -- | group name
-  Text ->
+  -- | the group
+  Group ->
   -- | level of access granted
   AccessLevel ->
   -- | list of usernames to be added to the group
   [User] ->
   GitLab [Either (Response BSL.ByteString) (Maybe Member)]
-addUsersToGroup groupName access =
-  mapM (addUserToGroup groupName access)
+addUsersToGroup grp access =
+  mapM (addUserToGroup grp access)
 
--- | adds a list of users to a group.
-addUsersToGroup' ::
-  -- | group name
-  Text ->
-  -- | level of access granted
+-- | Updates a member of a group.
+editMemberOfGroup ::
+  -- | the group
+  Group ->
+  -- | the new level of access
   AccessLevel ->
-  -- | list of usernames to be added to the group
-  [Text] ->
-  GitLab [Either (Response BSL.ByteString) (Maybe Member)]
-addUsersToGroup' groupName access usernames = do
-  users <- catMaybes <$> mapM searchUser usernames
-  mapM (addUserToGroup' groupName access . user_id) users
+  -- | user ID
+  User ->
+  GitLab (Either (Response BSL.ByteString) (Maybe Member))
+editMemberOfGroup grp access usr =
+  gitlabPut addr params
+  where
+    params :: [GitLabParam]
+    params =
+      [ ("access_level", Just (T.encodeUtf8 (T.pack (show access))))
+      ]
+    addr =
+      "/groups/"
+        <> T.pack (show (group_id grp))
+        <> "/members/"
+        <> T.pack (show (user_id usr))
 
--- | Removes a user from a project where the user has been explicitly assigned a role
+-- | Removes a user from a project where the user has been explicitly
+-- assigned a role.
+--
+-- The user needs to be a group member to qualify for removal. For
+-- example, if the user was added directly to a project within the
+-- group but not this group explicitly, you cannot use this API to
+-- remove them.
 removeUserFromProject ::
-  -- | project name
-  Text ->
+  -- | the project
+  Project ->
   -- | user
   User ->
   GitLab (Either (Response BSL.ByteString) (Maybe ()))
-removeUserFromProject grpName =
-  removeUserFromEntity grpName "projects"
+removeUserFromProject prj =
+  removeUserFromEntity (project_name prj) "projects"
 
--- | Removes a user from a project where the user has been explicitly assigned a role
-removeUserFromProject' ::
-  -- | project name
-  Text ->
-  -- | user ID
-  Int ->
-  GitLab (Either (Response BSL.ByteString) (Maybe ()))
-removeUserFromProject' grpName =
-  removeUserFromEntity' grpName "projects"
-
--- | Removes a user from a group where the user has been explicitly assigned a role
+-- | Removes a user from a group where the user has been explicitly
+-- assigned a role.
+--
+-- The user needs to be a group member to qualify for removal. For
+-- example, if the user was added directly to a project within the
+-- group but not this group explicitly, you cannot use this API to
+-- remove them.
 removeUserFromGroup ::
-  -- | group name
-  Text ->
+  -- | the group
+  Group ->
   -- | user
   User ->
   GitLab (Either (Response BSL.ByteString) (Maybe ()))
-removeUserFromGroup grpName =
-  removeUserFromEntity grpName "groups"
+removeUserFromGroup grp =
+  removeUserFromEntity (group_name grp) "groups"
 
--- | Removes a user from a group where the user has been explicitly assigned a role
-removeUserFromGroup' ::
-  -- | group name
-  Text ->
-  -- | user ID
-  Int ->
-  GitLab (Either (Response BSL.ByteString) (Maybe ()))
-removeUserFromGroup' grpName =
-  removeUserFromEntity' grpName "groups"
+-- | Approves a pending user for a group and its subgroups and
+-- projects.
+approvePendingMember ::
+  -- | the group
+  Group ->
+  -- | the member
+  User ->
+  GitLab (Either (Response BSL.ByteString) (Maybe Member))
+approvePendingMember grp usr =
+  gitlabPut addr []
+  where
+    addr =
+      "/groups/"
+        <> T.pack (show (group_id grp))
+        <> "/members/"
+        <> T.pack (show (user_id usr))
+        <> "/approve"
 
------------------------
--- Internal functions.
+-- | Approves all pending users for a group and its subgroups and
+-- projects.
+approveAllPendingMembers ::
+  -- | the group
+  Group ->
+  GitLab (Either (Response BSL.ByteString) (Maybe Member))
+approveAllPendingMembers grp =
+  gitlabPut addr []
+  where
+    addr =
+      "/groups/"
+        <> T.pack (show (group_id grp))
+        <> "/members/"
+        <> "/approve_all"
+
+-- | For a group and its subgroups and projects, get a list of all
+-- members in an awaiting state and those who are invited but do not
+-- have a GitLab account. This request returns all matching group and
+-- project members from all groups and projects in the root group’s
+-- hierarchy. When the member is an invited user that has not signed
+-- up for a GitLab account yet, the invited email address is
+-- returned. This API endpoint works on top-level groups only. It does
+-- not work on subgroups. This API endpoint requires permission to
+-- administer members for the group.
+pendingMembers ::
+  -- | the group
+  Group ->
+  GitLab (Either (Response BSL.ByteString) [Member])
+pendingMembers grp =
+  gitlabGetMany addr []
+  where
+    addr =
+      "/groups/"
+        <> T.pack (show (group_id grp))
+        <> "/pending_members"
+
+---------------------
+-- Internal functions
+---------------------
 
 -- | removes a user from a group or project.
 removeUserFromEntity ::
@@ -313,20 +483,3 @@ removeUserFromEntity' groupName entity usrId = do
             <> T.decodeUtf8 (urlEncode False (T.encodeUtf8 (T.pack (show usrId))))
     Right (_ : _) ->
       return (Right Nothing)
-
--- | the members of a project given its ID.
-membersOfEntity' ::
-  -- | group or project ID
-  Int ->
-  -- | entity ("groups" or "projects")
-  Text ->
-  GitLab (Either (Response BSL.ByteString) [Member])
-membersOfEntity' projectId entity =
-  gitlabGetMany addr []
-  where
-    addr =
-      "/"
-        <> entity
-        <> "/"
-        <> T.pack (show projectId)
-        <> "/members"
