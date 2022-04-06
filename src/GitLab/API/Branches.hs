@@ -124,7 +124,7 @@ deleteRepositoryBranch' ::
   Text ->
   GitLab (Either (Response BSL.ByteString) (Maybe ()))
 deleteRepositoryBranch' projectId branchName =
-  gitlabDelete branchAddr
+  gitlabDelete branchAddr []
   where
     branchAddr :: Text
     branchAddr =
@@ -148,7 +148,7 @@ deleteMergedBranches' ::
   Int ->
   GitLab (Either (Response BSL.ByteString) (Maybe ()))
 deleteMergedBranches' projectId =
-  gitlabDelete branchAddr
+  gitlabDelete branchAddr []
   where
     branchAddr :: Text
     branchAddr =

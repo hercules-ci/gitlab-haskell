@@ -465,7 +465,7 @@ removeUserFromEntity' groupName entity usrId = do
     Right [] ->
       return (Right Nothing)
     Right [grp] -> do
-      result <- gitlabDelete addr
+      result <- gitlabDelete addr []
       case result of
         Left err -> return (Left err)
         -- GitLab version 14.2.3 returns Version JSON info when a

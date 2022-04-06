@@ -176,7 +176,7 @@ deleteIssueThreadNote' ::
   Int ->
   GitLab (Either (Response BSL.ByteString) (Maybe ()))
 deleteIssueThreadNote' projectId issueIid discussionId noteId = do
-  gitlabDelete noteAddr
+  gitlabDelete noteAddr []
   where
     noteAddr :: Text
     noteAddr =
@@ -319,7 +319,7 @@ deleteSnippetThreadNote' ::
   Int ->
   GitLab (Either (Response BSL.ByteString) (Maybe ()))
 deleteSnippetThreadNote' projectId snippetId discussionId noteId = do
-  gitlabDelete noteAddr
+  gitlabDelete noteAddr []
   where
     noteAddr :: Text
     noteAddr =
@@ -529,7 +529,7 @@ deleteMergeRequestThreadNote' ::
   Int ->
   GitLab (Either (Response BSL.ByteString) (Maybe ()))
 deleteMergeRequestThreadNote' projectId mergeRequestIid discussionId noteId = do
-  gitlabDelete noteAddr
+  gitlabDelete noteAddr []
   where
     noteAddr :: Text
     noteAddr =
@@ -701,7 +701,7 @@ deleteCommitThreadNote' ::
   Int ->
   GitLab (Either (Response BSL.ByteString) (Maybe ()))
 deleteCommitThreadNote' projectId commitId discussionId noteId = do
-  gitlabDelete noteAddr
+  gitlabDelete noteAddr []
   where
     noteAddr :: Text
     noteAddr =

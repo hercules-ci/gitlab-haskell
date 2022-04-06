@@ -152,7 +152,7 @@ deleteIssueBoard' ::
   Int ->
   GitLab (Either (Response BSL.ByteString) (Maybe ()))
 deleteIssueBoard' projectId boardId = do
-  gitlabDelete boardAddr
+  gitlabDelete boardAddr []
   where
     boardAddr :: Text
     boardAddr =
@@ -310,7 +310,7 @@ deleteBoardList' ::
   Int ->
   GitLab (Either (Response BSL.ByteString) (Maybe ()))
 deleteBoardList' projectId boardId listId =
-  gitlabDelete boardsAddr
+  gitlabDelete boardsAddr []
   where
     boardsAddr :: Text
     boardsAddr =

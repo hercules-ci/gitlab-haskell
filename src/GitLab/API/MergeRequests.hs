@@ -224,7 +224,7 @@ deleteMergeRequest' ::
   -- | merge request IID
   Int ->
   GitLab (Either (Response BSL.ByteString) (Maybe ()))
-deleteMergeRequest' projectId mergeRequestIid = gitlabDelete addr
+deleteMergeRequest' projectId mergeRequestIid = gitlabDelete addr []
   where
     addr =
       T.pack $

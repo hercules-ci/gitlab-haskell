@@ -78,7 +78,7 @@ deleteTag ::
   Text ->
   GitLab (Either (Response BSL.ByteString) (Maybe ()))
 deleteTag prj tagName =
-  gitlabDelete tagAddr
+  gitlabDelete tagAddr []
   where
     tagAddr :: Text
     tagAddr =

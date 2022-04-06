@@ -145,7 +145,7 @@ deletePipeline ::
   Int ->
   GitLab (Either (Response BSL.ByteString) (Maybe ()))
 deletePipeline prj pipelineId = do
-  gitlabDelete pipelineAddr
+  gitlabDelete pipelineAddr []
   where
     pipelineAddr :: Text
     pipelineAddr =
