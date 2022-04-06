@@ -55,6 +55,8 @@ module GitLab.Types
     GroupShare (..),
     Branch (..),
     RepositoryFile (..),
+    RepositoryFileBlame (..),
+    RepositoryFileSimple (..),
     MergeRequest (..),
     Todo (..),
     TodoProject (..),
@@ -818,7 +820,22 @@ data RepositoryFile = RepositoryFile
     repository_file_ref :: Text,
     repository_file_blob_id :: Text,
     repository_file_commit_id :: Text,
-    repository_file_last_commit_id :: Text
+    repository_file_last_commit_id :: Text,
+    repository_file_execute_filemode :: Maybe Bool
+  }
+  deriving (Show, Eq)
+
+-- | files in a repository.
+data RepositoryFileSimple = RepositoryFileSimple
+  { repository_file_simple_file_path :: Text,
+    repository_file_simple_branch :: Text
+  }
+  deriving (Show, Eq)
+
+-- | files in a repository.
+data RepositoryFileBlame = RepositoryFileBlame
+  { repository_file_blame_commit :: Commit,
+    repository_file_blame_lines :: [Text]
   }
   deriving (Show, Eq)
 
@@ -1431,6 +1448,10 @@ $(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "job_"), omitNo
 $(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "branch_"), omitNothingFields = True} ''Branch)
 
 $(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "repository_file_"), omitNothingFields = True} ''RepositoryFile)
+
+$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "repository_file_simple_"), omitNothingFields = True} ''RepositoryFileSimple)
+
+$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "repository_file_blame_"), omitNothingFields = True} ''RepositoryFileBlame)
 
 $(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "change_"), omitNothingFields = True} ''Change)
 
