@@ -66,6 +66,8 @@ import GitLab
     Release (Release),
     Repository (Repository),
     RepositoryFile (RepositoryFile),
+    RepositoryFileBlame (RepositoryFileBlame),
+    RepositoryFileSimple (RepositoryFileSimple),
     RepositoryStorage (RepositoryStorage),
     SamlIdentity (SamlIdentity),
     Starrer (Starrer),
@@ -283,6 +285,10 @@ deriving instance Generic Contributor
 
 deriving instance Generic RepositoryFile
 
+deriving instance Generic RepositoryFileSimple
+
+deriving instance Generic RepositoryFileBlame
+
 deriving instance Generic Version
 
 deriving instance Generic IssueStatistics
@@ -371,6 +377,10 @@ instance ToExpr GroupShare
 instance ToExpr Branch
 
 instance ToExpr RepositoryFile
+
+instance ToExpr RepositoryFileSimple
+
+instance ToExpr RepositoryFileBlame
 
 instance ToExpr MergeRequest
 
