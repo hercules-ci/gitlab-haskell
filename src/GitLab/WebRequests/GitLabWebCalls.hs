@@ -110,8 +110,10 @@ gitlabDelete ::
   FromJSON a =>
   -- | the URL to post to
   Text ->
+  -- | the data to post
+  [GitLabParam] ->
   GitLab (Either (Response BSL.ByteString) (Maybe a))
-gitlabDelete urlPath = do
+gitlabDelete urlPath params = do
   request
   where
     request =
@@ -120,7 +122,7 @@ gitlabDelete urlPath = do
         "application/x-www-form-urlencoded"
         urlPath
         []
-        []
+        params
 
 -- | Assumes that HTTP error code responses, e.g. 404, 409, won't be
 -- returned as (Left response) value.
