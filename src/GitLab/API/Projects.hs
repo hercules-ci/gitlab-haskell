@@ -45,7 +45,6 @@ module GitLab.API.Projects
     projectWithPathAndName,
     multipleCommitters,
     commitsEmailAddresses,
-    commitsEmailAddresses',
     projectOfIssue,
     issuesCreatedByUser,
     issuesOnForks,
@@ -327,19 +326,8 @@ multipleCommitters project = do
 -- for a project.
 commitsEmailAddresses :: Project -> GitLab [Text]
 commitsEmailAddresses project = do
-  result <- commitsEmailAddresses' (project_id project)
-  return (fromRight (error "commitsEmailAddresses error") result)
-
--- | gets the email addresses in the author information in all commit
--- for a project defined by the project's ID.
-commitsEmailAddresses' :: Int -> GitLab (Either (Response BSL.ByteString) [Text])
-commitsEmailAddresses' projectId = do
-  -- (commits :: [Commit]) <- projectCommits' projectId
-  attempt <- projectCommits' projectId
-  case attempt of
-    Left resp -> return (Left resp)
-    Right (commits :: [Commit]) ->
-      return (Right (map commit_author_email commits))
+  commits <- repoCommits project
+  return (map commit_author_email commits)
 
 -- | gets the 'GitLab.Types.Project' against which the given 'Issue'
 -- was created.
