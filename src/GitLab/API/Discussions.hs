@@ -36,33 +36,6 @@ projectIssueDiscussions' projId issueIid = do
             <> "/discussions"
   gitlabGetMany urlPath []
 
--- | gets all discussion for a commit for a project.
-commitDiscussions ::
-  -- | the project
-  Project ->
-  -- | commit hash
-  Text ->
-  GitLab (Either (Response BSL.ByteString) [Discussion])
-commitDiscussions proj = commitDiscussions' (project_id proj)
-
--- | gets all discussion for a commit for a project given its project ID.
-commitDiscussions' ::
-  -- | the project ID
-  Int ->
-  -- | commit hash
-  Text ->
-  GitLab (Either (Response BSL.ByteString) [Discussion])
-commitDiscussions' projId commitHash = do
-  let urlPath =
-        T.pack $
-          "/projects/"
-            <> show projId
-            <> "/repository"
-            <> "/commits/"
-            <> T.unpack commitHash
-            <> "/discussions"
-  gitlabGetMany urlPath []
-
 -- | Returns a single discussion item for a specific project issue.
 issueDiscussion' ::
   -- | the project ID
