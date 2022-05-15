@@ -19,26 +19,98 @@ import GitLab.WebRequests.GitLabWebCalls
 import Network.HTTP.Client
 
 -- | Get a list of repository commits in a project.
-projectCommits ::
+repoCommits ::
   -- | the project
   Project ->
   GitLab [Commit]
-projectCommits project = do
-  result <- projectCommits' (project_id project)
+repoCommits prj = do
   -- return an empty list if the repository could not be found.
+  result <- gitlabGetMany (commitsAddr (project_id prj)) [("with_stats", Just "true")]
   return (fromRight [] result)
-
--- | Get a list of repository commits in a project.
-projectCommits' ::
-  -- | project ID
-  Int ->
-  GitLab (Either (Response BSL.ByteString) [Commit])
-projectCommits' projectId =
-  gitlabGetMany (commitsAddr projectId) [("with_stats", Just "true")]
   where
     commitsAddr :: Int -> Text
     commitsAddr projId =
-      "/projects/" <> T.pack (show projId) <> "/repository" <> "/commits"
+      "/projects/"
+        <> T.pack (show projId)
+        <> "/repository"
+        <> "/commits"
+
+-- | Get a list of repository commits in a project.
+createCommitMultipleFilesActions ::
+  -- | the project
+  Project ->
+  -- | Name of the branch to commit into.
+  Text ->
+  -- | Commit message
+  Text ->
+  [CommitAction] ->
+  GitLab (Maybe Commit)
+createCommitMultipleFilesActions prj branchName commitMsg actions = do
+  -- return an empty list if the repository could not be found.
+  result <-
+    gitlabPost
+      (commitsAddr (project_id prj))
+      [ ("branch", Just (T.encodeUtf8 branchName)),
+        ("commit_message", Just (T.encodeUtf8 commitMsg)),
+        ("actions", Just (T.encodeUtf8 (T.pack (show actions))))
+      ]
+  case result of
+    Left resp -> error ("createCommitMultipleFilesActions: " <> show resp)
+    Right x -> return x
+  where
+    commitsAddr :: Int -> Text
+    commitsAddr projId =
+      "/projects/"
+        <> T.pack (show projId)
+        <> "/repository"
+        <> "/commits"
+
+data CommitAction = CommitAction
+  { commit_action_action :: Action,
+    -- | Full path to the file.
+    commit_action_file_path :: FilePath,
+    -- | Original full path to the file being
+    -- moved. Ex. lib/class1.rb. Only considered for move action.
+    commit_action_previous_path :: Maybe Text,
+    -- | File content, required for all except delete, chmod, and
+    -- move. Move actions that do not specify content preserve the
+    -- existing file content, and any other value of content overwrites
+    -- the file content.
+    commit_action_content :: Maybe Text,
+    -- | text or base64. text is default.
+    commit_action_encoding :: Maybe ContentEncoding,
+    -- | Last known file commit ID. Only considered in update, move, and
+    -- delete actions.
+    commit_action_last_commit_id :: Maybe Text,
+    -- | When true/false enables/disables the execute flag on the
+    -- file. Only considered for chmod action.
+    commit_action_execute_filemode :: Maybe Bool
+  }
+  deriving (Show, Eq)
+
+data Action
+  = ActionCreate
+  | ActionDelete
+  | ActionMove
+  | ActionUpdate
+  | ActionChmod
+  deriving (Eq)
+
+instance Show Action where
+  show ActionCreate = "create"
+  show ActionDelete = "delete"
+  show ActionMove = "move"
+  show ActionUpdate = "update"
+  show ActionChmod = "chmod"
+
+data ContentEncoding
+  = EncodingText
+  | EncodingBase64
+  deriving (Eq)
+
+instance Show ContentEncoding where
+  show EncodingText = "text"
+  show EncodingBase64 = "base64"
 
 -- | returns all commits of a branch from a project given the branch
 -- name.
@@ -67,28 +139,17 @@ branchCommits' projectId branchName = do
     commitsAddr projId =
       "/projects/" <> T.pack (show projId) <> "/repository" <> "/commits"
 
--- | returns a commit for the given project and commit hash, if such
--- a commit exists.
-commitDetails ::
+-- | Get a specific commit identified by the commit hash or name of a
+-- branch or tag.
+singleCommit ::
   -- | the project
   Project ->
   -- | the commit hash
   Text ->
   GitLab (Maybe Commit)
-commitDetails project theHash = do
-  result <- commitDetails' (project_id project) theHash
+singleCommit project theHash = do
+  result <- gitlabGetOne (commitsAddr (project_id project)) []
   return (fromRight Nothing result)
-
--- | returns a commit for the given project ID and commit hash, if
--- such a commit exists.
-commitDetails' ::
-  -- | project ID
-  Int ->
-  -- | the commit hash
-  Text ->
-  GitLab (Either (Response BSL.ByteString) (Maybe Commit))
-commitDetails' projectId hash =
-  gitlabGetOne (commitsAddr projectId) []
   where
     commitsAddr :: Int -> Text
     commitsAddr projId =
@@ -97,4 +158,159 @@ commitDetails' projectId hash =
         <> "/repository"
         <> "/commits"
         <> "/"
-        <> hash
+        <> theHash
+
+-- | Cherry-picks a commit to a given branch.
+cheryPickCommit ::
+  -- | the project
+  Project ->
+  -- | the commit hash
+  Text ->
+  -- | 	The name of the branch
+  Text ->
+  GitLab (Maybe Commit)
+cheryPickCommit project theHash branchName = do
+  result <-
+    gitlabPost
+      commitsAddr
+      [ ("branch", Just (T.encodeUtf8 branchName))
+      ]
+  case result of
+    Left _ -> return Nothing
+    Right x -> return x
+  where
+    commitsAddr :: Text
+    commitsAddr =
+      "/projects/"
+        <> T.pack (show (project_id project))
+        <> "/repository"
+        <> "/commits/"
+        <> theHash
+        <> "/cherry_pick"
+
+-- | Reverts a commit in a given branch.
+revertCommit ::
+  -- | the project
+  Project ->
+  -- | the commit hash
+  Text ->
+  -- | target branch name
+  Text ->
+  GitLab (Maybe Commit)
+revertCommit project theHash branchName = do
+  result <-
+    gitlabPost
+      commitsAddr
+      [ ("branch", Just (T.encodeUtf8 branchName))
+      ]
+  case result of
+    Left _ -> return Nothing
+    Right x -> return x
+  where
+    commitsAddr :: Text
+    commitsAddr =
+      "/projects/"
+        <> T.pack (show (project_id project))
+        <> "/repository"
+        <> "/commits/"
+        <> theHash
+        <> "/revert"
+
+-- | Get the diff of a commit in a project.
+commitDiff ::
+  -- | project
+  Project ->
+  -- | 	The commit hash or name of a repository branch or tag
+  Text ->
+  GitLab (Either (Response BSL.ByteString) [Diff])
+commitDiff project sha = do
+  gitlabGetMany (commitsAddr (project_id project)) []
+  where
+    commitsAddr :: Int -> Text
+    commitsAddr projId =
+      "/projects/"
+        <> T.pack (show projId)
+        <> "/repository"
+        <> "/commits/"
+        <> T.pack (show sha)
+        <> "/diff"
+
+-- | Get the diff of a commit in a project.
+commitComments ::
+  -- | project
+  Project ->
+  -- | 	The commit hash or name of a repository branch or tag
+  Text ->
+  GitLab (Either (Response BSL.ByteString) [CommitNote])
+commitComments project sha = do
+  gitlabGetMany (commitsAddr (project_id project)) []
+  where
+    commitsAddr :: Int -> Text
+    commitsAddr projId =
+      "/projects/"
+        <> T.pack (show projId)
+        <> "/repository"
+        <> "/commits/"
+        <> T.pack (show sha)
+        <> "/comments"
+
+-- | Adds a comment to a commit.
+postCommitComment ::
+  -- | project
+  Project ->
+  -- | The commit hash or name of a repository branch or tag
+  Text ->
+  -- | The text of the comment
+  Text ->
+  GitLab (Either (Response BSL.ByteString) (Maybe CommitNote))
+postCommitComment project sha note = do
+  gitlabPost
+    (commitsAddr (project_id project))
+    [("note", Just (T.encodeUtf8 note))]
+  where
+    commitsAddr :: Int -> Text
+    commitsAddr projId =
+      "/projects/"
+        <> T.pack (show projId)
+        <> "/repository"
+        <> "/commits/"
+        <> T.pack (show sha)
+        <> "/comments"
+
+-- | Get the discussions of a commit in a project.
+commitDiscussions ::
+  -- | project
+  Project ->
+  -- | 	The commit hash or name of a repository branch or tag
+  Text ->
+  GitLab (Either (Response BSL.ByteString) [Discussion])
+commitDiscussions project sha = do
+  gitlabGetMany (commitsAddr (project_id project)) []
+  where
+    commitsAddr :: Int -> Text
+    commitsAddr projId =
+      "/projects/"
+        <> T.pack (show projId)
+        <> "/repository"
+        <> "/commits/"
+        <> T.pack (show sha)
+        <> "/discussions"
+
+-- | Get the discussions of a commit in a project.
+commitMergeRequests ::
+  -- | project
+  Project ->
+  -- | The commit SHA
+  Text ->
+  GitLab (Either (Response BSL.ByteString) [MergeRequest])
+commitMergeRequests project sha = do
+  gitlabGetMany (commitsAddr (project_id project)) []
+  where
+    commitsAddr :: Int -> Text
+    commitsAddr projId =
+      "/projects/"
+        <> T.pack (show projId)
+        <> "/repository"
+        <> "/commits/"
+        <> T.pack (show sha)
+        <> "/merge_requests"
