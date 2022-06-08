@@ -10,20 +10,33 @@
 -- Stability   : stable
 module GitLab.API.Issues
   ( defaultIssueFilters,
-    IssueAttrs (..),
-    DueDate (..),
-    IssueState (..),
+    groupIssues,
     projectIssues,
     projectIssues',
+    issue,
+    projectIssue,
+    newIssue,
+    newIssue',
     issueStatisticsUser,
     issueStatisticsGroup,
     issueStatisticsGroup',
     issueStatisticsProject,
     issueStatisticsProject',
     userIssues,
-    newIssue,
-    newIssue',
     editIssue,
+    deleteIssue,
+    reorderIssue,
+    moveIssue,
+    cloneIssue,
+    subscribeIssue,
+    unsubscribeIssue,
+    createTodo,
+    issueMergeRequests,
+    issueMergeRequestsThatClose,
+    issueParticipants,
+    IssueAttrs (..),
+    DueDate (..),
+    IssueState (..),
   )
 where
 
@@ -39,34 +52,26 @@ import GitLab.Types
 import GitLab.WebRequests.GitLabWebCalls
 import Network.HTTP.Client
 
--- | No issue filters, thereby returning all issues. Default scope is "all".
-defaultIssueFilters :: IssueAttrs
-defaultIssueFilters =
-  IssueAttrs Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing (Just All) Nothing Nothing Nothing Nothing Nothing Nothing
+-- | Get a list of a project’s issues
+groupIssues ::
+  -- | the group
+  Group ->
+  -- | filter the issues, see https://docs.gitlab.com/ee/api/issues.html#list-issues
+  IssueAttrs ->
+  -- the GitLab issues
+  GitLab [Issue]
+groupIssues grp attrs = do
+  result <- gitlabGetMany urlPath (issuesAttrs attrs)
+  return (fromRight (error "groupsIssues error") result)
+  where
+    urlPath =
+      T.pack $
+        "/groups/"
+          <> show (group_id grp)
+          <> "/issues"
 
--- | When an issue is due
-data DueDate
-  = NoDueDate
-  | Overdue
-  | Week
-  | Month
-  | NextMonthPreviousTwoWeeks
-
-instance Show DueDate where
-  show NoDueDate = "0"
-  show Overdue = "overdue"
-  show Week = "week"
-  show Month = "month"
-  show NextMonthPreviousTwoWeeks = "next_month_and_previous_two_weeks"
-
--- | Is a project issues open or closed
-data IssueState
-  = IssueOpen
-  | IssueClosed
-
-instance Show IssueState where
-  show IssueOpen = "opened"
-  show IssueClosed = "closed"
+-- result <- projectIssues' (project_id p) filters
+-- return (fromRight (error "projectIssues error") result)
 
 -- | Get a list of a project’s issues
 projectIssues ::
@@ -96,6 +101,304 @@ projectIssues' projectId attrs =
         "/projects/"
           <> show projectId
           <> "/issues"
+
+-- | Only for administrators. Get a single issue.
+issue ::
+  -- | issue ID
+  Int ->
+  GitLab (Either (Response BSL.ByteString) (Maybe Issue))
+issue issId =
+  gitlabGetOne urlPath []
+  where
+    urlPath =
+      T.pack
+        "/issues/"
+        <> T.pack (show issId)
+
+-- | Get a single project issue. If the project is private or the
+-- issue is confidential, you need to provide credentials to
+-- authorize.
+projectIssue ::
+  -- | Project
+  Project ->
+  -- | issue ID
+  Int ->
+  GitLab (Either (Response BSL.ByteString) (Maybe Issue))
+projectIssue p issId =
+  gitlabGetOne urlPath []
+  where
+    urlPath =
+      T.pack
+        "/project/"
+        <> T.pack (show (project_id p))
+        <> "/issues/"
+        <> T.pack (show issId)
+
+-- | create a new issue.
+newIssue ::
+  -- | project
+  Project ->
+  -- | issue title
+  Text ->
+  -- | issue description
+  Text ->
+  GitLab (Either (Response BSL.ByteString) (Maybe Issue))
+newIssue project =
+  newIssue' (project_id project)
+
+-- | create a new issue.
+newIssue' ::
+  -- | project ID
+  Int ->
+  -- | issue title
+  Text ->
+  -- | issue description
+  Text ->
+  GitLab (Either (Response BSL.ByteString) (Maybe Issue))
+newIssue' projectId issueTitle issueDescription =
+  gitlabPost addr dataBody
+  where
+    dataBody :: [GitLabParam]
+    dataBody =
+      [ ("title", Just (T.encodeUtf8 issueTitle)),
+        ("description", Just (T.encodeUtf8 issueDescription))
+      ]
+    addr =
+      "/projects/"
+        <> T.pack (show projectId)
+        <> "/issues"
+
+-- | edits an issue. see <https://docs.gitlab.com/ee/api/issues.html#edit-issue>
+editIssue ::
+  Project ->
+  -- | issue ID
+  IssueId ->
+  EditIssueReq ->
+  GitLab (Either (Response BSL.ByteString) Issue)
+editIssue prj issueId editIssueReq = do
+  let urlPath =
+        "/projects/" <> T.pack (show (project_id prj))
+          <> "/issues/"
+          <> T.pack (show issueId)
+  result <-
+    gitlabPut
+      urlPath
+      (editIssuesAttrs editIssueReq)
+  case result of
+    Left resp -> return (Left resp)
+    Right Nothing -> error "editIssue error"
+    Right (Just iss) -> return (Right iss)
+
+-- | deletes an issue. see <https://docs.gitlab.com/ee/api/issues.html#delete-an-issue>
+deleteIssue ::
+  Project ->
+  -- | issue ID
+  IssueId ->
+  GitLab (Either (Response BSL.ByteString) (Maybe ()))
+deleteIssue prj issueId = do
+  gitlabDelete issueAddr []
+  where
+    issueAddr :: Text
+    issueAddr =
+      "/projects/"
+        <> T.pack (show (project_id prj))
+        <> "/issues/"
+        <> T.pack (show issueId)
+
+-- | edits an issue. see <https://docs.gitlab.com/ee/api/issues.html#edit-issue>
+reorderIssue ::
+  Project ->
+  -- | issue ID
+  IssueId ->
+  -- | The ID of a project’s issue that should be placed after this
+  -- issue
+  Int ->
+  -- | The ID of a project’s issue that should be placed before this
+  -- issue
+  Int ->
+  GitLab (Either (Response BSL.ByteString) Issue)
+reorderIssue prj issueId moveAfterId moveBeforeId = do
+  let urlPath =
+        "/projects/" <> T.pack (show (project_id prj))
+          <> "/issues/"
+          <> T.pack (show issueId)
+          <> "/reorder"
+  result <-
+    gitlabPut
+      urlPath
+      [ ("move_after_id", Just (T.encodeUtf8 (T.pack (show moveAfterId)))),
+        ("move_before_id", Just (T.encodeUtf8 (T.pack (show moveBeforeId))))
+      ]
+  case result of
+    Left resp -> return (Left resp)
+    Right Nothing -> error "reorderIssue error"
+    Right (Just iss) -> return (Right iss)
+
+-- | Moves an issue to a different project. If a given label or
+-- milestone with the same name also exists in the target project,
+-- it’s then assigned to the issue being moved.
+moveIssue ::
+  -- | project
+  Project ->
+  -- | The internal ID of a project’s issue
+  IssueId ->
+  -- | The ID of the new project
+  ProjectId ->
+  GitLab (Either (Response BSL.ByteString) (Maybe Issue))
+moveIssue prj issueId toPrjId =
+  gitlabPost addr dataBody
+  where
+    dataBody :: [GitLabParam]
+    dataBody =
+      [ ("to_project_id", Just (T.encodeUtf8 (T.pack (show toPrjId))))
+      ]
+    addr =
+      "/projects/"
+        <> T.pack (show (project_id prj))
+        <> "/issues/"
+        <> T.pack (show issueId)
+        <> "/move"
+
+-- | Clone the issue to given project. Copies as much data as possible
+-- as long as the target project contains equivalent labels,
+-- milestones, and so on.
+cloneIssue ::
+  -- | project
+  Project ->
+  -- | The internal ID of a project’s issue
+  IssueId ->
+  -- | The ID of the new project
+  ProjectId ->
+  GitLab (Either (Response BSL.ByteString) (Maybe Issue))
+cloneIssue prj issueId toPrjId =
+  gitlabPost addr dataBody
+  where
+    dataBody :: [GitLabParam]
+    dataBody =
+      [ ("to_project_id", Just (T.encodeUtf8 (T.pack (show toPrjId))))
+      ]
+    addr =
+      "/projects/"
+        <> T.pack (show (project_id prj))
+        <> "/issues/"
+        <> T.pack (show issueId)
+        <> "/clone"
+
+-- | Subscribes the authenticated user to an issue to receive
+-- notifications.
+subscribeIssue ::
+  -- | project
+  Project ->
+  -- | The internal ID of a project’s issue
+  IssueId ->
+  GitLab (Either (Response BSL.ByteString) (Maybe Issue))
+subscribeIssue prj issueId =
+  gitlabPost addr dataBody
+  where
+    dataBody :: [GitLabParam]
+    dataBody =
+      []
+    addr =
+      "/projects/"
+        <> T.pack (show (project_id prj))
+        <> "/issues/"
+        <> T.pack (show issueId)
+        <> "/subscribe"
+
+-- | Unsubscribes the authenticated user from the issue to not receive
+-- notifications from it.
+unsubscribeIssue ::
+  -- | project
+  Project ->
+  -- | The internal ID of a project’s issue
+  IssueId ->
+  GitLab (Either (Response BSL.ByteString) (Maybe Issue))
+unsubscribeIssue prj issueId =
+  gitlabPost addr dataBody
+  where
+    dataBody :: [GitLabParam]
+    dataBody =
+      []
+    addr =
+      "/projects/"
+        <> T.pack (show (project_id prj))
+        <> "/issues/"
+        <> T.pack (show issueId)
+        <> "/unsubscribe"
+
+-- | Get all the merge requests that are related to the issue.
+createTodo ::
+  -- | project
+  Project ->
+  -- | The internal ID of a project’s issue
+  IssueId ->
+  GitLab (Either (Response BSL.ByteString) (Maybe Todo))
+createTodo prj issueId =
+  gitlabPost addr dataBody
+  where
+    dataBody :: [GitLabParam]
+    dataBody =
+      []
+    addr =
+      "/projects/"
+        <> T.pack (show (project_id prj))
+        <> "/issues/"
+        <> T.pack (show issueId)
+        <> "/todo"
+
+-- | Get all the merge requests that are related to the issue.
+issueMergeRequests ::
+  -- | project
+  Project ->
+  -- | The internal ID of a project’s issue
+  IssueId ->
+  GitLab (Either (Response BSL.ByteString) [MergeRequest])
+issueMergeRequests prj issueId = do
+  gitlabGetMany urlPath []
+  where
+    urlPath =
+      T.pack $
+        "/projects/"
+          <> show (project_id prj)
+          <> "/issues/"
+          <> show issueId
+          <> "/related_merge_requests"
+
+-- | get all merge requests that close a particular issue when merged.
+issueMergeRequestsThatClose ::
+  -- | project
+  Project ->
+  -- | The internal ID of a project’s issue
+  IssueId ->
+  GitLab (Either (Response BSL.ByteString) [MergeRequest])
+issueMergeRequestsThatClose prj issueId = do
+  gitlabGetMany urlPath []
+  where
+    urlPath =
+      T.pack $
+        "/projects/"
+          <> show (project_id prj)
+          <> "/issues/"
+          <> show issueId
+          <> "/closed_by"
+
+-- | get all merge requests that close a particular issue when merged.
+issueParticipants ::
+  -- | project
+  Project ->
+  -- | The internal ID of a project’s issue
+  IssueId ->
+  GitLab (Either (Response BSL.ByteString) [User])
+issueParticipants prj issueId = do
+  gitlabGetMany urlPath []
+  where
+    urlPath =
+      T.pack $
+        "/projects/"
+          <> show (project_id prj)
+          <> "/issues/"
+          <> show issueId
+          <> "/participants"
 
 -- | Gets issues count statistics on all issues the authenticated user has access to.
 issueStatisticsUser ::
@@ -189,60 +492,6 @@ userIssues usr =
         ("scope", Just "all")
       ]
 
--- | create a new issue.
-newIssue ::
-  -- | project
-  Project ->
-  -- | issue title
-  Text ->
-  -- | issue description
-  Text ->
-  GitLab (Either (Response BSL.ByteString) (Maybe Issue))
-newIssue project =
-  newIssue' (project_id project)
-
--- | create a new issue.
-newIssue' ::
-  -- | project ID
-  Int ->
-  -- | issue title
-  Text ->
-  -- | issue description
-  Text ->
-  GitLab (Either (Response BSL.ByteString) (Maybe Issue))
-newIssue' projectId issueTitle issueDescription =
-  gitlabPost addr dataBody
-  where
-    dataBody :: [GitLabParam]
-    dataBody =
-      [ ("title", Just (T.encodeUtf8 issueTitle)),
-        ("description", Just (T.encodeUtf8 issueDescription))
-      ]
-    addr =
-      "/projects/"
-        <> T.pack (show projectId)
-        <> "/issues"
-
--- | edits an issue. see <https://docs.gitlab.com/ee/api/issues.html#edit-issue>
-editIssue ::
-  ProjectId ->
-  IssueId ->
-  EditIssueReq ->
-  GitLab (Either (Response BSL.ByteString) Issue)
-editIssue projId issueId editIssueReq = do
-  let urlPath =
-        "/projects/" <> T.pack (show projId)
-          <> "/issues/"
-          <> T.pack (show issueId)
-  result <-
-    gitlabPut
-      urlPath
-      (editIssuesAttrs editIssueReq)
-  case result of
-    Left resp -> return (Left resp)
-    Right Nothing -> error "editIssue error"
-    Right (Just issue) -> return (Right issue)
-
 -- | Attributes related to a project issue
 data IssueAttrs = IssueAttrs
   { issueFilter_assignee_id :: Maybe Int,
@@ -335,3 +584,32 @@ issuesAttrs filters =
     showBool False = "false"
     showTime :: UTCTime -> Text
     showTime = T.pack . iso8601Show
+
+-- | When an issue is due
+data DueDate
+  = NoDueDate
+  | Overdue
+  | Week
+  | Month
+  | NextMonthPreviousTwoWeeks
+
+instance Show DueDate where
+  show NoDueDate = "0"
+  show Overdue = "overdue"
+  show Week = "week"
+  show Month = "month"
+  show NextMonthPreviousTwoWeeks = "next_month_and_previous_two_weeks"
+
+-- | Is a project issues open or closed
+data IssueState
+  = IssueOpen
+  | IssueClosed
+
+instance Show IssueState where
+  show IssueOpen = "opened"
+  show IssueClosed = "closed"
+
+-- | No issue filters, thereby returning all issues. Default scope is "all".
+defaultIssueFilters :: IssueAttrs
+defaultIssueFilters =
+  IssueAttrs Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing (Just All) Nothing Nothing Nothing Nothing Nothing Nothing
