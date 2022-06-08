@@ -332,8 +332,8 @@ commitsEmailAddresses project = do
 -- | gets the 'GitLab.Types.Project' against which the given 'Issue'
 -- was created.
 projectOfIssue :: Issue -> GitLab Project
-projectOfIssue issue = do
-  let prId = fromMaybe (error "projectOfIssue error") (issue_project_id issue)
+projectOfIssue iss = do
+  let prId = fromMaybe (error "projectOfIssue error") (issue_project_id iss)
   result <- searchProjectId prId
   case fromRight (error "projectOfIssue error") result of
     Nothing -> error "projectOfIssue error"
