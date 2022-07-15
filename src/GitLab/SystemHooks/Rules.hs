@@ -35,17 +35,18 @@ ruleAddNewUserToGroups lbl nonRegisteredUsernames groupNames =
     ( \event@UserCreate {} -> do
         mapM_
           ( \groupName -> do
-              grps <- groupsWithNameOrPath groupName
+              grps <- groups (defaultListGroupsFilters {listGroupsFilter_search = Just groupName})
+
               case grps of
-                Left _ -> return ()
-                Right [grp] -> do
+                [] -> return ()
+                [grp] -> do
                   result <- userLookup (userCreate_user_id event)
                   case result of
                     Nothing -> return ()
                     Just usr ->
                       void $
                         addUserToGroup grp Reporter usr
-                Right _ -> return ()
+                _ -> return ()
           )
           groupNames
     )
