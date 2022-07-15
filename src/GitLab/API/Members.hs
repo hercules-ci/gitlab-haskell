@@ -459,12 +459,11 @@ removeUserFromEntity' ::
   Int ->
   GitLab (Either (Response BSL.ByteString) (Maybe ()))
 removeUserFromEntity' groupName entity usrId = do
-  attempt <- groupsWithNameOrPath groupName
+  attempt <- groups (defaultListGroupsFilters {listGroupsFilter_search = Just groupName})
   case attempt of
-    Left resp -> return (Left resp)
-    Right [] ->
+    [] ->
       return (Right Nothing)
-    Right [grp] -> do
+    [grp] -> do
       result <- gitlabDelete addr []
       case result of
         Left err -> return (Left err)
@@ -481,5 +480,5 @@ removeUserFromEntity' groupName entity usrId = do
             <> T.decodeUtf8 (urlEncode False (T.encodeUtf8 (T.pack (show (group_id grp)))))
             <> "/members/"
             <> T.decodeUtf8 (urlEncode False (T.encodeUtf8 (T.pack (show usrId))))
-    Right (_ : _) ->
+    (_ : _) ->
       return (Right Nothing)
