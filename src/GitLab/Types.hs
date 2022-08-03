@@ -63,6 +63,7 @@ module GitLab.Types
     TodoAction (..),
     TodoTarget (..),
     TodoTargetType (..),
+    TodoType (..),
     TodoState (..),
     Version (..),
     URL,
@@ -1039,6 +1040,22 @@ data TodoTargetType
   | IssueTarget
   | CommitTarget
   deriving (Show, Eq)
+
+data TodoType
+  = TodoTypeIssue
+  | TodoTypeMergeRequest
+  | TodoTypeCommit
+  | TodoTypeEpic
+  | TodoTypeDesign
+  | TodoTypeAlert
+
+instance Show TodoType where
+  show TodoTypeIssue = "Issue"
+  show TodoTypeMergeRequest = "MergeRequest"
+  show TodoTypeCommit = "Commit"
+  show TodoTypeEpic = "Epic"
+  show TodoTypeDesign = "DesignManagement::Design"
+  show TodoTypeAlert = "AlertManagement::Alert"
 
 -- | version of the GitLab instance.
 data Version = Version
