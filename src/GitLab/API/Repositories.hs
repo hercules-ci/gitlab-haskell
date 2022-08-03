@@ -7,23 +7,34 @@
 -- License     : BSD3
 -- Maintainer  : robstewart57@gmail.com
 -- Stability   : stable
-module GitLab.API.Repositories where
+module GitLab.API.Repositories
+  ( repositoryTree,
+    fileArchive,
+    fileArchiveBS,
+    contributors,
+    mergeBase,
+  )
+where
 
 import Control.Monad.IO.Class
+import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as BSL
 import Data.Either
+import Data.Maybe
+import Data.Text (Text)
 import qualified Data.Text as T
+import qualified Data.Text.Encoding as T
 import GitLab.Types
 import GitLab.WebRequests.GitLabWebCalls
 import Network.HTTP.Client
 import Network.HTTP.Types.Status
 
 -- | returns a list of repository files and directories in a project.
-repositories ::
+repositoryTree ::
   -- | the project
   Project ->
   GitLab [Repository]
-repositories project =
+repositoryTree project =
   fromRight (error "repositories error") <$> repositories' (project_id project)
 
 -- | returns a list of repository files and directories in a project
@@ -43,8 +54,8 @@ repositories' projectId =
 
 -- | get a file archive of the repository files. For example:
 --
--- > getFileArchive myProject TarGz "/tmp/myProject.tar.gz"
-getFileArchive ::
+-- > fileArchive myProject TarGz "/tmp/myProject.tar.gz"
+fileArchive ::
   -- | project
   Project ->
   -- | file format
@@ -52,19 +63,19 @@ getFileArchive ::
   -- | file path to store the archive
   FilePath ->
   GitLab (Either (Response BSL.ByteString) ())
-getFileArchive project = getFileArchive' (project_id project)
+fileArchive project = getFileArchive' (project_id project)
 
 -- | get a file archive of the repository files as a
 -- 'BSL.ByteString'. For example:
 --
--- > getFileArchiveBS myProject TarGz "/tmp/myProject.tar.gz"
-getFileArchiveBS ::
+-- > fileArchiveBS myProject TarGz "/tmp/myProject.tar.gz"
+fileArchiveBS ::
   -- | project
   Project ->
   -- | file format
   ArchiveFormat ->
   GitLab (Either (Response BSL.ByteString) BSL.ByteString)
-getFileArchiveBS project format = do
+fileArchiveBS project format = do
   result <- getFileArchiveBS' (project_id project) format
   case result of
     Left resp -> return (Left resp)
@@ -115,3 +126,54 @@ getFileArchiveBS' projectId format = do
         <> "/repository"
         <> "/archive"
         <> T.pack (show format)
+
+contributors ::
+  -- | project
+  Project ->
+  -- | Return contributors ordered by name, email, or commits (orders
+  -- by commit date) fields. Default is commits.
+  Maybe OrderBy ->
+  -- | Return contributors sorted in asc or desc order. Default is
+  -- asc.
+  Maybe SortBy ->
+  GitLab [Contributor]
+contributors prj order sort =
+  fromRight (error "contributors error")
+    <$> gitlabGetMany addr params
+  where
+    addr =
+      "/projects/"
+        <> T.pack (show (project_id prj))
+        <> "/repository"
+        <> "/contributors"
+    params :: [GitLabParam]
+    params =
+      catMaybes
+        [ (\x -> Just ("sort", showAttr x)) =<< sort,
+          (\x -> Just ("order_by", showAttr x)) =<< order
+        ]
+    showAttr :: (Show a) => a -> Maybe BS.ByteString
+    showAttr = Just . T.encodeUtf8 . T.pack . show
+
+-- | Get the common ancestor for 2 or more refs.
+mergeBase ::
+  -- | project
+  Project ->
+  -- | The refs to find the common ancestor of, multiple refs can be
+  -- passed. An example of a ref is
+  -- '304d257dcb821665ab5110318fc58a007bd104ed'.
+  [Text] ->
+  GitLab (Either (Response BSL.ByteString) (Maybe Commit))
+mergeBase prj refs =
+  gitlabGetOne
+    addr
+    params
+  where
+    addr =
+      "/projects/"
+        <> T.pack (show (project_id prj))
+        <> "/repository"
+        <> "/merge_base"
+    params :: [GitLabParam]
+    params =
+      map (\ref -> ("refs[]", Just (T.encodeUtf8 ref))) refs
