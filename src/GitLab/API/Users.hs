@@ -514,20 +514,3 @@ searchUser username = do
     Left _err -> return Nothing
     Right [] -> return Nothing
     Right (x : _) -> return (Just x)
-
--------------
--- do we need this function below?
-
--- -- | searches for users given a list of usernames, returns them in
--- -- alphabetical order of their usernames.
--- orderedUsers ::
---   -- | usernames to search for
---   [Text] ->
---   GitLab [User]
--- orderedUsers usernames = do
---   users <- catMaybes <$> mapM searchUser usernames
---   return (orderUsersByName users)
---   where
---     orderUsersByName :: [User] -> [User]
---     orderUsersByName =
---       sortBy (\u1 u2 -> compare (user_name u1) (user_name u2))
