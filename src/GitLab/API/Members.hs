@@ -288,7 +288,7 @@ addAllUsersToGroup ::
   AccessLevel ->
   GitLab [Either (Response BSL.ByteString) (Maybe Member)]
 addAllUsersToGroup grp access = do
-  allRegisteredUsers <- allUsers
+  allRegisteredUsers <- users
   addUsersToGroup grp access allRegisteredUsers
 
 -- | Adds a member to a group.
