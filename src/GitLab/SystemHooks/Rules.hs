@@ -40,10 +40,11 @@ ruleAddNewUserToGroups lbl nonRegisteredUsernames groupNames =
               case grps of
                 [] -> return ()
                 [grp] -> do
-                  result <- userLookup (userCreate_user_id event)
+                  result <- user (userCreate_user_id event)
                   case result of
-                    Nothing -> return ()
-                    Just usr ->
+                    Left _ -> return ()
+                    Right Nothing -> return ()
+                    Right (Just usr) ->
                       void $
                         addUserToGroup grp Reporter usr
                 _ -> return ()
