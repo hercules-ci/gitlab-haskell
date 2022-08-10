@@ -14,7 +14,7 @@ import GitLab.Types
 import GitLab.WebRequests.GitLabWebCalls
 import Network.HTTP.Client
 
--- | Get the version of the GitLab server.
+-- | Retrieve version information for this GitLab instance.
 gitlabVersion :: GitLab (Either (Response BSL.ByteString) (Maybe Version))
 gitlabVersion = do
   let urlPath = "/version"
