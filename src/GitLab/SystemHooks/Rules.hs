@@ -66,7 +66,7 @@ ruleAddMembers label projectNames userNames =
   matchIf
     label
     ( \event@ProjectCreate {} -> do
-        request <- searchProjectId (projectCreate_project_id event)
+        request <- project (projectCreate_project_id event)
         case request of
           Left _ -> return False
           Right Nothing -> return False
@@ -83,7 +83,7 @@ ruleAddMembers label projectNames userNames =
               case request of
                 Nothing -> return ()
                 Just foundUser -> do
-                  result <- projectLookup (projectCreate_project_id event)
+                  result <- project (projectCreate_project_id event)
                   case result of
                     Right (Just prj) ->
                       void $
