@@ -11,7 +11,7 @@
 -- Stability   : stable
 module GitLab.API.Projects
   ( -- * List all projects
-    allProjects,
+    projects,
 
     -- * User projects
     userProjects,
@@ -39,7 +39,42 @@ module GitLab.API.Projects
     -- * edit project
     editProject,
     editProject',
+
+    -- * fork project
+    forkProject,
+
+    -- * forks of project
     projectForks,
+
+    -- * starring projects
+    starProject,
+    unstarProject,
+    projectStarrers,
+
+    -- * archving projects
+    archiveProject,
+    unarchiveProject,
+
+    -- * delete project
+    deleteProject,
+
+    -- * share projects with groups
+    shareProjectWithGroup,
+    unshareProjcetWithGroup,
+
+    -- * impport project members
+    importMembersFromProject,
+
+    -- * fork relationship
+    forkRelation,
+    unforkRelation,
+
+    -- * Search for projects by name
+    projectsWithName,
+
+    -- * housekeeping
+    houseKeeping,
+    
     searchProjectId,
     projectsWithName,
     projectWithPathAndName,
@@ -86,11 +121,124 @@ import GitLab.WebRequests.GitLabWebCalls
 import Network.HTTP.Client
 import Network.HTTP.Types.URI
 
--- | gets all projects.
-allProjects :: GitLab [Project]
-allProjects =
-  fromRight (error "allProjects error")
-    <$> gitlabGetMany "/projects" [("statistics", Just "true")]
+-- | Get a list of all visible projects across GitLab for the
+-- authenticated user. When accessed without authentication, only
+-- public projects with simple fields are returned.
+projects ::
+  -- | project filters
+  ProjectAttrs ->
+  GitLab [Project]
+projects attrs =
+  fromRight (error "projects error")
+    <$> gitlabGetMany
+      "/projects"
+      (projectAttrsParams attrs)
+
+-- -- | No project filters applied, thereby returning all groups.
+-- defaultListGroupsFilters :: ProjectAttrs
+-- defaultListGroupsFilters =
+--   ProjectAttrs Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing
+
+-- -- | Attributes related to a group
+-- data ProjectAttrs = ProjectAttrs
+--   { -- | Limit by archived status.
+--     projectFilter_archived :: Maybe Bool,
+--     -- | Limit results to projects with IDs greater than the specified
+--     -- ID.
+--     projectFilter_id_after :: Maybe Int,
+--     -- | Limit results to projects with IDs less than the specified
+--     -- ID.
+--     projectFilter_id_before :: Maybe Bool,
+--     -- | Limit results to projects which were imported from external
+--     -- systems by current user.
+--     projectFilter_imported :: Maybe Bool,
+--     -- | Limit results to projects with last_activity after specified
+--     -- time.
+--     projectFilter_last_activity_after :: Maybe UTCTime,
+--     -- | Limit results to projects with last_activity before specified
+--     -- time.
+--     projectFilter_last_activity_before :: Maybe UTCTime,
+--     -- | Limit by projects that the current user is a member of.
+--     projectFilter_membership :: Maybe Bool,
+--     -- | Limit by current user minimal access level.
+--     projectFilter_min_access_level :: Maybe AccessLevel,
+--     -- | Return projects ordered by a given criteria.
+--     projectFilter_order_by :: Maybe OrderBy,
+--     -- | Limit by projects explicitly owned by the current user.
+--     projectFilter_owned :: Maybe Bool,
+--     -- | Limit projects where the repository checksum calculation has
+--     -- failed.
+--     projectFilter_repository_checksum_failed :: Maybe Bool,
+--     -- | Limit results to projects stored on
+--     -- repository_storage. (administrators only).
+--     projectFilter_repository_storage :: Maybe Text,
+--     -- | Include ancestor namespaces when matching search
+--     -- criteria. Default is false.
+--     projectFilter_search_namespaces :: Maybe Bool,
+--     -- | Return list of projects matching the search criteria.
+--     projectFilter_search :: Maybe Text,
+--     -- | Return only limited fields for each project. This is a no-op
+--     -- without authentication as then only simple fields are returned.
+--     projectFilter_simple :: Maybe Bool,
+--     -- | Return projects sorted in asc or desc order. Default is desc.
+--     projectFilter_sort :: Maybe SortBy,
+--     -- | Limit by projects starred by the current user.
+--     projectFilter_starred :: Maybe Bool,
+--     -- | Include project statistics. Only available to Reporter or
+--     -- higher level role members.
+--     projectFilter_statistics :: Maybe Bool,
+--     -- | Comma-separated topic names. Limit results to projects that
+--     -- match all of given topics.
+--     projectFilter_topic :: Maybe Text,
+--     -- | Limit results to projects with the assigned topic given by
+--     -- the topic ID.
+--     projectFilter_topic_id :: Maybe Int,
+--     -- | Limit by visibility.
+--     projectFilter_visibility :: Maybe Visibility,
+--     -- | Include custom attributes in response. (administrator only).
+--     projectFilter_with_custom_attributes :: Maybe Bool,
+--     -- | Limit by enabled issues feature.
+--     projectFilter_with_issues_enabled :: Maybe Bool,
+--     -- | Limit by enabled merge requests feature.
+--     projectFilter_with_merge_requests_enabled :: Maybe Bool,
+--     -- | Limit by projects which use the given programming language.
+--     projectFilter_with_programming_language :: Maybe Text
+--   }
+
+-- projectAttrs :: ProjectAttrs -> [GitLabParam]
+-- projectAttrs filters =
+--   catMaybes
+--     [ (\t -> Just ("archived", textToBS t)) =<< projectFilter_archived filters,
+--       (\t -> Just ("id_after", textToBS t)) =<< projectFilter_id_after filters,
+--       (\b -> Just ("id_before", textToBS (showBool b))) =<< projectFilter_id_before filters,
+--       (\t -> Just ("imported", textToBS t)) =<< projectFilter_imported filters,
+--       (\i -> Just ("last_activity_after", textToBS (T.pack (show i)))) =<< projectFilter_last_activity_after filters,
+--       (\b -> Just ("last_activity_before", textToBS (showBool b))) =<< projectFilter_last_activity_before filters,
+--       (\b -> Just ("membership", textToBS (showBool b))) =<< projectFilter_membership filters,
+--       (\i -> Just ("min_access_level", textToBS (T.pack (show i)))) =<< projectFilter_min_access_level filters,
+--       (\t -> Just ("order_by", textToBS t)) =<< projectFilter_order_by filters,
+--       (\t -> Just ("owned", textToBS t)) =<< projectFilter_owned filters,
+--       (\t -> Just ("repository_checksum_failed", textToBS t)) =<< projectFilter_repository_checksum_failed filters,
+--       (\t -> Just ("repository_storage", textToBS t)) =<< projectFilter_repository_storage filters,
+--       (\t -> Just ("search_namespaces", textToBS t)) =<< projectFilter_search_namespaces filters,
+--       (\t -> Just ("search", textToBS t)) =<< projectFilter_search filters,
+--       (\b -> Just ("simple", textToBS (showBool b))) =<< projectFilter_simple filters,
+--       (\i -> Just ("sort", textToBS (T.pack (show i)))) =<< projectFilter_sort filters,
+--       (\t -> Just ("starred", textToBS t)) =<< projectFilter_starred filters,
+--       (\b -> Just ("statistics", textToBS (showBool b))) =<< projectFilter_statistics filters,
+--       (\b -> Just ("topic", textToBS (showBool b))) =<< projectFilter_topic filters,
+--       (\t -> Just ("topic_id", textToBS t)) =<< projectFilter_topic_id filters,
+--       (\i -> Just ("visibility", textToBS (T.pack (show i)))) =<< projectFilter_visibility filters,
+--       (\t -> Just ("with_custom_attributes", textToBS t)) =<< projectFilter_with_custom_attributes filters,
+--       (\t -> Just ("with_issues_enabled", textToBS t)) =<< projectFilter_with_issues_enabled filters,
+--       (\b -> Just ("with_merge_requests_enabled", textToBS (showBool b))) =<< projectFilter_with_merge_requests_enabled filters,
+--       (\t -> Just ("with_programming_language", textToBS t)) =<< projectFilter_with_programming_language filters
+--     ]
+--   where
+--     textToBS = Just . T.encodeUtf8
+--     showBool :: Bool -> Text
+--     showBool True = "true"
+--     showBool False = "false"
 
 -- | gets all projects for a user given their username.
 --
@@ -124,18 +272,146 @@ starredProjects theUser = do
   result <- starredProjects' (user_id theUser)
   return (fromRight [] result)
 
--- | Get a list of visible projects starred by the given user. When
--- accessed without authentication, only public projects are returned.
-starredProjects' ::
-  Int ->
-  GitLab (Either (Response BSL.ByteString) [Project])
-starredProjects' usrId = do
-  gitlabGetMany urlPath []
+-- | Deletes a project including all associated resources.
+deleteProject ::
+  Project ->
+  GitLab (Either (Response BSL.ByteString) (Maybe ()))
+deleteProject prj = do
+  gitlabDelete projAddr []
   where
-    urlPath =
-      "/users/"
-        <> T.pack (show usrId)
-        <> "/starred_projects"
+    projAddr :: Text
+    projAddr =
+      "/projects/"
+        <> T.pack (show (project_id prj))
+
+-- | Allow to share project with group.
+shareProjectWithGroup ::
+  -- | group ID
+  Int ->
+  -- | project
+  Project ->
+  -- | level of access granted
+  AccessLevel ->
+  GitLab (Either (Response BSL.ByteString) (Maybe Project))
+shareProjectWithGroup groupId prj access =
+  gitlabPost addr params
+  where
+    params :: [GitLabParam]
+    params =
+      [ ("group_id", Just (T.encodeUtf8 (T.pack (show groupId)))),
+        ("group_access", Just (T.encodeUtf8 (T.pack (show access))))
+      ]
+    addr =
+      "/projects/"
+        <> T.pack (show (project_id prj))
+        <> "/share"
+
+-- | Unshare the project from the group.
+unshareProjectWithGroup ::
+  -- | group ID
+  Int ->
+  -- | project
+  Project ->
+  -- | level of access granted
+  AccessLevel ->
+  GitLab (Either (Response BSL.ByteString) (Maybe ()))
+unshareProjectWithGroup groupId prj access =
+  gitlabDelete addr []
+  where
+    addr =
+      "/projects/"
+        <> T.pack (show (project_id prj))
+        <> "/share/"
+        <> T.pack (show groupId)
+
+-- | Import members from another project.
+importMembersFromProject
+  :: -- | project to receive memvers
+    Project
+  -> -- | source project to import members from
+  Project
+  GitLab (Either (Response BSL.ByteString) (Maybe Project))
+importMembersFromProject toPrj fromPrj =
+  gitlabPost addr []
+  where
+    addr =
+      "/projects/"
+        <> T.pack (show (project_id toPrj))
+        <> "/import_project_members/"
+        <> T.pack (show (project_id fromPrj))
+        
+-- | Allows modification of the forked relationship between existing
+-- projects. Available only for project owners and administrators.
+forkedRelation
+  :: -- | forked project
+    Project
+  -> -- | project that was forked from
+  Project
+  GitLab (Either (Response BSL.ByteString) (Maybe Project))
+forkedRelation toPrj fromPrj =
+  gitlabPost addr []
+  where
+    addr =
+      "/projects/"
+        <> T.pack (show (project_id toPrj))
+        <> "/fork/"
+        <> T.pack (show (project_id fromPrj))
+
+-- | Delete an existing forked from relationship.
+unforkRelation
+  :: -- | forked project
+    Project
+  GitLab (Either (Response BSL.ByteString) (Maybe ()))
+unforkRelation prj =
+  gitlabDelete addr []
+  where
+    addr =
+      "/projects/"
+        <> T.pack (show (project_id prj))
+        <> "/fork"
+
+-- | gets all projects with the given project name. It only returns
+-- projects with an exact match with the project path.
+--
+-- > projectsWithName "project1"
+projectsWithName ::
+  -- | project name being searched for.
+  Text ->
+  GitLab [Project]
+projectsWithName projectName = do
+  projects <-
+    fromRight (error "projectsWithName error")
+    <$> gitlabGetMany
+    "/projects"
+    [("search", Just (T.encodeUtf8 projectName))]
+  return $
+    filter (\project -> projectName == project_path project) projects
+
+-- | Start the Housekeeping task for a project.
+houseKeeping
+  :: -- | the project
+    Project ->
+  GitLab (Either (Response BSL.ByteString) (Maybe Project))
+houseKeeping prj =
+  gitlabPost addr []
+  where
+    addr =
+      "/projects/"
+        <> T.pack (show (project_id prj))
+        <> "/housekeeping"
+
+-- | Only available to group owners and administrators.
+removeGroup ::
+  -- | The ID of the group.
+  Int ->
+  GitLab (Either (Response BSL.ByteString) (Maybe ()))
+removeGroup grpId =
+  gitlabDelete groupAddr []
+  where
+    groupAddr :: Text
+    groupAddr =
+      "/groups/"
+        <> T.pack (show grpId)
 
 -- | Get a specific project. This endpoint can be accessed without
 -- authentication if the project is publicly accessible.
@@ -256,12 +532,114 @@ editProject' projId attrs = do
     Right Nothing -> error "editProject error"
     Right (Just proj) -> return (Right proj)
 
--- | gets all forks of a project. Supports use of namespaces.
+-- | add a group to a project.
+addGroupToProject ::
+  -- | group ID
+  Int ->
+  -- | project ID
+  Int ->
+  -- | level of access granted
+  AccessLevel ->
+  GitLab (Either (Response BSL.ByteString) (Maybe GroupShare))
+
+-- | Forks a project into the user namespace of the authenticated user
+-- or the one provided.
+forkProject ::
+  -- project to fork
+  Project ->
+  GitLab (Either (Response BSL.ByteString) (Maybe Project))
+forkProject prj =
+  gitlabPost addr params
+  where
+    params :: [GitLabParam]
+    params = []
+    addr =
+      "/projects/"
+        <> T.pack (show (project_id prj))
+        <> "/fork"
+
+-- | Stars a given project.
+starProject ::
+  -- project to star
+  Project ->
+  GitLab (Either (Response BSL.ByteString) (Maybe Project))
+starProject prj =
+  gitlabPost addr params
+  where
+    params :: [GitLabParam]
+    params = []
+    addr =
+      "/projects/"
+        <> T.pack (show (project_id prj))
+        <> "/star"
+
+-- | Stars a given project.
+unstarProject ::
+  -- project to star
+  Project ->
+  GitLab (Either (Response BSL.ByteString) (Maybe Project))
+unstarProject prj =
+  gitlabPost addr params
+  where
+    params :: [GitLabParam]
+    params = []
+    addr =
+      "/projects/"
+        <> T.pack (show (project_id prj))
+        <> "/unstar"
+
+-- | List the users who starred the specified project.
+projectStarrers ::
+  Project ->
+  GitLab (Either (Response BSL.ByteString) [Group])
+projectStarrers prj = do
+  gitlabGetMany urlPath []
+  where
+    urlPath =
+      "/projects/"
+        <> T.pack (show (project_id prj))
+        <> "/starrers"
+
+
+-- | Archives the project if the user is either an administrator or
+-- the owner of this project.
+archiveProject ::
+  -- project to archive
+  Project ->
+  GitLab (Either (Response BSL.ByteString) (Maybe Project))
+archiveProject prj =
+  gitlabPost addr params
+  where
+    params :: [GitLabParam]
+    params = []
+    addr =
+      "/projects/"
+        <> T.pack (show (project_id prj))
+        <> "/archive"
+
+-- | Unarchives the project if the user is either an administrator or
+-- the owner of this project.
+archiveProject ::
+  -- project to unarchive
+  Project ->
+  GitLab (Either (Response BSL.ByteString) (Maybe Project))
+archiveProject prj =
+  gitlabPost addr params
+  where
+    params :: [GitLabParam]
+    params = []
+    addr =
+      "/projects/"
+        <> T.pack (show (project_id prj))
+        <> "/unarchive"
+
+-- | List the projects accessible to the calling user that have an
+-- established, forked relationship with the specified project
 --
 -- > projectForks "project1"
 -- > projectForks "group1/project1"
 projectForks ::
-  -- | name or namespace of the project
+s  -- | name or namespace of the project
   Text ->
   GitLab (Either (Response BSL.ByteString) [Project])
 projectForks projectName = do
@@ -281,20 +659,6 @@ searchProjectId projectId = do
   let urlPath = T.pack ("/projects/" <> show projectId)
   gitlabGetOne urlPath [("statistics", Just "true")]
 
--- | gets all projects with the given project name.
---
--- > projectsWithName "project1"
-projectsWithName ::
-  -- | project name being searched for.
-  Text ->
-  GitLab [Project]
-projectsWithName projectName = do
-  results <- gitlabGetMany "/projects" [("search", Just (T.encodeUtf8 projectName))]
-  case results of
-    Left _ -> error "projectsWithName error"
-    Right projects ->
-      return $
-        filter (\project -> projectName == project_path project) projects
 
 -- | gets a project with the given name for the given full path of the
 --   namespace. E.g.
@@ -431,28 +795,6 @@ projectDiffs' projId commitSha =
         <> "/diff/"
     )
     []
-
--- | add a group to a project.
-addGroupToProject ::
-  -- | group ID
-  Int ->
-  -- | project ID
-  Int ->
-  -- | level of access granted
-  AccessLevel ->
-  GitLab (Either (Response BSL.ByteString) (Maybe GroupShare))
-addGroupToProject groupId projectId access =
-  gitlabPost addr params
-  where
-    params :: [GitLabParam]
-    params =
-      [ ("group_id", Just (T.encodeUtf8 (T.pack (show groupId)))),
-        ("group_access", Just (T.encodeUtf8 (T.pack (show access))))
-      ]
-    addr =
-      "/projects/"
-        <> T.pack (show projectId)
-        <> "/share"
 
 -- | transfer a project to a new namespace.
 transferProject ::
