@@ -40,6 +40,7 @@ module GitLab.API.Users
     unbanUser,
     approveUser,
     rejectUser,
+    defaultUserFilters,
     UserAttrs (..),
   )
 where
@@ -411,6 +412,11 @@ rejectUser ::
   User ->
   GitLab (Maybe User)
 rejectUser = userAction "/reject" "rejectUser"
+
+-- | No group filters applied, thereby returning all groups.
+defaultUserFilters :: UserAttrs
+defaultUserFilters =
+  UserAttrs Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing
 
 -- | Attributes related to a group
 data UserAttrs = UserAttrs
