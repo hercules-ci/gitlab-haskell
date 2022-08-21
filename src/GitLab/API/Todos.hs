@@ -8,10 +8,17 @@
 -- Maintainer  : robstewart57@gmail.com
 -- Stability   : stable
 module GitLab.API.Todos
-  ( todos,
-    defaultTodoFilters,
+  ( -- * Get a list of to-do items
+    todos,
+
+    -- * Mark a to-do item as done
     todoDone,
+
+    -- * Mark all to-do items as done
     todosDone,
+
+    -- * TODO's filters
+    defaultTodoFilters,
     TodoAttrs (..),
   )
 where

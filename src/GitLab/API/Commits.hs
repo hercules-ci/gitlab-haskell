@@ -7,7 +7,49 @@
 -- License     : BSD3
 -- Maintainer  : robstewart57@gmail.com
 -- Stability   : stable
-module GitLab.API.Commits where
+module GitLab.API.Commits
+  ( -- * List repository commits
+    repoCommits,
+
+    -- * Create a commit with multiple files and actions
+    createCommitMultipleFilesActions,
+
+    -- * Get a single commit
+    singleCommit,
+
+    -- * Get references a commit is pushed to
+
+    -- * Cherry-pick a commit
+    cheryPickCommit,
+
+    -- * Revert a commit
+    revertCommit,
+
+    -- * Get the diff of a commit
+    commitDiff,
+
+    -- * Get the comments of a commit
+    commitComments,
+
+    -- * Post comment to commit
+    postCommitComment,
+
+    -- * Get the discussions of a commit
+    commitDiscussions,
+    -- -- * Commit status
+
+    -- -- * List the statuses of a commit
+
+    -- -- * Post the build status to a commit
+
+    -- * List merge requests associated with a commit
+    commitMergeRequests,
+    -- -- * Get GPG signature of a commit
+
+    -- * Commits on specific branch
+    branchCommits,
+  )
+where
 
 import qualified Data.ByteString.Lazy as BSL
 import Data.Either
@@ -112,28 +154,16 @@ instance Show ContentEncoding where
   show EncodingText = "text"
   show EncodingBase64 = "base64"
 
--- | returns all commits of a branch from a project given the branch
--- name.
+-- | returns all commits of a branch from a project
+-- given its project ID and the branch name.
 branchCommits ::
   -- | project
   Project ->
   -- | branch name
   Text ->
-  GitLab [Commit]
-branchCommits project branchName = do
-  result <- branchCommits' (project_id project) branchName
-  return (fromRight [] result)
-
--- | returns all commits of a branch from a project
--- given its project ID and the branch name.
-branchCommits' ::
-  -- | project ID
-  Int ->
-  -- | branch name
-  Text ->
   GitLab (Either (Response BSL.ByteString) [Commit])
-branchCommits' projectId branchName = do
-  gitlabGetMany (commitsAddr projectId) [("ref_name", Just (T.encodeUtf8 branchName))]
+branchCommits prj branchName = do
+  gitlabGetMany (commitsAddr (project_id prj)) [("ref_name", Just (T.encodeUtf8 branchName))]
   where
     commitsAddr :: Int -> Text
     commitsAddr projId =
@@ -314,3 +344,18 @@ commitMergeRequests project sha = do
         <> "/commits/"
         <> T.pack (show sha)
         <> "/merge_requests"
+
+-------------
+-- candidates for deletion
+
+-- -- | returns all commits of a branch from a project given the branch
+-- -- name.
+-- branchCommits ::
+--   -- | project
+--   Project ->
+--   -- | branch name
+--   Text ->
+--   GitLab [Commit]
+-- branchCommits project branchName = do
+--   result <- branchCommits' (project_id project) branchName
+--   return (fromRight [] result)

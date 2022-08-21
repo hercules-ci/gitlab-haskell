@@ -9,37 +9,85 @@
 -- Maintainer  : robstewart57@gmail.com
 -- Stability   : stable
 module GitLab.API.Users
-  ( users,
+  ( -- * List users
+    users,
+
+    -- * Single user
     user,
     searchUser,
+
+    -- * User creation
     createUser,
+
+    -- * User modification
     modifyUser,
+
+    -- * Delete authentication identity from user
     deleteAuthIdentity,
+
+    -- * User deletion
     deleteUser,
+
+    -- * List current user
     currentUser,
+
+    -- * User status
     currentUserStatus,
+
+    -- * Get the status of a user
     userStatus,
+
+    -- * Get user preferences
     userPreferences,
+
+    -- * Follow and unfollow users
     followUser,
     unfollowUser,
+
+    -- * User counts
     currentUserCounts,
+
+    -- * List SSH keys
     currentUserSshKeys,
+
+    -- * List SSH keys for user
     userSshKeys,
+
+    -- * Add SSH key
     addSshKeyCurrentUser,
+
+    -- * Add SSH key for user
     addSshKeyUser,
+
+    -- * Delete SSH key for current user
     deleteSshKeyCurrentUser,
+
+    -- * Delete SSH key for given user
     deleteSshKeyUser,
+
+    -- * List emails
     emails,
+
+    -- * List emails for user
     emailsCurrentUser,
-    userAction,
+
+    -- * Block or unblock user
     blockUser,
     unblockUser,
-    deactivateUser,
+
+    -- * Activate or deactivate user
     activateUser,
+    deactivateUser,
+
+    -- * Ban or unban user
     banUser,
     unbanUser,
+
+    -- * Approve or reject user
     approveUser,
     rejectUser,
+
+    -- * Users attributes
     defaultUserFilters,
     UserAttrs (..),
   )

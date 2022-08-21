@@ -9,17 +9,40 @@
 -- Maintainer  : robstewart57@gmail.com
 -- Stability   : stable
 module GitLab.API.Groups
-  ( groups,
+  ( -- * List groups
+    groups,
+
+    -- * List a group’s subgroups
     subGroups,
+
+    -- * List a group’s descendant groups
     descendantGroups,
+
+    -- * List a group’s projects
     groupProjects,
+
+    -- * List a group’s shared projects
     groupSharedProjects,
+
+    -- * Details of a group
     group,
+
+    -- * New group
     newGroup,
+
+    -- * New Subgroup
     newSubGroup,
+
+    -- * Update group
     updateGroup,
+
+    -- * Remove group
     removeGroup,
+
+    -- * Search for group
     searchGroup,
+
+    -- * Group attributes
     ListGroupsAttrs (..),
     GroupOrderBy (..),
     GroupProjectAttrs (..),

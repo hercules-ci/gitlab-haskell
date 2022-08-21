@@ -8,29 +8,41 @@
 -- Maintainer  : robstewart57@gmail.com
 -- Stability   : stable
 module GitLab.API.Boards
-  ( projectIssueBoards,
-    projectIssueBoards',
+  ( -- * List project issue boards
+    projectIssueBoards,
+
+    -- * Show a single issue board
     projectIssueBoard,
-    projectIssueBoard',
+
+    -- * Create an issue board
     createIssueBoard,
-    createIssueBoard',
-    updateIssueBoard',
+
+    -- * Update an issue board
+    updateIssueBoard,
+
+    -- * Delete an issue board
     deleteIssueBoard,
-    deleteIssueBoard',
+
+    -- * List board lists in a project issue board
     projectBoardLists,
-    projectBoardLists',
+
+    -- * Show a single board list
     boardList,
-    boardList',
+
+    -- * Create a board list
     createBoardList,
-    createBoardList',
+
+    -- * Reorder a list in a board
     reorderBoardList,
-    reorderBoardList',
+
+    -- * Update an issue board
     deleteBoardList,
-    deleteBoardList',
+
+    -- * Board attributes
     UpdateBoardAttrs (..),
     defaultUpdateBoardAttrs,
-    defaultCreateBoardAttrs,
     CreateBoardAttrs (..),
+    defaultCreateBoardAttrs,
   )
 where
 
@@ -116,21 +128,21 @@ createIssueBoard' projectId boardName = do
       "/projects/" <> T.pack (show projectId) <> "/boards"
 
 -- | Updates a project issue board.
-updateIssueBoard' ::
-  -- | the project ID
-  Int ->
+updateIssueBoard ::
+  -- | project
+  Project ->
   -- | the board ID
   Int ->
   -- | attributes for updating boards
   UpdateBoardAttrs ->
   GitLab (Either (Response BSL.ByteString) (Maybe IssueBoard))
-updateIssueBoard' projectId boardId attrs = do
+updateIssueBoard prj boardId attrs = do
   gitlabPut boardAddr (updateBoardAttrs attrs)
   where
     boardAddr :: Text
     boardAddr =
       "/projects/"
-        <> T.pack (show projectId)
+        <> T.pack (show (project_id prj))
         <> "/boards/"
         <> T.pack (show boardId)
 

@@ -9,31 +9,72 @@
 -- Maintainer  : robstewart57@gmail.com
 -- Stability   : stable
 module GitLab.API.Issues
-  ( defaultIssueFilters,
+  ( -- * List issues
+
+    -- * List group issues
     groupIssues,
+
+    -- * List project issues
     projectIssues,
-    projectIssues',
+
+    -- * Single issue
     issue,
-    projectIssue,
-    newIssue,
-    newIssue',
-    issueStatisticsUser,
-    issueStatisticsGroup,
-    issueStatisticsGroup',
-    issueStatisticsProject,
-    issueStatisticsProject',
+
+    -- * User issues
     userIssues,
+
+    -- * Single project issue
+    projectIssue,
+
+    -- * New issue
+    newIssue,
+
+    -- * Edit issue
     editIssue,
+
+    -- * Delete an issue
     deleteIssue,
+
+    -- * Reorder an issue
     reorderIssue,
+
+    -- * Move an issue
     moveIssue,
+
+    -- * Clone an issue
     cloneIssue,
+
+    -- * Subscribe to an issue
     subscribeIssue,
+
+    -- * Unsubscribe from an issue
     unsubscribeIssue,
+
+    -- * Create a to-do item
     createTodo,
+
+    -- * List merge requests related to issue
     issueMergeRequests,
+
+    -- * List merge requests that close a particular issue on merge
     issueMergeRequestsThatClose,
+
+    -- * Participants on issues
     issueParticipants,
+
+    -- * Comments on issues
+
+    -- * Get issues statistics
+    issueStatisticsUser,
+
+    -- * Get group issues statistics
+    issueStatisticsGroup,
+
+    -- * Get project issues statistics
+    issueStatisticsProject,
+
+    -- * Issues attributes
+    defaultIssueFilters,
     IssueAttrs (..),
     DueDate (..),
     IssueState (..),
@@ -114,6 +155,21 @@ issue issId =
       T.pack
         "/issues/"
         <> T.pack (show issId)
+
+-- | gets all issues create by a user.
+userIssues ::
+  -- | the user
+  User ->
+  GitLab [Issue]
+userIssues usr =
+  fromRight (error "userIssues error") <$> gitlabGetMany addr params
+  where
+    addr = "/issues"
+    params :: [GitLabParam]
+    params =
+      [ ("author_id", Just (T.encodeUtf8 (T.pack (show (user_id usr))))),
+        ("scope", Just "all")
+      ]
 
 -- | Get a single project issue. If the project is private or the
 -- issue is confidential, you need to provide credentials to
@@ -454,7 +510,7 @@ issueStatisticsProject ::
   -- | the issue statistics
   GitLab IssueStatistics
 issueStatisticsProject proj filters = do
-  result <- issueStatisticsGroup' (project_id proj) filters
+  result <- issueStatisticsProject' (project_id proj) filters
   case result of
     Left _s -> error "issueStatisticsProject error"
     Right Nothing -> error "issueStatisticsProject error"
@@ -476,21 +532,6 @@ issueStatisticsProject' projId attrs =
         "/projects/"
           <> show projId
           <> "/issues_statistics"
-
--- | gets all issues create by a user.
-userIssues ::
-  -- | the user
-  User ->
-  GitLab [Issue]
-userIssues usr =
-  fromRight (error "userIssues error") <$> gitlabGetMany addr params
-  where
-    addr = "/issues"
-    params :: [GitLabParam]
-    params =
-      [ ("author_id", Just (T.encodeUtf8 (T.pack (show (user_id usr))))),
-        ("scope", Just "all")
-      ]
 
 -- | Attributes related to a project issue
 data IssueAttrs = IssueAttrs

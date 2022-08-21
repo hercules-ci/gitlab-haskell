@@ -7,7 +7,29 @@
 -- License     : BSD3
 -- Maintainer  : robstewart57@gmail.com
 -- Stability   : stable
-module GitLab.API.Pipelines where
+module GitLab.API.Pipelines
+  ( -- * List project pipelines
+    pipelines,
+
+    -- * Get a single pipeline
+    pipeline,
+
+    -- * Get a pipeline’s test report
+    pipelineTestReport,
+
+    -- * Create a new pipeline
+    newPipeline,
+
+    -- * Retry jobs in a pipeline
+    retryPipeline,
+
+    -- * Cancel a pipeline’s jobs
+    cancelPipelineJobs,
+
+    -- * Delete a pipeline
+    deletePipeline,
+  )
+where
 
 import qualified Data.ByteString.Lazy as BSL
 import Data.Either

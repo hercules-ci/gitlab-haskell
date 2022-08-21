@@ -8,10 +8,17 @@
 -- Maintainer  : robstewart57@gmail.com
 -- Stability   : stable
 module GitLab.API.Repositories
-  ( repositoryTree,
+  ( -- * List repository tree
+    repositoryTree,
+
+    -- * Get file archive
     fileArchive,
     fileArchiveBS,
+
+    -- * Contributors
     contributors,
+
+    -- * Merge Base
     mergeBase,
   )
 where

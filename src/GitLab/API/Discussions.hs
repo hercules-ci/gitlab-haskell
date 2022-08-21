@@ -8,7 +8,111 @@
 -- License     : BSD3
 -- Maintainer  : robstewart57@gmail.com
 -- Stability   : stable
-module GitLab.API.Discussions where
+module GitLab.API.Discussions
+  ( -- * Issues
+
+    -- ** List project issue discussion items
+    projectIssueDiscussions,
+
+    -- ** Get single issue discussion item
+    issueDiscussion,
+
+    -- ** Create new issue thread
+    createIssueThread,
+
+    -- ** Add note to existing issue thread
+    addNoteToIssueThread,
+
+    -- ** Modify existing issue thread note
+    modifyThreadNoteIssue,
+
+    -- ** Delete an issue thread note
+    deleteIssueThreadNote,
+
+    -- * Snippets
+
+    -- ** List project snippet discussion items
+    snippetDiscussionItems,
+
+    -- ** Get single snippet discussion item
+    snippetDiscussionItem,
+
+    -- ** Create new snippet thread
+    createSnippetThread,
+
+    -- ** Add note to existing snippet thread
+    addNoteToSnippetThread,
+
+    -- ** Modify existing snippet thread note
+    modifySnippetThreadNote,
+
+    -- ** Delete a snippet thread note
+    deleteSnippetThreadNote,
+    -- -- * Epics
+
+    -- -- ** List group epic discussion items
+
+    -- -- ** Get single epic discussion item
+
+    -- -- ** Create new epic thread
+
+    -- -- ** Add note to existing epic thread
+
+    -- -- ** Modify existing epic thread note
+
+    -- -- ** Delete an epic thread note
+
+    -- * Merge requests
+
+    -- ** List project merge request discussion items
+    projectMergeRequestDiscussionItems,
+
+    -- ** Get single merge request discussion item
+    mergeRequestDiscussionItems,
+
+    -- ** Create new merge request thread
+    createMergeRequestThread,
+    -- -- ** Create a new thread on the overview page
+
+    -- -- ** Create a new thread in the merge request diff
+
+    -- -- ** Parameters for multiline comments
+
+    -- * Line code
+
+    -- ** Resolve a merge request thread
+    resolveMergeRequestThread,
+
+    -- ** Add note to existing merge request thread
+    addNoteToMergeRequestThread,
+
+    -- ** Modify an existing merge request thread note
+    modifyMergeRequestThreadNote,
+
+    -- ** Delete a merge request thread note
+    deleteMergeRequestThreadNote,
+
+    -- * Commits
+
+    -- ** List project commit discussion items
+    projectCommitDiscussionItems,
+
+    -- ** Get single commit discussion item
+    projectCommitDiscussionItem,
+
+    -- ** Create new commit thread
+    createCommitThread,
+
+    -- ** Add note to existing commit thread
+    addNoteToCommitThread,
+
+    -- ** Modify an existing commit thread note
+    modifyCommityThreadNote,
+
+    -- ** Delete a commit thread note
+    deleteCommitThreadNote,
+  )
+where
 
 import qualified Data.ByteString.Lazy as BSL
 import Data.Maybe
@@ -20,36 +124,36 @@ import GitLab.WebRequests.GitLabWebCalls
 import Network.HTTP.Client
 
 -- | Gets a list of all discussion items for a single issue.
-projectIssueDiscussions' ::
-  -- | the project ID
-  Int ->
+projectIssueDiscussions ::
+  -- | project
+  Project ->
   -- | The IID of an issue
   Int ->
   GitLab (Either (Response BSL.ByteString) [Discussion])
-projectIssueDiscussions' projId issueIid = do
+projectIssueDiscussions prj issueIid = do
   let urlPath =
         T.pack $
           "/projects/"
-            <> show projId
+            <> show (project_id prj)
             <> "/issues/"
             <> show issueIid
             <> "/discussions"
   gitlabGetMany urlPath []
 
 -- | Returns a single discussion item for a specific project issue.
-issueDiscussion' ::
-  -- | the project ID
-  Int ->
+issueDiscussion ::
+  -- | project
+  Project ->
   -- | The IID of an issue
   Int ->
   -- | The ID of a discussion item
   Int ->
   GitLab (Either (Response BSL.ByteString) (Maybe Discussion))
-issueDiscussion' projId issueIid discussionId = do
+issueDiscussion prj issueIid discussionId = do
   let urlPath =
         T.pack $
           "/projects/"
-            <> show projId
+            <> show (project_id prj)
             <> "/issues/"
             <> show issueIid
             <> "/discussions/"
@@ -59,21 +163,21 @@ issueDiscussion' projId issueIid discussionId = do
 -- | Creates a new thread to a single project issue. This is similar
 -- to creating a note but other comments (replies) can be added to it
 -- later.
-createIssueThread' ::
-  -- | the project ID
-  Int ->
+createIssueThread ::
+  -- | project
+  Project ->
   -- | The IID of an issue
   Int ->
   -- | The content of the thread
   Text ->
   GitLab (Either (Response BSL.ByteString) (Maybe Discussion))
-createIssueThread' projectId issueIid threadContent = do
+createIssueThread prj issueIid threadContent = do
   gitlabPost discussionAddr [("body", Just (T.encodeUtf8 threadContent))]
   where
     discussionAddr :: Text
     discussionAddr =
       "/projects/"
-        <> T.pack (show projectId)
+        <> T.pack (show (project_id prj))
         <> "/issues/"
         <> T.pack (show issueIid)
         <> "/discussions"
@@ -81,9 +185,9 @@ createIssueThread' projectId issueIid threadContent = do
 -- | Adds a new note to the thread. This can also create a thread from
 -- a single comment. Notes can be added to other items than comments,
 -- such as system notes, making them threads.
-addNoteToIssueThread' ::
-  -- | the project ID
-  Int ->
+addNoteToIssueThread ::
+  -- | project
+  Project ->
   -- | The IID of an issue
   Int ->
   -- | The ID of a thread
@@ -94,13 +198,13 @@ addNoteToIssueThread' ::
   -- | The content of the note/reply
   Text ->
   GitLab (Either (Response BSL.ByteString) (Maybe Discussion))
-addNoteToIssueThread' projectId issueIid discussionId content = do
+addNoteToIssueThread prj issueIid discussionId content = do
   gitlabPost discussionAddr [("body", Just (T.encodeUtf8 content))]
   where
     discussionAddr :: Text
     discussionAddr =
       "/projects/"
-        <> T.pack (show projectId)
+        <> T.pack (show (project_id prj))
         <> "/issues/"
         <> T.pack (show issueIid)
         <> "/discussions/"
@@ -111,9 +215,9 @@ addNoteToIssueThread' projectId issueIid discussionId content = do
 -- <> T.pack (show noteId)
 
 -- | Modify existing thread note of an issue.
-modifyThreadNoteIssue' ::
-  -- | the project ID
-  Int ->
+modifyThreadNoteIssue ::
+  -- | project
+  Project ->
   -- | The IID of an issue
   Int ->
   -- | The ID of a thread
@@ -123,13 +227,13 @@ modifyThreadNoteIssue' ::
   -- | The content of the note/reply
   Text ->
   GitLab (Either (Response BSL.ByteString) (Maybe Discussion))
-modifyThreadNoteIssue' projectId issueIid discussionId noteId content = do
+modifyThreadNoteIssue prj issueIid discussionId noteId content = do
   gitlabPut noteAddr [("body", Just (T.encodeUtf8 content))]
   where
     noteAddr :: Text
     noteAddr =
       "/projects/"
-        <> T.pack (show projectId)
+        <> T.pack (show (project_id prj))
         <> "/issues/"
         <> T.pack (show issueIid)
         <> "/discussions/"
@@ -138,9 +242,9 @@ modifyThreadNoteIssue' projectId issueIid discussionId noteId content = do
         <> T.pack (show noteId)
 
 -- | Deletes an existing thread note of an issue.
-deleteIssueThreadNote' ::
-  -- | the project ID
-  Int ->
+deleteIssueThreadNote ::
+  -- | project
+  Project ->
   -- | The IID of an issue
   Int ->
   -- | The ID of a discussion
@@ -148,13 +252,13 @@ deleteIssueThreadNote' ::
   -- | The ID of a discussion note
   Int ->
   GitLab (Either (Response BSL.ByteString) (Maybe ()))
-deleteIssueThreadNote' projectId issueIid discussionId noteId = do
+deleteIssueThreadNote prj issueIid discussionId noteId = do
   gitlabDelete noteAddr []
   where
     noteAddr :: Text
     noteAddr =
       "/projects/"
-        <> T.pack (show projectId)
+        <> T.pack (show (project_id prj))
         <> "/issues/"
         <> T.pack (show issueIid)
         <> "/discussions/"
@@ -163,39 +267,39 @@ deleteIssueThreadNote' projectId issueIid discussionId noteId = do
         <> T.pack (show noteId)
 
 -- | Gets a list of all discussion items for a single snippet.
-snippetDiscussionItems' ::
-  -- | project ID
-  Int ->
+snippetDiscussionItems ::
+  -- | project
+  Project ->
   -- | snippet ID
   Int ->
   GitLab (Either (Response BSL.ByteString) [Discussion])
-snippetDiscussionItems' projectId snippetId =
+snippetDiscussionItems prj snippetId =
   gitlabGetMany urlPath []
   where
     urlPath =
       T.pack $
         "/projects/"
-          <> show projectId
+          <> show (project_id prj)
           <> "/snippets/"
           <> show snippetId
           <> "/discussions"
 
 -- | Returns a single discussion item for a specific project snippet.
-snippetDiscussionItem' ::
-  -- | project ID
-  Int ->
+snippetDiscussionItem ::
+  -- | project
+  Project ->
   -- | snippet ID
   Int ->
   -- | discussion ID
   Int ->
   GitLab (Either (Response BSL.ByteString) (Maybe Discussion))
-snippetDiscussionItem' projectId snippetId discussionId =
+snippetDiscussionItem prj snippetId discussionId =
   gitlabGetOne urlPath []
   where
     urlPath =
       T.pack $
         "/projects/"
-          <> show projectId
+          <> show (project_id prj)
           <> "/snippets/"
           <> show snippetId
           <> "/discussions/"
@@ -204,29 +308,29 @@ snippetDiscussionItem' projectId snippetId discussionId =
 -- | Creates a new thread to a single project snippet. This is similar
 -- to creating a note but other comments (replies) can be added to it
 -- later.
-createSnippetThread' ::
-  -- | the project ID
-  Int ->
+createSnippetThread ::
+  -- | project
+  Project ->
   -- | snippet ID
   Int ->
   -- | The content of a discussion
   Text ->
   GitLab (Either (Response BSL.ByteString) (Maybe Discussion))
-createSnippetThread' projectId snippetId content = do
+createSnippetThread prj snippetId content = do
   gitlabPost discussionAddr [("body", Just (T.encodeUtf8 content))]
   where
     discussionAddr :: Text
     discussionAddr =
       "/projects/"
-        <> T.pack (show projectId)
+        <> T.pack (show (project_id prj))
         <> "/snippets/"
         <> T.pack (show snippetId)
         <> "/discussions"
 
 -- | Adds a new note to the thread.
-addNoteToSnippetThread' ::
-  -- | project ID
-  Int ->
+addNoteToSnippetThread ::
+  -- | project
+  Project ->
   -- | snippet ID
   Int ->
   -- | discussion ID
@@ -237,13 +341,13 @@ addNoteToSnippetThread' ::
   -- | The content of the note/reply
   Text ->
   GitLab (Either (Response BSL.ByteString) (Maybe Discussion))
-addNoteToSnippetThread' projectId snippetId discussionId content =
+addNoteToSnippetThread prj snippetId discussionId content =
   gitlabPost discussionAddr [("body", Just (T.encodeUtf8 content))]
   where
     discussionAddr :: Text
     discussionAddr =
       "/projects/"
-        <> T.pack (show projectId)
+        <> T.pack (show (project_id prj))
         <> "/snippets/"
         <> T.pack (show snippetId)
         <> "/discussions/"
@@ -254,9 +358,9 @@ addNoteToSnippetThread' projectId snippetId discussionId content =
 -- <> T.pack (show noteId)
 
 -- | Modify existing thread note of a snippet.
-modifySnippetThreadNote' ::
-  -- | project ID
-  Int ->
+modifySnippetThreadNote ::
+  -- | project
+  Project ->
   -- | snippet ID
   Int ->
   -- | discussion ID
@@ -266,13 +370,13 @@ modifySnippetThreadNote' ::
   -- | The content of the note/reply
   Text ->
   GitLab (Either (Response BSL.ByteString) (Maybe Discussion))
-modifySnippetThreadNote' projectId snippetId discussionId noteId content =
+modifySnippetThreadNote prj snippetId discussionId noteId content =
   gitlabPut noteAddr [("body", Just (T.encodeUtf8 content))]
   where
     noteAddr :: Text
     noteAddr =
       "/projects/"
-        <> T.pack (show projectId)
+        <> T.pack (show (project_id prj))
         <> "/snippets/"
         <> T.pack (show snippetId)
         <> "/discussions/"
@@ -281,9 +385,9 @@ modifySnippetThreadNote' projectId snippetId discussionId noteId content =
         <> T.pack (show noteId)
 
 -- | Deletes an existing thread note of an issue.
-deleteSnippetThreadNote' ::
-  -- | the project ID
-  Int ->
+deleteSnippetThreadNote ::
+  -- | Project
+  Project ->
   -- | snippet ID
   Int ->
   -- | discussion ID
@@ -291,13 +395,13 @@ deleteSnippetThreadNote' ::
   -- | note ID
   Int ->
   GitLab (Either (Response BSL.ByteString) (Maybe ()))
-deleteSnippetThreadNote' projectId snippetId discussionId noteId = do
+deleteSnippetThreadNote prj snippetId discussionId noteId = do
   gitlabDelete noteAddr []
   where
     noteAddr :: Text
     noteAddr =
       "/projects/"
-        <> T.pack (show projectId)
+        <> T.pack (show (project_id prj))
         <> "/snippets/"
         <> T.pack (show snippetId)
         <> "/discussions/"
@@ -306,39 +410,39 @@ deleteSnippetThreadNote' projectId snippetId discussionId noteId = do
         <> T.pack (show noteId)
 
 -- | Gets a list of all discussion items for a single merge request.
-projectMergeRequestDiscussionItems' ::
-  -- | the project ID
-  Int ->
+projectMergeRequestDiscussionItems ::
+  -- | project
+  Project ->
   -- | Merge request IID
   Int ->
   GitLab (Either (Response BSL.ByteString) [Discussion])
-projectMergeRequestDiscussionItems' projId mergeRequestIid = do
+projectMergeRequestDiscussionItems prj mergeRequestIid = do
   gitlabGetMany urlPath []
   where
     urlPath =
       T.pack $
         "/projects/"
-          <> show projId
+          <> show (project_id prj)
           <> "/merge_requests/"
           <> show mergeRequestIid
           <> "/discussions"
 
 -- | Gets a list of all discussion items for a single merge request.
-mergeRequestDiscussionItems' ::
-  -- | the project ID
-  Int ->
+mergeRequestDiscussionItems ::
+  -- | project
+  Project ->
   -- | Merge request IID
   Int ->
   -- | discussion ID
   Int ->
   GitLab (Either (Response BSL.ByteString) (Maybe Discussion))
-mergeRequestDiscussionItems' projId mergeRequestIid discussionId = do
+mergeRequestDiscussionItems prj mergeRequestIid discussionId = do
   gitlabGetOne urlPath []
   where
     urlPath =
       T.pack $
         "/projects/"
-          <> show projId
+          <> show (project_id prj)
           <> "/merge_requests/"
           <> show mergeRequestIid
           <> "/discussions/"
@@ -354,9 +458,9 @@ instance Show PositionReference where
 -- similar to creating a note but other comments (replies) can be
 -- added to it later.  See the GitLab document:
 -- https://docs.gitlab.com/ee/api/discussions.html#create-new-merge-request-thread
-createMergeRequestThread' ::
-  -- | project ID
-  Int ->
+createMergeRequestThread ::
+  -- | project
+  Project ->
   -- | merge request ID
   Int ->
   -- | The content of the thread
@@ -374,7 +478,7 @@ createMergeRequestThread' ::
   -- | File path before change
   Text ->
   GitLab (Either (Response BSL.ByteString) (Maybe Discussion))
-createMergeRequestThread' projectId mergeRequestIid content baseCommitShaSource shaCommitTarget shaHeadMR typePosRef filePathAfter filePathBefore =
+createMergeRequestThread prj mergeRequestIid content baseCommitShaSource shaCommitTarget shaHeadMR typePosRef filePathAfter filePathBefore =
   gitlabPost
     discussionAddr
     [ ("body", Just (T.encodeUtf8 content)),
@@ -389,15 +493,15 @@ createMergeRequestThread' projectId mergeRequestIid content baseCommitShaSource 
     discussionAddr :: Text
     discussionAddr =
       "/projects/"
-        <> T.pack (show projectId)
+        <> T.pack (show (project_id prj))
         <> "/merge_requests/"
         <> T.pack (show mergeRequestIid)
         <> "/discussions"
 
 -- | Resolve/unresolve whole thread of a merge request.
-resolveMergeRequestThread' ::
-  -- | project ID
-  Int ->
+resolveMergeRequestThread ::
+  -- | project
+  Project ->
   -- | merge request IID
   Int ->
   -- | discussion ID
@@ -405,13 +509,13 @@ resolveMergeRequestThread' ::
   -- | Resolve/unresolve the discussion
   Bool ->
   GitLab (Either (Response BSL.ByteString) (Maybe Discussion))
-resolveMergeRequestThread' projectId mergeRequestIid discussionId resolved =
+resolveMergeRequestThread prj mergeRequestIid discussionId resolved =
   gitlabPut noteAddr [("resolved", Just (T.encodeUtf8 (resolvedStr resolved)))]
   where
     noteAddr :: Text
     noteAddr =
       "/projects/"
-        <> T.pack (show projectId)
+        <> T.pack (show (project_id prj))
         <> "/merge_requests/"
         <> T.pack (show mergeRequestIid)
         <> "/discussions/"
@@ -420,9 +524,9 @@ resolveMergeRequestThread' projectId mergeRequestIid discussionId resolved =
     resolvedStr False = "false"
 
 -- | Adds a new note to the thread. This can also create a thread from a single comment.
-addNoteToMergeRequestThread' ::
-  -- | project ID
-  Int ->
+addNoteToMergeRequestThread ::
+  -- | project
+  Project ->
   -- | merge request ID
   Int ->
   -- | discussion ID
@@ -433,7 +537,7 @@ addNoteToMergeRequestThread' ::
   -- | The content of the note/reply
   Text ->
   GitLab (Either (Response BSL.ByteString) (Maybe Discussion))
-addNoteToMergeRequestThread' projectId mergeRequestIid discussionId content =
+addNoteToMergeRequestThread prj mergeRequestIid discussionId content =
   gitlabPost
     discussionAddr
     [ ("body", Just (T.encodeUtf8 content))
@@ -442,7 +546,7 @@ addNoteToMergeRequestThread' projectId mergeRequestIid discussionId content =
     discussionAddr :: Text
     discussionAddr =
       "/projects/"
-        <> T.pack (show projectId)
+        <> T.pack (show (project_id prj))
         <> "/merge_requests/"
         <> T.pack (show mergeRequestIid)
         <> "/discussions/"
@@ -450,9 +554,9 @@ addNoteToMergeRequestThread' projectId mergeRequestIid discussionId content =
         <> "/notes"
 
 -- | exactly one of body or resolved must be a 'Just' value
-modifyMergeRequestThreadNote' ::
-  -- | project ID
-  Int ->
+modifyMergeRequestThreadNote ::
+  -- | project
+  Project ->
   -- | merge request IID
   Int ->
   -- | discussion ID
@@ -464,7 +568,7 @@ modifyMergeRequestThreadNote' ::
   -- | Resolve/unresolve the note
   Maybe Bool ->
   GitLab (Either (Response BSL.ByteString) (Maybe Discussion))
-modifyMergeRequestThreadNote' projectId mergeRequestIid discussionId noteId content resolved =
+modifyMergeRequestThreadNote prj mergeRequestIid discussionId noteId content resolved =
   gitlabPut
     noteAddr
     (catMaybes [contentAttr, resolveAttr])
@@ -482,7 +586,7 @@ modifyMergeRequestThreadNote' projectId mergeRequestIid discussionId noteId cont
     noteAddr :: Text
     noteAddr =
       "/projects/"
-        <> T.pack (show projectId)
+        <> T.pack (show (project_id prj))
         <> "/merge_requests/"
         <> T.pack (show mergeRequestIid)
         <> "/discussions/"
@@ -491,9 +595,9 @@ modifyMergeRequestThreadNote' projectId mergeRequestIid discussionId noteId cont
         <> T.pack (show noteId)
 
 -- | Deletes an existing thread note of a merge request.
-deleteMergeRequestThreadNote' ::
-  -- | the project ID
-  Int ->
+deleteMergeRequestThreadNote ::
+  -- | project
+  Project ->
   -- | merge request IID
   Int ->
   -- | discussion ID
@@ -501,13 +605,13 @@ deleteMergeRequestThreadNote' ::
   -- | note ID
   Int ->
   GitLab (Either (Response BSL.ByteString) (Maybe ()))
-deleteMergeRequestThreadNote' projectId mergeRequestIid discussionId noteId = do
+deleteMergeRequestThreadNote prj mergeRequestIid discussionId noteId = do
   gitlabDelete noteAddr []
   where
     noteAddr :: Text
     noteAddr =
       "/projects/"
-        <> T.pack (show projectId)
+        <> T.pack (show (project_id prj))
         <> "/merge_requests/"
         <> T.pack (show mergeRequestIid)
         <> "/discussions/"
@@ -516,39 +620,39 @@ deleteMergeRequestThreadNote' projectId mergeRequestIid discussionId noteId = do
         <> T.pack (show noteId)
 
 -- | Gets a list of all discussion items for a single commit.
-projectCommitDiscussionItems' ::
-  -- | project ID
-  Int ->
+projectCommitDiscussionItems ::
+  -- | project
+  Project ->
   -- | commit ID
   Int ->
   GitLab (Either (Response BSL.ByteString) [Discussion])
-projectCommitDiscussionItems' projectId commitId =
+projectCommitDiscussionItems prj commitId =
   gitlabGetMany urlPath []
   where
     urlPath =
       T.pack $
         "/projects/"
-          <> show projectId
+          <> show (project_id prj)
           <> "/commits/"
           <> show commitId
           <> "/discussions"
 
 -- | Returns a single discussion item for a specific project commit.
-projectCommitDiscussionItem' ::
-  -- | project ID
-  Int ->
+projectCommitDiscussionItem ::
+  -- | project
+  Project ->
   -- | commit ID
   Int ->
   -- | discussion ID
   Int ->
   GitLab (Either (Response BSL.ByteString) (Maybe Discussion))
-projectCommitDiscussionItem' projectId commitId discussionId =
+projectCommitDiscussionItem prj commitId discussionId =
   gitlabGetOne urlPath []
   where
     urlPath =
       T.pack $
         "/projects/"
-          <> show projectId
+          <> show (project_id prj)
           <> "/commits/"
           <> show commitId
           <> "/discussions/"
@@ -557,9 +661,9 @@ projectCommitDiscussionItem' projectId commitId discussionId =
 -- | Creates a new thread to a single project commit. This is similar
 -- to creating a note but other comments (replies) can be added to it
 -- later.
-createCommitThread' ::
-  -- | project ID
-  Int ->
+createCommitThread ::
+  -- | project
+  Project ->
   -- | commit ID
   Int ->
   -- | The content of the thread
@@ -573,7 +677,7 @@ createCommitThread' ::
   -- | Type of the position reference
   PositionReference ->
   GitLab (Either (Response BSL.ByteString) (Maybe Discussion))
-createCommitThread' projectId commitId content shaParent shaStart shaThisCommit typePosRef =
+createCommitThread prj commitId content shaParent shaStart shaThisCommit typePosRef =
   gitlabPost
     discussionAddr
     [ ("body", Just (T.encodeUtf8 content)),
@@ -586,15 +690,15 @@ createCommitThread' projectId commitId content shaParent shaStart shaThisCommit 
     discussionAddr :: Text
     discussionAddr =
       "/projects/"
-        <> T.pack (show projectId)
+        <> T.pack (show (project_id prj))
         <> "/commits/"
         <> T.pack (show commitId)
         <> "/discussions"
 
 -- | Adds a new note to the thread.
-addNoteToCommitThread' ::
-  -- | project ID
-  Int ->
+addNoteToCommitThread ::
+  -- | project
+  Project ->
   -- | commit ID
   Int ->
   -- | discussion ID
@@ -605,7 +709,7 @@ addNoteToCommitThread' ::
   -- | The content of the note/reply
   Text ->
   GitLab (Either (Response BSL.ByteString) (Maybe Discussion))
-addNoteToCommitThread' projectId commitId discussionId content =
+addNoteToCommitThread prj commitId discussionId content =
   gitlabPost
     discussionAddr
     [ ("body", Just (T.encodeUtf8 content))
@@ -614,7 +718,7 @@ addNoteToCommitThread' projectId commitId discussionId content =
     discussionAddr :: Text
     discussionAddr =
       "/projects/"
-        <> T.pack (show projectId)
+        <> T.pack (show (project_id prj))
         <> "/commits/"
         <> T.pack (show commitId)
         <> "/discussions/"
@@ -622,9 +726,9 @@ addNoteToCommitThread' projectId commitId discussionId content =
         <> "/notes"
 
 -- | Adds a new note to the thread.
-modifyCommityThreadNote' ::
-  -- | project ID
-  Int ->
+modifyCommityThreadNote ::
+  -- | project
+  Project ->
   -- | commit ID
   Int ->
   -- | discussion ID
@@ -636,7 +740,7 @@ modifyCommityThreadNote' ::
   -- | Resolve/unresolve the note
   Maybe Bool ->
   GitLab (Either (Response BSL.ByteString) (Maybe Discussion))
-modifyCommityThreadNote' projectId commitId discussionId noteId content resolved =
+modifyCommityThreadNote prj commitId discussionId noteId content resolved =
   gitlabPut
     noteAddr
     (catMaybes [contentAttr, resolveAttr])
@@ -654,7 +758,7 @@ modifyCommityThreadNote' projectId commitId discussionId noteId content resolved
     noteAddr :: Text
     noteAddr =
       "/projects/"
-        <> T.pack (show projectId)
+        <> T.pack (show (project_id prj))
         <> "/commits/"
         <> T.pack (show commitId)
         <> "/discussions/"
@@ -663,9 +767,9 @@ modifyCommityThreadNote' projectId commitId discussionId noteId content resolved
         <> T.pack (show noteId)
 
 -- | Deletes an existing thread note of a commit.
-deleteCommitThreadNote' ::
-  -- | the project ID
-  Int ->
+deleteCommitThreadNote ::
+  -- | project
+  Project ->
   -- | commit ID
   Int ->
   -- | discussion ID
@@ -673,13 +777,13 @@ deleteCommitThreadNote' ::
   -- | The ID of a discussion note
   Int ->
   GitLab (Either (Response BSL.ByteString) (Maybe ()))
-deleteCommitThreadNote' projectId commitId discussionId noteId = do
+deleteCommitThreadNote prj commitId discussionId noteId = do
   gitlabDelete noteAddr []
   where
     noteAddr :: Text
     noteAddr =
       "/projects/"
-        <> T.pack (show projectId)
+        <> T.pack (show (project_id prj))
         <> "/commits/"
         <> T.pack (show commitId)
         <> "/discussions/"

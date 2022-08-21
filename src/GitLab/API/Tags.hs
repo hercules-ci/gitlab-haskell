@@ -7,7 +7,20 @@
 -- License     : BSD3
 -- Maintainer  : yjh0502@gmail.com, robstewart57@gmail.com
 -- Stability   : stable
-module GitLab.API.Tags where
+module GitLab.API.Tags
+  ( -- * List project repository tags
+    tags,
+
+    -- * Get a single repository tag
+    tag,
+
+    -- * Create a new tag
+    createTag,
+
+    -- * Delete a tag
+    deleteTag,
+  )
+where
 
 import qualified Data.ByteString.Lazy as BSL
 import Data.Text (Text)

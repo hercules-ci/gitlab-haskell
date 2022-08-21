@@ -7,7 +7,23 @@
 -- License     : BSD3
 -- Maintainer  : robstewart57@gmail.com
 -- Stability   : stable
-module GitLab.API.Branches where
+module GitLab.API.Branches
+  ( -- * List repository branches
+    branches,
+
+    -- * Get single repository branch
+    branch,
+
+    -- * Create repository branch
+    createRepositoryBranch,
+
+    -- * Delete repository branch
+    deleteRepositoryBranch,
+
+    -- * Delete merged branches
+    deleteMergedBranches,
+  )
+where
 
 import qualified Data.ByteString.Lazy as BSL
 import Data.Either

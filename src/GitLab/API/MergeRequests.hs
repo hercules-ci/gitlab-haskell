@@ -8,18 +8,42 @@
 -- Maintainer  : robstewart57@gmail.com
 -- Stability   : stable
 module GitLab.API.MergeRequests
-  ( mergeRequest,
-    mergeRequest',
+  ( -- * List merge requests
     mergeRequests,
-    mergeRequests',
     mergeRequestsWith,
-    mergeRequestsWith',
+    --     -- * Merge requests list response notes
+
+    --     -- * List project merge requests
+
+    --     -- * List group merge requests
+
+    -- * Get single MR
+    mergeRequest,
+    -- -- * Single merge request response notes
+
+    --     -- * Get single MR participants
+
+    --     -- * Get single MR reviewers
+
+    --     -- * Get single MR commits
+
+    --     -- * Get single MR changes
+
+    --     -- * List MR pipelines
+
+    --     -- * Create MR Pipeline
+
+    -- * Create MR
     createMergeRequest,
-    createMergeRequest',
+    --     -- * Update MR
+
+    -- * Accept MR
     acceptMergeRequest,
-    acceptMergeRequest',
+
+    -- * Delete a merge request
     deleteMergeRequest,
-    deleteMergeRequest',
+
+    -- * merge request attributes
     mrAttrs,
     MergeProjectAttrs (..),
     MergeRequestState (..),

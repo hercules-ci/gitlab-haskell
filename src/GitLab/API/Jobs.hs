@@ -7,7 +7,32 @@
 -- License     : BSD3
 -- Maintainer  : robstewart57@gmail.com
 -- Stability   : stable
-module GitLab.API.Jobs where
+module GitLab.API.Jobs
+  ( -- * List project jobs
+    jobs,
+
+    -- * List pipeline jobs
+    pipelineJobs,
+
+    -- * List pipeline bridges
+    pipelineBridges,
+
+    -- * Get a single job
+    job,
+
+    -- * Cancel a job
+    cancelJob,
+
+    -- * Retry a job
+    retryJob,
+
+    -- * Erase a job
+    eraseJob,
+
+    -- * Run a job
+    runJob,
+  )
+where
 
 import qualified Data.ByteString.Lazy as BSL
 import Data.Either
