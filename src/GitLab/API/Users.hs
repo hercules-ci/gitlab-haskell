@@ -203,7 +203,7 @@ deleteUser usr =
 -- | Get current user.
 currentUser :: GitLab User
 currentUser =
-  fromJust . fromRight (error "currentUser error") <$> gitlabGetOne pathUser []
+  fromMaybe (error "currentUser") . fromRight (error "currentUser error") <$> gitlabGetOne pathUser []
   where
     pathUser =
       "/user"
@@ -211,7 +211,7 @@ currentUser =
 -- | Get current user status.
 currentUserStatus :: GitLab UserStatus
 currentUserStatus =
-  fromJust . fromRight (error "currentUserStatus error") <$> gitlabGetOne pathUser []
+  fromMaybe (error "currentUserStatus") . fromRight (error "currentUserStatus error") <$> gitlabGetOne pathUser []
   where
     pathUser =
       "/user/status"
@@ -222,7 +222,7 @@ userStatus ::
   User ->
   GitLab UserStatus
 userStatus usr =
-  fromJust . fromRight (error "userStatus error") <$> gitlabGetOne pathUser []
+  fromMaybe (error "userStatus") . fromRight (error "userStatus error") <$> gitlabGetOne pathUser []
   where
     pathUser =
       "/users/"
@@ -233,7 +233,7 @@ userStatus usr =
 userPreferences ::
   GitLab UserPrefs
 userPreferences =
-  fromJust . fromRight (error "userPreferences error") <$> gitlabGetOne pathUser []
+  fromMaybe (error "userPreferences") . fromRight (error "userPreferences error") <$> gitlabGetOne pathUser []
   where
     pathUser =
       "/user/preferences"
@@ -273,7 +273,7 @@ unfollowUser usr =
 -- | Get the counts of the currently signed in user.
 currentUserCounts :: GitLab UserCount
 currentUserCounts =
-  fromJust . fromRight (error "currentUserCounts error") <$> gitlabGetOne pathUser []
+  fromMaybe (error "currentUserCounts") . fromRight (error "currentUserCounts error") <$> gitlabGetOne pathUser []
   where
     pathUser =
       "/user_counts"
@@ -281,7 +281,7 @@ currentUserCounts =
 -- | Get a list of currently authenticated user’s SSH keys.
 currentUserSshKeys :: GitLab Key
 currentUserSshKeys =
-  fromJust . fromRight (error "currentUserSshKeys error") <$> gitlabGetOne pathUser []
+  fromMaybe (error "currentUserSshKeys") . fromRight (error "currentUserSshKeys error") <$> gitlabGetOne pathUser []
   where
     pathUser =
       "/user/keys"
@@ -292,7 +292,7 @@ userSshKeys ::
   User ->
   GitLab Key
 userSshKeys usr =
-  fromJust . fromRight (error "userSshKeys error") <$> gitlabGetOne pathUser []
+  fromMaybe (error "userSshKeys") . fromRight (error "userSshKeys error") <$> gitlabGetOne pathUser []
   where
     pathUser =
       "/user/"

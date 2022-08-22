@@ -47,7 +47,7 @@ ruleAddNewUserToGroups lbl nonRegisteredUsernames groupNames =
                     Right (Just usr) ->
                       void $
                         addUserToGroup grp Reporter usr
-                _ -> return ()
+                (_ : _) -> return ()
           )
           groupNames
     )
@@ -91,7 +91,8 @@ ruleAddMembers label projectNames userNames =
                           prj
                           Reporter
                           foundUser
-                    _ -> return ()
+                    Right Nothing -> return ()
+                    Left _ -> return ()
           )
           userNames
     )
