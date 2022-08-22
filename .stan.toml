@@ -21,5 +21,4 @@ scope = "all"
 [[check]]
 type = "Exclude"
 id = "STAN-0103"
-file = "src/GitLab/API/Projects.hs"
 scope = "all"
