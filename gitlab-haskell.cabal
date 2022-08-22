@@ -6,41 +6,7 @@ synopsis:       A Haskell library for the GitLab web API
 description:
             This library lifts the GitLab REST API into Haskell: <https://docs.gitlab.com/ee/api/>
             .
-            It also features an event driven reactive API for writing Gitlab file hook applications
-            .
-            Run all GitLab actions with `runGitLab`:
-            .
-            > runGitLab ::
-            >  => GitLabServerConfig -- ^ the GitLab server details
-            >  -> GitLab a           -- ^ the GitLab action
-            >  -> IO a
-            .
-            For example:
-            .
-            > myProjects <- runGitLab
-            >      (defaultGitLabServer
-            >          { url = "https://gitlab.example.com"
-            >          , token="my_token"} )
-            >      (searchUser "joe" >>= userProjects . fromJust)
-            .
-            Which uses the functions:
-            .
-            > searchUser   :: Text -> GitLab (Maybe User)
-            > userProjects :: User -> GitLab (Maybe [Project])
-            .
-            This is the API to develop event driven rule based GitLab file hooks that fire in real-time on events on a GitLab server:
-            .
-            > receive :: [Rule] -> GitLab ()
-            .
-            > class (FromJSON a) => SystemHook a where
-            >   match   :: String -> (a -> GitLab ()) -> Rule
-            >   matchIf :: String -> (a -> GitLab Bool) -> (a -> GitLab ()) -> Rule
-            .
-            For more details about the file hooks support: <https://www.macs.hw.ac.uk/~rs46/posts/2020-06-06-gitlab-system-hooks.html>
-            .
-            Unsurprisingly, this library is maintained on GitLab: <https://gitlab.com/robstewart57/gitlab-haskell>
-
-
+            The library also features a reactive event driven API for writing Gitlab file hook applications.
 homepage:       https://gitlab.com/robstewart57/gitlab-haskell
 bug-reports:    https://gitlab.com/robstewart57/gitlab-haskell/issues
 author:         Rob Stewart
