@@ -39,7 +39,7 @@ Run all GitLab actions with `runGitLab`:
        -> GitLab a
        -> IO a
 
-For example the following project finds all GitLab projects for the
+For example the following project returns all GitLab projects for the
 user "joe".
 
     myProjects <-
@@ -68,3 +68,5 @@ For the complete `gitlab-haskell` API, see the [hackage documentation](https://h
 
 An example of an application using this library is `gitlab-tools`,
 which is a command line tool for bulk GitLab transactions [link](https://gitlab.com/robstewart57/gitlab-tools).
+
+Unsurprisingly, this library is maintained on GitLab: [GitLab project](https://gitlab.com/robstewart57/gitlab-haskell).
