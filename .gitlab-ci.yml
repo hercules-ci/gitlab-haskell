@@ -10,7 +10,8 @@ stages:
 variables:
     STACK_ROOT: "${CI_PROJECT_DIR}/.stack-root"
 
-build:
+stack-build-lts-17:
+  stage: build
   # https://docs.gitlab.com/ee/ci/yaml/#cache
   cache:
     key: "$CI_JOB_NAME"
@@ -19,7 +20,28 @@ build:
       - .stack-root/
   script:
     - stack --no-terminal --resolver=lts-17 build
+
+stack-build-lts-18:
+  stage: build
+  # https://docs.gitlab.com/ee/ci/yaml/#cache
+  cache:
+    key: "$CI_JOB_NAME"
+    paths:
+      - .stack-work/
+      - .stack-root/
+  script:
     - stack --no-terminal --resolver=lts-18 build
+
+stack-build-lts-19:
+  stage: build
+  # https://docs.gitlab.com/ee/ci/yaml/#cache
+  cache:
+    key: "$CI_JOB_NAME"
+    paths:
+      - .stack-work/
+      - .stack-root/
+  script:
+    - stack --no-terminal --resolver=lts-19 build
 
 test-lts-17:
   stage: test
@@ -40,3 +62,13 @@ test-lts-18:
       - .stack-root/
   script:
     - stack --no-terminal  --resolver=lts-18 test --fast
+
+test-lts-19:
+  stage: test
+  cache:
+    key: "$CI_JOB_NAME"
+    paths:
+      - .stack-work/
+      - .stack-root/
+  script:
+    - stack --no-terminal  --resolver=lts-19 test --fast
