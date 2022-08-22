@@ -4,9 +4,9 @@ category:       Git
 version:        0.3.2.0
 synopsis:       A Haskell library for the GitLab web API
 description:
-            This Haskell library queries and updates the database of a GitLab instance using the GitLab web API: <https://docs.gitlab.com/ee/api/>
+            This library lifts the GitLab REST API into Haskell: <https://docs.gitlab.com/ee/api/>
             .
-            It also features an API for writing Gitlab file hook applications
+            It also features an event driven reactive API for writing Gitlab file hook applications
             .
             Run all GitLab actions with `runGitLab`:
             .
@@ -27,9 +27,8 @@ description:
             .
             > searchUser   :: Text -> GitLab (Maybe User)
             > userProjects :: User -> GitLab (Maybe [Project])
-            > projectCommits :: Project -> GitLab [Commit]
             .
-            This library can also be used to develop rule based GitLab file hooks that react in real time to GitLab events with:
+            This is the API to develop event driven rule based GitLab file hooks that fire in real-time on events on a GitLab server:
             .
             > receive :: [Rule] -> GitLab ()
             .
@@ -46,7 +45,7 @@ homepage:       https://gitlab.com/robstewart57/gitlab-haskell
 bug-reports:    https://gitlab.com/robstewart57/gitlab-haskell/issues
 author:         Rob Stewart
 maintainer:     robstewart57@gmail.com
-copyright:      2021 Rob Stewart, Heriot-Watt University
+copyright:      2022 Rob Stewart, Heriot-Watt University
 license:        BSD-3-Clause
 license-file:   LICENSE
 data-files:     data/system-hooks/*.json
