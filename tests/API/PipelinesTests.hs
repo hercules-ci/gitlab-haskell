@@ -15,16 +15,15 @@ import Test.Tasty.HUnit
 -- | https://docs.gitlab.com/ee/api/pipelines.html
 pipelinesTests :: [TestTree]
 pipelinesTests =
-  [ let fname = "data/api/pipelines/cancel-pipeline-jobs.json"
-     in gitlabJsonParserTests
-          "cancel-pipeline-jobs"
-          fname
-          (parseOne =<< BSL.readFile fname :: IO Pipeline)
-          ( do
-              decodedFile <- parseOne =<< BSL.readFile fname :: IO Pipeline
-              parseOne (encode decodedFile) :: IO Pipeline
-          )
-  ]
+  let fname = "data/api/pipelines/cancel-pipeline-jobs.json"
+   in gitlabJsonParserTests
+        "cancel-pipeline-jobs"
+        fname
+        (parseOne =<< BSL.readFile fname :: IO Pipeline)
+        ( do
+            decodedFile <- parseOne =<< BSL.readFile fname :: IO Pipeline
+            parseOne (encode decodedFile) :: IO Pipeline
+        )
 
 {-
 

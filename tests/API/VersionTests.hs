@@ -15,13 +15,12 @@ import Test.Tasty.HUnit
 -- | https://docs.gitlab.com/ee/api/version.html
 versionTests :: [TestTree]
 versionTests =
-  [ let fname = "data/api/version/version.json"
-     in gitlabJsonParserTests
-          "version"
-          fname
-          (parseOne =<< BSL.readFile fname :: IO Version)
-          ( do
-              decodedFile <- parseOne =<< BSL.readFile fname :: IO Version
-              parseOne (encode decodedFile) :: IO Version
-          )
-  ]
+  let fname = "data/api/version/version.json"
+   in gitlabJsonParserTests
+        "version"
+        fname
+        (parseOne =<< BSL.readFile fname :: IO Version)
+        ( do
+            decodedFile <- parseOne =<< BSL.readFile fname :: IO Version
+            parseOne (encode decodedFile) :: IO Version
+        )
