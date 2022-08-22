@@ -3,16 +3,14 @@ image: fpco/stack-build:latest
 # https://docs.gitlab.com/ee/ci/yaml/#stages
 # jobs of the same stage are executed in parallel
 stages:
-  - build-17
-  - build-18
-  - test-17
-  - test-18
+  - build
+  - test
 
 # https://docs.gitlab.com/ee/ci/variables/#using-the-ci-variables-in-your-job-scripts
 variables:
     STACK_ROOT: "${CI_PROJECT_DIR}/.stack-root"
 
-build-17:
+build:
   # https://docs.gitlab.com/ee/ci/yaml/#cache
   cache:
     key: "$CI_JOB_NAME"
@@ -21,18 +19,10 @@ build-17:
       - .stack-root/
   script:
     - stack --no-terminal --resolver=lts-17 build
+    - stack --no-terminal --resolver=lts-18 build
 
-build-18:
-  # https://docs.gitlab.com/ee/ci/yaml/#cache
-  cache:
-    key: "$CI_JOB_NAME"
-    paths:
-      - .stack-work/
-      - .stack-root/
-  script:
-    - stack --no-terminal  --resolver=lts-18 build
-
-test-17:
+test-lts-17:
+  stage: test
   cache:
     key: "$CI_JOB_NAME"
     paths:
@@ -41,7 +31,8 @@ test-17:
   script:
     - stack --no-terminal  --resolver=lts-17 test --fast
 
-test-18:
+test-lts-18:
+  stage: test
   cache:
     key: "$CI_JOB_NAME"
     paths:
