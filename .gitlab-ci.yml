@@ -1,16 +1,18 @@
-image: fpco/stack-build:lts-17.0
+image: fpco/stack-build:latest
 
 # https://docs.gitlab.com/ee/ci/yaml/#stages
 # jobs of the same stage are executed in parallel
 stages:
-  - build
-  - test
+  - build-17
+  - build-18
+  - test-17
+  - test-18
 
 # https://docs.gitlab.com/ee/ci/variables/#using-the-ci-variables-in-your-job-scripts
 variables:
     STACK_ROOT: "${CI_PROJECT_DIR}/.stack-root"
 
-build:
+build-17:
   # https://docs.gitlab.com/ee/ci/yaml/#cache
   cache:
     key: "$CI_JOB_NAME"
@@ -18,13 +20,32 @@ build:
       - .stack-work/
       - .stack-root/
   script:
-    - stack --no-terminal build
+    - stack --no-terminal --resolver=lts-17 build
 
-test:
+build-18:
+  # https://docs.gitlab.com/ee/ci/yaml/#cache
   cache:
     key: "$CI_JOB_NAME"
     paths:
       - .stack-work/
       - .stack-root/
   script:
-    - stack --no-terminal test --fast
+    - stack --no-terminal  --resolver=lts-18 build
+
+test-17:
+  cache:
+    key: "$CI_JOB_NAME"
+    paths:
+      - .stack-work/
+      - .stack-root/
+  script:
+    - stack --no-terminal  --resolver=lts-17 test --fast
+
+test-18:
+  cache:
+    key: "$CI_JOB_NAME"
+    paths:
+      - .stack-work/
+      - .stack-root/
+  script:
+    - stack --no-terminal  --resolver=lts-18 test --fast
