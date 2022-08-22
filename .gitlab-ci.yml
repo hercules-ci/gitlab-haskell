@@ -10,86 +10,48 @@ stages:
 variables:
     STACK_ROOT: "${CI_PROJECT_DIR}/.stack-root"
 
-stack-build-lts-16:
+# https://docs.gitlab.com/ee/ci/yaml/#cache
+cache:
+  paths:
+    - .stack-work/
+    - .stack-root/
+
+build-lts-16:
   stage: build
-  # https://docs.gitlab.com/ee/ci/yaml/#cache
-  cache:
-    key: "$CI_JOB_NAME"
-    paths:
-      - .stack-work/
-      - .stack-root/
   script:
     - stack --no-terminal --resolver=lts-16 build --fast
 
-stack-build-lts-17:
+build-lts-17:
   stage: build
-  # https://docs.gitlab.com/ee/ci/yaml/#cache
-  cache:
-    key: "$CI_JOB_NAME"
-    paths:
-      - .stack-work/
-      - .stack-root/
   script:
     - stack --no-terminal --resolver=lts-17 build --fast
 
-stack-build-lts-18:
+build-lts-18:
   stage: build
-  # https://docs.gitlab.com/ee/ci/yaml/#cache
-  cache:
-    key: "$CI_JOB_NAME"
-    paths:
-      - .stack-work/
-      - .stack-root/
   script:
     - stack --no-terminal --resolver=lts-18 build --fast
 
-stack-build-lts-19:
+build-lts-19:
   stage: build
-  # https://docs.gitlab.com/ee/ci/yaml/#cache
-  cache:
-    key: "$CI_JOB_NAME"
-    paths:
-      - .stack-work/
-      - .stack-root/
   script:
     - stack --no-terminal --resolver=lts-19 build --fast
 
 test-lts-16:
   stage: test
-  cache:
-    key: "$CI_JOB_NAME"
-    paths:
-      - .stack-work/
-      - .stack-root/
   script:
     - stack --no-terminal  --resolver=lts-16 test --fast
 
 test-lts-17:
   stage: test
-  cache:
-    key: "$CI_JOB_NAME"
-    paths:
-      - .stack-work/
-      - .stack-root/
   script:
     - stack --no-terminal  --resolver=lts-17 test --fast
 
 test-lts-18:
   stage: test
-  cache:
-    key: "$CI_JOB_NAME"
-    paths:
-      - .stack-work/
-      - .stack-root/
   script:
     - stack --no-terminal  --resolver=lts-18 test --fast
 
 test-lts-19:
   stage: test
-  cache:
-    key: "$CI_JOB_NAME"
-    paths:
-      - .stack-work/
-      - .stack-root/
   script:
     - stack --no-terminal  --resolver=lts-19 test --fast
