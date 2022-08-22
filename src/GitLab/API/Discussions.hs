@@ -584,9 +584,10 @@ modifyMergeRequestThreadNote prj mergeRequestIid discussionId noteId content res
     resolveAttr =
       case resolved of
         Nothing -> Nothing
-        Just x -> case x of
-          True -> Just ("resolved", Just (T.encodeUtf8 "true"))
-          False -> Just ("resolved", Just (T.encodeUtf8 "false"))
+        Just x ->
+          if x
+            then Just ("resolved", Just (T.encodeUtf8 "true"))
+            else Just ("resolved", Just (T.encodeUtf8 "false"))
     noteAddr :: Text
     noteAddr =
       "/projects/"
@@ -756,9 +757,10 @@ modifyCommityThreadNote prj commitId discussionId noteId content resolved =
     resolveAttr =
       case resolved of
         Nothing -> Nothing
-        Just x -> case x of
-          True -> Just ("resolved", Just (T.encodeUtf8 "true"))
-          False -> Just ("resolved", Just (T.encodeUtf8 "false"))
+        Just x ->
+          if x
+            then Just ("resolved", Just (T.encodeUtf8 "true"))
+            else Just ("resolved", Just (T.encodeUtf8 "false"))
     noteAddr :: Text
     noteAddr =
       "/projects/"

@@ -1136,7 +1136,7 @@ data Note = Note
   deriving (Show, Eq)
 
 -- | has a change been promoted to an epic.
-data CommandsChanges = CommanandsChanges
+newtype CommandsChanges = CommanandsChanges
   { commands_changes_promote_to_epic :: Bool
   }
   deriving (Show, Eq)
