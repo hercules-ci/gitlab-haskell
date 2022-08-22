@@ -106,9 +106,9 @@ module GitLab.Types
 where
 
 import Control.Monad.Trans.Reader
-import Data.Aeson
+import Data.Aeson hiding (Key)
 import Data.Aeson.TH
-import Data.Aeson.Types
+import Data.Aeson.Types hiding (Key)
 import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Time.Clock
@@ -1425,6 +1425,10 @@ data Job = Job
 
 $(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "time_stats_"), omitNothingFields = True} ''TimeStats)
 
+$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "saml_identity_"), omitNothingFields = True} ''SamlIdentity)
+
+$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "identity_"), omitNothingFields = True} ''Identity)
+
 $(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "user_"), omitNothingFields = True} ''User)
 
 instance ToJSON MilestoneState where
@@ -1456,10 +1460,6 @@ $(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "release_"), om
 $(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "tag_"), omitNothingFields = True} ''Tag)
 
 $(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "contributor_"), omitNothingFields = True} ''Contributor)
-
-$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "saml_identity_"), omitNothingFields = True} ''SamlIdentity)
-
-$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "identity_"), omitNothingFields = True} ''Identity)
 
 $(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "member_"), omitNothingFields = True} ''Member)
 
@@ -1622,6 +1622,6 @@ $(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "user_status_")
 
 $(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "user_count_"), omitNothingFields = True} ''UserCount)
 
-$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "event_"), omitNothingFields = True} ''Event)
-
 $(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "push_data_"), omitNothingFields = True} ''PushData)
+
+$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "event_"), omitNothingFields = True} ''Event)
