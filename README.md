@@ -1,7 +1,7 @@
 # A Haskell library for the GitLab web API
 
-This library interacts with a GitLab server's API. It supports queries
-about and updates to:
+This library lifts the GitLab REST API into Haskell. It supports
+queries about and updates to:
 
 * Branches
 * Commits
@@ -29,7 +29,6 @@ provides. E.g.
 
     searchUser     :: Text -> GitLab (Maybe User)
     userProjects   :: User -> GitLab (Maybe [Project])
-    projectCommits :: Project -> GitLab [Commit]
 
 ## Example
 
@@ -40,7 +39,8 @@ Run all GitLab actions with `runGitLab`:
        -> GitLab a
        -> IO a
 
-For example:
+For example the following project finds all GitLab projects for the
+user "joe".
 
     myProjects <-
       runGitLab
@@ -66,5 +66,5 @@ For more details about the file system hooks support, see post:
 
 For the complete `gitlab-haskell` API, see the [hackage documentation](https://hackage.haskell.org/package/gitlab-haskell).
 
-The `gitlab-tools` command line tool for bulk GitLab transactions uses
-this library [link](https://gitlab.com/robstewart57/gitlab-tools).
+An example of an application using this library is `gitlab-tools`,
+which is a command line tool for bulk GitLab transactions [link](https://gitlab.com/robstewart57/gitlab-tools).
