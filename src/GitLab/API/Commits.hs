@@ -48,6 +48,11 @@ module GitLab.API.Commits
 
     -- * Commits on specific branch
     branchCommits,
+
+    -- * Types
+    CommitAction (..),
+    ContentEncoding (..),
+    Action (..),
   )
 where
 
@@ -107,6 +112,7 @@ createCommitMultipleFilesActions prj branchName commitMsg actions = do
         <> "/repository"
         <> "/commits"
 
+-- | A commit action.
 data CommitAction = CommitAction
   { commit_action_action :: Action,
     -- | Full path to the file.
@@ -130,6 +136,7 @@ data CommitAction = CommitAction
   }
   deriving (Show, Eq)
 
+-- | The actual action within a commit action.
 data Action
   = ActionCreate
   | ActionDelete
@@ -145,6 +152,7 @@ instance Show Action where
   show ActionUpdate = "update"
   show ActionChmod = "chmod"
 
+-- | Whether the content is text or base 64.
 data ContentEncoding
   = EncodingText
   | EncodingBase64

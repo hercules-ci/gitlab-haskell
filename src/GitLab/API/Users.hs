@@ -151,6 +151,8 @@ createUser emailAddr name username attrs =
     userAddr =
       "/users"
 
+-- | Modifies an existing user. Only administrators can change
+-- attributes of a user.
 modifyUser ::
   -- | user ID
   Int ->

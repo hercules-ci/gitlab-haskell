@@ -87,10 +87,8 @@ module GitLab.API.Projects
     -- addGroupToProject,
     -- transferProject,
     -- transferProject',
-    projectAttrs,
-    projectAttrsParams,
-    projectSearchAttrs,
-    projectSearchAttrsParams,
+    defaultProjectAttrs,
+    defaultProjectSearchAttrs,
     ProjectAttrs (..),
     ProjectSearchAttrs (..),
     EnabledDisabled (..),
@@ -251,13 +249,13 @@ createProjectForUser usrId nameTxt = do
         <> "/user/"
         <> T.pack (show usrId)
 
--- | Edit a project. The 'projectAttrs' value has default project
+-- | Edit a project. The 'defaultProjectAttrs' value has default project
 -- search values, which is a record that can be modified with 'Just'
 -- values.
 --
 -- For example to disable project specific email notifications:
 --
--- > editProject myProject (projectAttrs { project_edit_emails_disabled = Just True })
+-- > editProject myProject (defaultProjectAttrs { project_edit_emails_disabled = Just True })
 editProject ::
   -- | project
   Project ->
@@ -266,14 +264,14 @@ editProject ::
   GitLab (Either (Response BSL.ByteString) Project)
 editProject prj = editProject' (project_id prj)
 
--- | Edit a project. The 'projectAttrs' value has default project
+-- | Edit a project. The 'defaultProjectAttrs' value has default project
 -- search values, which is a record that can be modified with 'Just'
 -- values.
 --
 -- For example to disable project specific email notifications for a
 -- project with project ID 11744514:
 --
--- > editProject' 11744514 (projectAttrs { project_edit_emails_disabled = Just True })
+-- > editProject' 11744514 (defaultProjectAttrs { project_edit_emails_disabled = Just True })
 editProject' ::
   -- | project ID
   Int ->
@@ -587,8 +585,8 @@ transferProject' projId namespaceString = do
 --------------------
 -- Additional functionality beyond the GitLab Projects API
 
--- returns 'True' is a projecthas multiple email addresses associated
--- with all commits in a project, 'False' otherwise.
+-- | Returns 'True' is a projecthas multiple email addresses
+-- associated with all commits in a project, 'False' otherwise.
 multipleCommitters :: Project -> GitLab Bool
 multipleCommitters prj = do
   emailAddresses <- commitsEmailAddresses prj
@@ -633,11 +631,11 @@ projectDiffs' projId commitSha =
 -- 'editProject' functions. Only the project ID value is set is a
 -- search parameter, all other search parameters are not set and can
 -- be overwritten.
-projectAttrs ::
+defaultProjectAttrs ::
   -- | project ID
   Int ->
   ProjectAttrs
-projectAttrs projId =
+defaultProjectAttrs projId =
   ProjectAttrs Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing projId Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing
 
 projectAttrsParams :: ProjectAttrs -> [GitLabParam]
@@ -906,8 +904,8 @@ instance Show SquashOption where
 
 -- | A default set of project searc filters where no project filters
 -- are applied, thereby returning all projects.
-projectSearchAttrs :: ProjectSearchAttrs
-projectSearchAttrs =
+defaultProjectSearchAttrs :: ProjectSearchAttrs
+defaultProjectSearchAttrs =
   ProjectSearchAttrs Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing
 
 -- | Attributes related to a group

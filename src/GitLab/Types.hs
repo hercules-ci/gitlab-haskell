@@ -277,6 +277,7 @@ data Member = Member
 
 -- TODO merge Identity and SamlIdentity into a single type.
 
+-- | identity
 data Identity = Identity
   { identity_extern_uid :: Text,
     identity_provider :: Text,
@@ -284,6 +285,7 @@ data Identity = Identity
   }
   deriving (Show, Eq)
 
+-- | SAML identity
 data SamlIdentity = SamlIdentity
   { saml_identity_extern_uid :: Text,
     saml_identity_provider :: Text,
@@ -434,6 +436,7 @@ data Project = Project
   }
   deriving (Show, Eq)
 
+-- | Licenses.
 data License = License
   { license_key :: Maybe Text,
     license_name :: Maybe Text,
@@ -443,6 +446,7 @@ data License = License
   }
   deriving (Show, Eq)
 
+-- | Expiration policies.
 data ExpirationPolicy = ExpirationPolicy
   { expiration_policy_cadence :: Maybe Text,
     expiration_policy_enabled :: Maybe Bool,
@@ -455,6 +459,7 @@ data ExpirationPolicy = ExpirationPolicy
   }
   deriving (Show, Eq)
 
+-- | Information about repository storage.
 data RepositoryStorage = RepositoryStorage
   { repository_storage_project_id :: Int,
     repository_storage_disk_path :: Maybe Text,
@@ -606,6 +611,7 @@ data Issue = Issue
   }
   deriving (Show, Eq)
 
+-- | GitLab epic.
 data Epic = Epic
   { epic_id :: Int,
     epic_iid :: Int,
@@ -906,12 +912,14 @@ data MergeRequest = MergeRequest
   }
   deriving (Show, Eq)
 
+-- | monitors a task completion status.
 data TaskCompletionStatus = TaskCompletionStatus
   { task_completion_status_count :: Int,
     task_completion_status_completed_count :: Maybe Int
   }
   deriving (Show, Eq)
 
+-- | references.
 data References = References
   { references_short :: Text,
     references_relative :: Text,
@@ -919,6 +927,7 @@ data References = References
   }
   deriving (Show, Eq)
 
+-- | Change between commits.
 data Change = Change
   { change_old_path :: Text,
     change_new_path :: Text,
@@ -931,6 +940,7 @@ data Change = Change
   }
   deriving (Show, Eq)
 
+-- | diff references.
 data DiffRefs = DiffRefs
   { diff_refs_base_sha :: Text,
     diff_refs_head_sha :: Text,
@@ -1035,12 +1045,14 @@ data Todo = Todo
   }
   deriving (Show, Eq)
 
+-- | Target type of a TODO.
 data TodoTargetType
   = MergeRequestTarget
   | IssueTarget
   | CommitTarget
   deriving (Show, Eq)
 
+-- | Type of a TODO.
 data TodoType
   = TodoTypeIssue
   | TodoTypeMergeRequest
@@ -1092,6 +1104,7 @@ data Discussion = Discussion
   }
   deriving (Show, Eq)
 
+-- | Note attached to a commit.
 data CommitNote = CommitNote
   { commitnote_note :: Text,
     commitnote_author :: User
@@ -1122,6 +1135,7 @@ data Note = Note
   }
   deriving (Show, Eq)
 
+-- | has a change been promoted to an epic.
 data CommandsChanges = CommanandsChanges
   { commands_changes_promote_to_epic :: Bool
   }
@@ -1233,6 +1247,7 @@ data TestCase = TestCase
   }
   deriving (Show, Eq)
 
+-- | Estimated humand and total time spent.
 data TimeEstimate = TimeEstimate
   { time_estimate_human_time_estimate :: Maybe Text,
     time_estimate_human_total_time_spent :: Maybe Text,
@@ -1241,6 +1256,7 @@ data TimeEstimate = TimeEstimate
   }
   deriving (Show, Eq)
 
+-- | Email information.
 data Email = Email
   { email_id :: Int,
     email_email :: Text,
@@ -1248,6 +1264,7 @@ data Email = Email
   }
   deriving (Show, Eq)
 
+-- | User preferences.
 data UserPrefs = UserPrefs
   { user_prefs_id :: Int,
     user_prefs_user_id :: Int,
@@ -1256,6 +1273,7 @@ data UserPrefs = UserPrefs
   }
   deriving (Show, Eq)
 
+-- | SSH key information.
 data Key = Key
   { key_id :: Maybe Int,
     key_title :: Maybe Text,
@@ -1265,6 +1283,7 @@ data Key = Key
   }
   deriving (Show, Eq)
 
+-- | User status.
 data UserStatus = UserStatus
   { user_status_emoji :: Maybe Text, -- TODO type for "coffee"
     user_status_availability :: Maybe Text, -- TODO type for "busy"
@@ -1274,6 +1293,7 @@ data UserStatus = UserStatus
   }
   deriving (Show, Eq)
 
+-- | Tracks counts for a user's activity.
 data UserCount = UserCount
   { user_count_merge_requests :: Int, -- TODO type for "coffee"
     user_count_assigned_issues :: Int, -- TODO type for "busy"
@@ -1308,6 +1328,7 @@ data Event = Event
   }
   deriving (Show, Eq)
 
+-- | Information about a git push.
 data PushData = PushData
   { push_data_commit_count :: Int,
     push_data_action :: EventActionName,
@@ -1319,6 +1340,7 @@ data PushData = PushData
   }
   deriving (Show, Eq)
 
+-- | Tracks whether an action is open, closed, pushed or commented on.
 data EventActionName
   = ANOpened
   | ANClosed
@@ -1339,6 +1361,7 @@ instance FromJSON EventActionName where
   parseJSON (String "commented on") = return ANCommentedOn
   parseJSON x = unexpected x
 
+-- | Associates an event with a particular target.
 data EventTargetType
   = ETTIssue
   | ETTMilestone
@@ -1566,12 +1589,14 @@ instance ToJSON TodoTarget where
   toJSON (TTMergeRequest x) = toJSON x
   toJSON (TTCommit x) = toJSON x
 
+-- | User who is the starrer of a project.
 data Starrer = Starrer
   { starrer_starred_since :: UTCTime,
     starrer_user :: User
   }
   deriving (Show, Eq)
 
+-- | Avatar for a project.
 newtype ProjectAvatar = ProjectAvatar
   { project_avatar_avatar_url :: Text
   }

@@ -134,6 +134,7 @@ getFileArchiveBS' projectId format = do
         <> "/archive"
         <> T.pack (show format)
 
+-- | Get repository contributors list.
 contributors ::
   -- | project
   Project ->

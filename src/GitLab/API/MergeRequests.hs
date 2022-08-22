@@ -352,6 +352,7 @@ data MergeProjectAttrs = MergeProjectAttrs
 
 -- TODO create types for merge_request_my_reaction_emoji
 
+-- | for filtering by merge request state.
 data MergeRequestState
   = -- | return only opened merge requests
     MROpened

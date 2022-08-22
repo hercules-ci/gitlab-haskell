@@ -49,8 +49,6 @@ module GitLab.API.Groups
     GroupProjectOrderBy (..),
     GroupAttrs (..),
     BranchProtection (..),
-    groupAttrs,
-    listGroupsAttrs,
     defaultGroupFilters,
     defaultListGroupsFilters,
   )
@@ -197,6 +195,7 @@ removeGroup grpId =
       "/groups/"
         <> T.pack (show grpId)
 
+-- | Get all groups that match your string in their name or path.
 searchGroup ::
   -- | String or path to search for.
   Text ->
@@ -225,6 +224,7 @@ data GroupProjectAttrs = GroupProjectAttrs
     groupProjectFilter_with_security_reports :: Maybe Bool
   }
 
+-- | The order of group projects in search results.
 data GroupProjectOrderBy
   = GroupProjectOrderId
   | GroupProjectOrderName
@@ -281,6 +281,7 @@ data ListGroupsAttrs = ListGroupsAttrs
     listGroupsFilter_top_level_only :: Maybe Bool
   }
 
+-- | The order of groups in search results.
 data GroupOrderBy
   = GroupOrderName
   | GroupOrderPath
@@ -360,6 +361,7 @@ data GroupAttrs = GroupAttrs
     groupFilter_visibility :: Maybe Visibility
   }
 
+-- | A group level branch protection setting.
 data BranchProtection
   = -- | Users with the Developer or Maintainer role can: push new
     -- commits, force push changes, delete the branch

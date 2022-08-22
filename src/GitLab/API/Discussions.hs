@@ -111,6 +111,9 @@ module GitLab.API.Discussions
 
     -- ** Delete a commit thread note
     deleteCommitThreadNote,
+
+    -- * Types
+    PositionReference (..),
   )
 where
 
@@ -448,6 +451,7 @@ mergeRequestDiscussionItems prj mergeRequestIid discussionId = do
           <> "/discussions/"
           <> show discussionId
 
+-- | Position reference for an entry in a discussion.
 data PositionReference = TextPos | ImagePos
 
 instance Show PositionReference where
