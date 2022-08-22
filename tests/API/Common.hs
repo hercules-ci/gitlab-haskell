@@ -6,9 +6,9 @@
 
 module API.Common where
 
-import Data.Aeson
+import Data.Aeson hiding (Key)
+import qualified Data.Aeson.KeyMap as KeyMap
 import qualified Data.ByteString.Lazy.Char8 as BSL
-import qualified Data.HashMap.Strict as HashMap
 import Data.Maybe
 import Data.TreeDiff.Class
 import Data.TreeDiff.Pretty
@@ -102,7 +102,7 @@ removeNulls (Array vec) = Just (Array (Vec.mapMaybe removeNulls vec))
 removeNulls (String x) = Just $ String x
 removeNulls (Number x) = Just $ Number x
 removeNulls (Bool x) = Just $ Bool x
-removeNulls (Object keyMap) = Just $ Object (HashMap.mapMaybe removeNulls keyMap)
+removeNulls (Object keyMap) = Just $ Object (KeyMap.mapMaybe removeNulls keyMap)
 
 gitlabJsonParserTests :: (ToExpr a, FromJSON a, ToJSON a, Eq a, Show a) => String -> FilePath -> IO a -> IO a -> [TestTree]
 gitlabJsonParserTests testPrefix jsonFilename parseFileF decodedCustomTypeF = do
