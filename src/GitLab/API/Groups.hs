@@ -51,6 +51,7 @@ module GitLab.API.Groups
     BranchProtection (..),
     defaultGroupFilters,
     defaultListGroupsFilters,
+    defaultGroupProjectFilters,
   )
 where
 
@@ -223,6 +224,11 @@ data GroupProjectAttrs = GroupProjectAttrs
     groupProjectFilter_with_custom_attributes :: Maybe Bool,
     groupProjectFilter_with_security_reports :: Maybe Bool
   }
+
+-- | No group filters applied, thereby returning all groups.
+defaultGroupProjectFilters :: GroupProjectAttrs
+defaultGroupProjectFilters =
+  GroupProjectAttrs Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing
 
 -- | The order of group projects in search results.
 data GroupProjectOrderBy
