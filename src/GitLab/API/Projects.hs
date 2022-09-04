@@ -81,10 +81,10 @@ module GitLab.API.Projects
     -- issuesCreatedByUser,
     -- issuesOnForks,
     -- projectMemebersCount,
-    -- projectCISuccess,
+    projectCISuccess,
     -- namespacePathToUserId,
     projectDiffs,
-    -- addGroupToProject,
+    addGroupToProject,
     -- transferProject,
     -- transferProject',
     defaultProjectAttrs,
@@ -111,6 +111,7 @@ import Data.Time.Clock
 import GHC.Generics
 import GitLab.API.Commits
 import GitLab.API.Members
+import GitLab.API.Pipelines
 import GitLab.API.Users
 import GitLab.Types
 import GitLab.WebRequests.GitLabWebCalls
@@ -627,6 +628,28 @@ projectDiffs' projId commitSha =
     )
     []
 
+-- | add a group to a project.
+addGroupToProject ::
+  -- | group ID
+  Int ->
+  -- | project ID
+  Int ->
+  -- | level of access granted
+  AccessLevel ->
+  GitLab (Either (Response BSL.ByteString) (Maybe GroupShare))
+addGroupToProject groupId projectId access =
+  gitlabPost addr params
+  where
+    params :: [GitLabParam]
+    params =
+      [ ("group_id", Just (T.encodeUtf8 (T.pack (show groupId)))),
+        ("group_access", Just (T.encodeUtf8 (T.pack (show access))))
+      ]
+    addr =
+      "/projects/"
+        <> T.pack (show projectId)
+        <> "/share"
+
 -- | A default set of project attributes to override with the
 -- 'editProject' functions. Only the project ID value is set is a
 -- search parameter, all other search parameters are not set and can
@@ -1063,17 +1086,17 @@ projectSearchAttrsParams filters =
 --       (res :: [Member]) <- fromRight (error "projectMembersCount error") <$> gitlabGetMany addr []
 --       return (map (\x -> (fromMaybe (error "projectMemebersCount error") (member_username x), fromMaybe (error "projectMemebersCount error") (member_name x))) res)
 
--- -- | returns 'True' is the last commit for a project passes all
--- -- continuous integration tests.
--- projectCISuccess ::
---   -- | the name or namespace of the project
---   Project ->
---   GitLab Bool
--- projectCISuccess project = do
---   pipes <- pipelines project
---   case pipes of
---     [] -> return False
---     (x : _) -> return (pipeline_status x == "success")
+-- | returns 'True' is the last commit for a project passes all
+-- continuous integration tests.
+projectCISuccess ::
+  -- | the name or namespace of the project
+  Project ->
+  GitLab Bool
+projectCISuccess prj = do
+  pipes <- pipelines prj
+  case pipes of
+    [] -> return False
+    (x : _) -> return (pipeline_status x == "success")
 
 -- -- | searches for a username, and returns a user ID for that user, or
 -- -- 'Nothing' if a user cannot be found.
