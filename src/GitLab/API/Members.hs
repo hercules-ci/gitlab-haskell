@@ -56,6 +56,7 @@ module GitLab.API.Members
 where
 
 import qualified Data.ByteString.Lazy as BSL
+import Data.Either
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
@@ -73,9 +74,10 @@ import Network.HTTP.Types.URI
 -- | Gets a list of project members viewable by the authenticated
 -- user. Returns only direct members and not inherited members through
 -- ancestors groups.
-membersOfProject :: Project -> GitLab (Either (Response BSL.ByteString) [Member])
+membersOfProject :: Project -> GitLab [Member]
 membersOfProject prj =
-  gitlabGetMany addr []
+  fromRight (error "membersOfProject error")
+    <$> gitlabGetMany addr []
   where
     addr =
       "/projects/"
