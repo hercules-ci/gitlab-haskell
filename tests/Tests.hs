@@ -22,7 +22,6 @@ import API.TagsTests
 import API.TodosTests
 import API.UsersTests
 import API.VersionTests
-import Data.Maybe (fromJust)
 import SystemHookTests
 import Test.Tasty
 
