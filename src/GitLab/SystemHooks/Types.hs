@@ -520,7 +520,7 @@ data RepositoryUpdate = RepositoryUpdate
 -- | A project event.
 data ProjectEvent = ProjectEvent
   { projectEvent_name :: Text,
-    projectEvent_description :: Text,
+    projectEvent_description :: Maybe Text,
     projectEvent_web_url :: Text,
     projectEvent_avatar_url :: Maybe Text,
     projectEvent_git_ssh_url :: Text,
@@ -549,7 +549,7 @@ data ProjectChanges = ProjectChanges
 data RepositoryEvent = RepositoryEvent
   { repositoryEvent_name :: Text,
     repositoryEvent_url :: Text,
-    repositoryEvent_description :: Text,
+    repositoryEvent_description :: Maybe Text,
     repositoryEvent_homepage :: Maybe Text,
     -- these three not in the merge_request event example
     -- in the GitLab documentation. Is the merge_request documentation
