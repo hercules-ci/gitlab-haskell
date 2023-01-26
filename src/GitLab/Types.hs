@@ -797,7 +797,7 @@ data GroupShare = GroupShare
     groupshare_group_id :: Int,
     groupshare_group_name :: Maybe Text,
     groupshare_group_full_path :: Maybe Text,
-    groupshare_group_access_level :: Int, -- TODO change this to 'AccessLevel'
+    groupshare_group_access_level :: Maybe Int, -- TODO change this to 'AccessLevel'
     groupshare_expires_at :: Maybe Text
   }
   deriving (Show, Eq)
