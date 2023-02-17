@@ -516,8 +516,18 @@ data User = User
     user_state :: Text,
     user_avatar_url :: Maybe Text,
     user_web_url :: Maybe Text,
+    user_location :: Maybe Text,
+    user_extern_uid :: Maybe Int,
+    user_group_id_for_saml :: Maybe Int,
     user_discussion_locked :: Maybe Bool, -- only for author of 'TODO' type
-    user_created_at :: Maybe UTCTime
+    user_created_at :: Maybe UTCTime,
+    user_note :: Maybe Text, -- viewable to administrators only
+    user_password :: Maybe Text, -- viewable to administrators only
+    user_force_random_password :: Maybe Bool,
+    user_providor :: Maybe Text,
+    user_reset_password :: Maybe Bool,
+    user_skip_confirmation :: Maybe Bool,
+    user_view_diffs_file_by_file :: Maybe Bool
   }
   deriving (Show, Eq)
 
