@@ -20,6 +20,7 @@ module GitLab.API.Users
     createUser,
 
     -- * User modification
+    userAttributes,
     modifyUser,
 
     -- * Delete authentication identity from user
@@ -120,6 +121,43 @@ user usrId =
     pathUser =
       "/users/"
         <> T.pack (show usrId)
+
+-- | Extracts the user attributes for a user. Useful for modifying
+-- attrbibutes with 'modifyUser'.
+userAttributes ::
+  -- | the user
+  User ->
+  -- | is the user a GitLab server administrator
+  Bool ->
+  -- | the extracted user attributes
+  UserAttrs
+userAttributes usr isAdmin =
+  UserAttrs
+    (Just isAdmin)
+    (user_bio usr)
+    (user_can_create_group usr)
+    (user_email usr)
+    (user_extern_uid usr)
+    (user_external usr) -- default is false
+    (user_force_random_password usr) -- default is false
+    (user_group_id_for_saml usr)
+    (user_linkedin usr)
+    (user_location usr)
+    (Just (user_name usr))
+    (user_note usr)
+    (user_organization usr)
+    (user_password usr)
+    (user_private_profile usr) -- default is false
+    (user_projects_limit usr)
+    (user_providor usr)
+    (user_reset_password usr)
+    (user_skip_confirmation usr)
+    (user_skype usr)
+    (user_theme_id usr)
+    (user_twitter usr)
+    (Just (user_username usr))
+    (user_view_diffs_file_by_file usr)
+    (user_website_url usr)
 
 -- | Creates a new user. Note only administrators can create new
 -- users. Either password, reset_password, or force_random_password
@@ -479,7 +517,7 @@ data UserAttrs = UserAttrs
     -- | email address
     userFilter_email :: Maybe Text,
     -- | External UID
-    userFilter_extern_uid :: Maybe Bool,
+    userFilter_extern_uid :: Maybe Int,
     -- | Flag the user as external - default is fale
     userFilter_external :: Maybe Bool,
     -- | Set user password to a random value - default is false
