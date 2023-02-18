@@ -270,7 +270,7 @@ commitDiff project sha = do
         <> T.pack (show projId)
         <> "/repository"
         <> "/commits/"
-        <> T.pack (show sha)
+        <> sha
         <> "/diff"
 
 -- | Get the diff of a commit in a project.
