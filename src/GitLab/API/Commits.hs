@@ -289,7 +289,7 @@ commitComments project sha = do
         <> T.pack (show projId)
         <> "/repository"
         <> "/commits/"
-        <> T.pack (show sha)
+        <> sha
         <> "/comments"
 
 -- | Adds a comment to a commit.
@@ -312,7 +312,7 @@ postCommitComment project sha note = do
         <> T.pack (show projId)
         <> "/repository"
         <> "/commits/"
-        <> T.pack (show sha)
+        <> sha
         <> "/comments"
 
 -- | Get the discussions of a commit in a project.
@@ -331,7 +331,7 @@ commitDiscussions project sha = do
         <> T.pack (show projId)
         <> "/repository"
         <> "/commits/"
-        <> T.pack (show sha)
+        <> sha
         <> "/discussions"
 
 -- | Get the discussions of a commit in a project.
@@ -350,7 +350,7 @@ commitMergeRequests project sha = do
         <> T.pack (show projId)
         <> "/repository"
         <> "/commits/"
-        <> T.pack (show sha)
+        <> sha
         <> "/merge_requests"
 
 -------------
