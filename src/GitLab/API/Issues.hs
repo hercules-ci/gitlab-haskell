@@ -1,5 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 -- |
 -- Module      : Issues
@@ -28,6 +29,7 @@ module GitLab.API.Issues
 
     -- * New issue
     newIssue,
+    newIssue',
 
     -- * Edit issue
     editIssue,
@@ -75,12 +77,14 @@ module GitLab.API.Issues
 
     -- * Issues attributes
     defaultIssueFilters,
+    defaultIssueAttrs,
     IssueAttrs (..),
     DueDate (..),
     IssueState (..),
   )
 where
 
+import Data.Aeson.TH
 import qualified Data.ByteString.Lazy as BSL
 import Data.Either
 import Data.Maybe
@@ -98,11 +102,11 @@ groupIssues ::
   -- | the group
   Group ->
   -- | filter the issues, see https://docs.gitlab.com/ee/api/issues.html#list-issues
-  IssueAttrs ->
+  IssueFilterAttrs ->
   -- the GitLab issues
   GitLab [Issue]
 groupIssues grp attrs = do
-  result <- gitlabGetMany urlPath (issuesAttrs attrs)
+  result <- gitlabGetMany urlPath (issueFilters attrs)
   return (fromRight (error "groupsIssues error") result)
   where
     urlPath =
@@ -119,7 +123,7 @@ projectIssues ::
   -- | the project
   Project ->
   -- | filter the issues, see https://docs.gitlab.com/ee/api/issues.html#list-issues
-  IssueAttrs ->
+  IssueFilterAttrs ->
   -- the GitLab issues
   GitLab [Issue]
 projectIssues p filters = do
@@ -131,11 +135,11 @@ projectIssues' ::
   -- | the project ID
   Int ->
   -- | filter the issues, see https://docs.gitlab.com/ee/api/issues.html#list-issues
-  IssueAttrs ->
+  IssueFilterAttrs ->
   -- | the GitLab issues
   GitLab (Either (Response BSL.ByteString) [Issue])
 projectIssues' projectId attrs =
-  gitlabGetMany urlPath (issuesAttrs attrs)
+  gitlabGetMany urlPath (issueFilters attrs)
   where
     urlPath =
       T.pack $
@@ -198,6 +202,8 @@ newIssue ::
   Text ->
   -- | issue description
   Text ->
+  -- | issue attributes
+  IssueAttrs ->
   GitLab (Either (Response BSL.ByteString) (Maybe Issue))
 newIssue project =
   newIssue' (project_id project)
@@ -210,8 +216,10 @@ newIssue' ::
   Text ->
   -- | issue description
   Text ->
+  -- | issue attributes
+  IssueAttrs ->
   GitLab (Either (Response BSL.ByteString) (Maybe Issue))
-newIssue' projectId issueTitle issueDescription =
+newIssue' projectId issueTitle issueDescription attrs =
   gitlabPost addr dataBody
   where
     dataBody :: [GitLabParam]
@@ -219,6 +227,7 @@ newIssue' projectId issueTitle issueDescription =
       [ ("title", Just (T.encodeUtf8 issueTitle)),
         ("description", Just (T.encodeUtf8 issueDescription))
       ]
+        <> issueAttrs projectId attrs
     addr =
       "/projects/"
         <> T.pack (show projectId)
@@ -229,17 +238,19 @@ editIssue ::
   Project ->
   -- | issue ID
   IssueId ->
-  EditIssueReq ->
+  -- | issue attributes
+  IssueAttrs ->
   GitLab (Either (Response BSL.ByteString) Issue)
 editIssue prj issueId editIssueReq = do
   let urlPath =
-        "/projects/" <> T.pack (show (project_id prj))
+        "/projects/"
+          <> T.pack (show (project_id prj))
           <> "/issues/"
           <> T.pack (show issueId)
   result <-
     gitlabPut
       urlPath
-      (editIssuesAttrs editIssueReq)
+      (issueAttrs (project_id prj) editIssueReq)
   case result of
     Left resp -> return (Left resp)
     Right Nothing -> error "editIssue error"
@@ -275,7 +286,8 @@ reorderIssue ::
   GitLab (Either (Response BSL.ByteString) Issue)
 reorderIssue prj issueId moveAfterId moveBeforeId = do
   let urlPath =
-        "/projects/" <> T.pack (show (project_id prj))
+        "/projects/"
+          <> T.pack (show (project_id prj))
           <> "/issues/"
           <> T.pack (show issueId)
           <> "/reorder"
@@ -459,11 +471,11 @@ issueParticipants prj issueId = do
 -- | Gets issues count statistics on all issues the authenticated user has access to.
 issueStatisticsUser ::
   -- | filter the issues, see https://docs.gitlab.com/ee/api/issues_statistics.html#get-issues-statistics
-  IssueAttrs ->
+  IssueFilterAttrs ->
   -- | the issue statistics
   GitLab IssueStatistics
 issueStatisticsUser attrs =
-  gitlabUnsafe (gitlabGetOne urlPath (issuesAttrs attrs))
+  gitlabUnsafe (gitlabGetOne urlPath (issueFilters attrs))
   where
     urlPath =
       T.pack
@@ -474,7 +486,7 @@ issueStatisticsGroup ::
   -- | the group
   Group ->
   -- | filter the issues, see https://docs.gitlab.com/ee/api/issues_statistics.html#get-issues-statistics
-  IssueAttrs ->
+  IssueFilterAttrs ->
   -- | the issue statistics
   GitLab IssueStatistics
 issueStatisticsGroup group filters = do
@@ -489,11 +501,11 @@ issueStatisticsGroup' ::
   -- | the group ID
   Int ->
   -- | filter the issues, see https://docs.gitlab.com/ee/api/issues_statistics.html#get-issues-statistics
-  IssueAttrs ->
+  IssueFilterAttrs ->
   -- | the issue statistics
   GitLab (Either (Response BSL.ByteString) (Maybe IssueStatistics))
 issueStatisticsGroup' groupId attrs =
-  gitlabGetOne urlPath (issuesAttrs attrs)
+  gitlabGetOne urlPath (issueFilters attrs)
   where
     urlPath =
       T.pack $
@@ -506,7 +518,7 @@ issueStatisticsProject ::
   -- | the project
   Project ->
   -- | filter the issues, see https://docs.gitlab.com/ee/api/issues_statistics.html#get-issues-statistics
-  IssueAttrs ->
+  IssueFilterAttrs ->
   -- | the issue statistics
   GitLab IssueStatistics
 issueStatisticsProject proj filters = do
@@ -521,11 +533,11 @@ issueStatisticsProject' ::
   -- | the project ID
   Int ->
   -- | filter the issues, see https://docs.gitlab.com/ee/api/issues_statistics.html#get-issues-statistics
-  IssueAttrs ->
+  IssueFilterAttrs ->
   -- | the issue statistics
   GitLab (Either (Response BSL.ByteString) (Maybe IssueStatistics))
 issueStatisticsProject' projId attrs =
-  gitlabGetOne urlPath (issuesAttrs attrs)
+  gitlabGetOne urlPath (issueFilters attrs)
   where
     urlPath =
       T.pack $
@@ -533,8 +545,28 @@ issueStatisticsProject' projId attrs =
           <> show projId
           <> "/issues_statistics"
 
--- | Attributes related to a project issue
+-- | issue attributes.
 data IssueAttrs = IssueAttrs
+  { set_issue_id :: ProjectId,
+    set_issue_title :: Maybe Text,
+    set_issue_description :: Maybe Text,
+    set_issue_confidential :: Maybe Bool,
+    set_issue_assignee_id :: Maybe Int,
+    set_issue_assignee_ids :: Maybe [Int],
+    set_issue_milestone_id :: Maybe Int,
+    set_issue_labels :: Maybe [Text],
+    set_issue_state_event :: Maybe Text,
+    set_issue_updated_at :: Maybe UTCTime,
+    set_issue_due_date :: Maybe UTCTime,
+    set_issue_weight :: Maybe Int,
+    set_issue_discussion_locked :: Maybe Bool,
+    set_issue_epic_id :: Maybe Int,
+    set_issue_epic_iid :: Maybe Int
+  }
+  deriving (Show)
+
+-- | Attributes related to a project issue
+data IssueFilterAttrs = IssueFilterAttrs
   { issueFilter_assignee_id :: Maybe Int,
     issueFilter_assignee_username :: Maybe String,
     issueFilter_author_id :: Maybe Int,
@@ -561,37 +593,42 @@ data IssueAttrs = IssueAttrs
     issueFilter_with_labels_details :: Maybe Bool
   }
 
-editIssuesAttrs :: EditIssueReq -> [GitLabParam]
-editIssuesAttrs filters =
-  catMaybes
-    [ Just ("id", textToBS (T.pack (show (edit_issue_id filters)))),
-      Just ("issue_id", textToBS (T.pack (show (edit_issue_issue_iid filters)))),
-      -- (\i -> Just ("assignee_id", textToBS (T.pack (show i)))) =<< edit_issue_issue_id filters,
-      (\t -> Just ("title", textToBS t)) =<< edit_issue_title filters,
-      (\t -> Just ("description", textToBS t)) =<< edit_issue_description filters,
-      (\b -> Just ("confidential", textToBS (showBool b))) =<< edit_issue_confidential filters,
-      -- TODO
-      -- (\is -> Just ("assignee_ids", textToBS )) =<< edit_issue_assignee_ids filters,
-      (\i -> Just ("milestone_id", textToBS (T.pack (show i)))) =<< edit_issue_milestone_id filters,
-      -- TODO
-      -- (\ts -> Just ("labels", textToBS (T.pack (show i)))) =<< edit_issue_labels filters,
-      (\t -> Just ("state_event", textToBS t)) =<< edit_issue_state_event filters,
-      (\d -> Just ("updated_at", stringToBS (show d))) =<< edit_issue_updated_at filters,
-      (\t -> Just ("due_date", textToBS t)) =<< edit_issue_due_date filters,
-      (\i -> Just ("weight", textToBS (T.pack (show i)))) =<< edit_issue_weight filters,
-      (\b -> Just ("discussion_locked", textToBS (showBool b))) =<< edit_issue_discussion_locked filters,
-      (\i -> Just ("epic_id", textToBS (T.pack (show i)))) =<< edit_issue_epic_id filters,
-      (\i -> Just ("epic_iid", textToBS (T.pack (show i)))) =<< edit_issue_epic_iid filters
+issueAttrs :: Int -> IssueAttrs -> [GitLabParam]
+issueAttrs prjId filters =
+  catMaybes $
+    [ Just ("id", textToBS (T.pack (show prjId))),
+      (\i -> Just ("assignee_id", textToBS (T.pack (show i)))) =<< set_issue_assignee_id filters,
+      (\t -> Just ("title", textToBS t)) =<< set_issue_title filters,
+      (\t -> Just ("description", textToBS t)) =<< set_issue_description filters,
+      (\b -> Just ("confidential", textToBS (showBool b))) =<< set_issue_confidential filters,
+      (\i -> Just ("milestone_id", textToBS (T.pack (show i)))) =<< set_issue_milestone_id filters,
+      (\ts -> Just ("labels", textToBS (T.intercalate (T.pack ",") ts))) =<< set_issue_labels filters,
+      (\t -> Just ("state_event", textToBS t)) =<< set_issue_state_event filters,
+      (\d -> Just ("updated_at", stringToBS (show d))) =<< set_issue_updated_at filters,
+      (\d -> Just ("due_date", stringToBS (show d))) =<< set_issue_due_date filters,
+      (\i -> Just ("weight", textToBS (T.pack (show i)))) =<< set_issue_weight filters,
+      (\b -> Just ("discussion_locked", textToBS (showBool b))) =<< set_issue_discussion_locked filters,
+      (\i -> Just ("epic_id", textToBS (T.pack (show i)))) =<< set_issue_epic_id filters,
+      (\i -> Just ("epic_iid", textToBS (T.pack (show i)))) =<< set_issue_epic_iid filters
     ]
+      <> case set_issue_assignee_ids filters of
+        Nothing -> []
+        Just ids ->
+          map
+            (\i -> Just ("assignee_ids[]", stringToBS (show i)))
+            ids
   where
+    -- <> (\is -> Just ("assignee_ids", arrayToBS is))
+    -- =<< set_issue_assignee_ids filters
+
     textToBS = Just . T.encodeUtf8
     stringToBS = Just . T.encodeUtf8 . T.pack
     showBool :: Bool -> Text
     showBool True = "true"
     showBool False = "false"
 
-issuesAttrs :: IssueAttrs -> [GitLabParam]
-issuesAttrs filters =
+issueFilters :: IssueFilterAttrs -> [GitLabParam]
+issueFilters filters =
   catMaybes
     [ (\i -> Just ("assignee_id", textToBS (T.pack (show i)))) =<< issueFilter_assignee_id filters,
       (\t -> Just ("assignee_username", textToBS (T.pack t))) =<< issueFilter_assignee_username filters,
@@ -651,6 +688,16 @@ instance Show IssueState where
   show IssueClosed = "closed"
 
 -- | No issue filters, thereby returning all issues. Default scope is "all".
-defaultIssueFilters :: IssueAttrs
+defaultIssueFilters :: IssueFilterAttrs
 defaultIssueFilters =
-  IssueAttrs Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing (Just All) Nothing Nothing Nothing Nothing Nothing Nothing
+  IssueFilterAttrs Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing (Just All) Nothing Nothing Nothing Nothing Nothing Nothing
+
+-- | issue attributes when creating or editing issues.
+defaultIssueAttrs ::
+  -- | project ID
+  Int ->
+  IssueAttrs
+defaultIssueAttrs prjId =
+  IssueAttrs prjId Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing
+
+$(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "set_issue_"), omitNothingFields = True} ''IssueAttrs)
