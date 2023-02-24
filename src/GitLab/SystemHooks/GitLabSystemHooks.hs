@@ -20,7 +20,7 @@ where
 import qualified Control.Exception as E
 import Control.Monad
 import Control.Monad.IO.Class
-import Control.Monad.Trans.Reader
+import qualified Control.Monad.Reader as MR
 import Data.Typeable
 import GitLab.SystemHooks.Types
 import GitLab.Types
@@ -43,7 +43,7 @@ receiveString eventContent rules = do
 
 traceSystemHook :: String -> GitLab ()
 traceSystemHook eventContent = do
-  cfg <- serverCfg <$> ask
+  cfg <- serverCfg <$> MR.ask
   liftIO $
     E.catch
       ( when (debugSystemHooks cfg) $ do

@@ -111,9 +111,10 @@ runGitLabPassPrompt cfg action = do
 -- | The same as 'runGitLab', except that it also takes a connection
 -- manager as an argument.
 runGitLabWithManager :: Manager -> GitLabServerConfig -> GitLab a -> IO a
-runGitLabWithManager manager cfg action = do
+runGitLabWithManager manager cfg (GitLabT action) = do
   -- test the token access
-  tokenTest <- runReaderT gitlabVersion (GitLabState cfg manager)
+  let (GitLabT versionCheck) = gitlabVersion
+  tokenTest <- runReaderT versionCheck (GitLabState cfg manager)
   case tokenTest of
     Left response ->
       case responseStatus response of
@@ -127,6 +128,6 @@ runGitLabWithManager manager cfg action = do
 -- liftIO. Cannot speak to a GitLab server. Only useful for the
 -- gitlab-haskell tests.
 runGitLabDbg :: GitLab a -> IO a
-runGitLabDbg action = do
+runGitLabDbg (GitLabT action) = do
   liftIO $ hSetBuffering stdout LineBuffering
   runReaderT action undefined

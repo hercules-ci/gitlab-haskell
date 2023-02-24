@@ -1,3 +1,4 @@
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -14,6 +15,7 @@
 -- Stability   : stable
 module GitLab.Types
   ( GitLab,
+    GitLabT (..),
     GitLabState (..),
     GitLabServerConfig (..),
     defaultGitLabServer,
@@ -105,7 +107,10 @@ module GitLab.Types
   )
 where
 
-import Control.Monad.Trans.Reader
+import Control.Monad.IO.Class
+import qualified Control.Monad.IO.Class as MIO
+import qualified Control.Monad.Reader as MR
+import qualified Control.Monad.Trans.Class as MT
 import Data.Aeson hiding (Key)
 import Data.Aeson.TH
 import Data.Aeson.Types hiding (Key)
@@ -114,8 +119,21 @@ import qualified Data.Text as T
 import Data.Time.Clock
 import Network.HTTP.Conduit
 
--- | type synonym for all GitLab actions.
-type GitLab a = ReaderT GitLabState IO a
+-- | The monad in which the GitLab operations can be run.
+-- Contains the 'GitLabState' to run the requests with.
+--
+-- Run it with 'runGitLab'
+newtype GitLabT m a = GitLabT (MR.ReaderT GitLabState m a)
+  deriving (Functor, Applicative, Monad, MonadFail, MR.MonadReader GitLabState)
+
+instance MT.MonadTrans GitLabT where
+  lift = GitLabT . MT.lift
+
+instance MIO.MonadIO m => MIO.MonadIO (GitLabT m) where
+  liftIO = GitLabT . MIO.liftIO
+
+-- | Utility type which uses 'IO' as underlying monad
+type GitLab a = GitLabT IO a
 
 -- | state used by GitLab actions, used internally.
 data GitLabState = GitLabState

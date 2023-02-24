@@ -16,7 +16,7 @@ where
 
 import qualified Control.Exception as Exception
 import Control.Monad.IO.Class
-import Control.Monad.Trans.Reader
+import qualified Control.Monad.Reader as MR
 import Data.Aeson
 import Data.ByteString
 import qualified Data.ByteString.Lazy as BSL
@@ -169,8 +169,8 @@ gitlabHTTP ::
   [GitLabParam] ->
   GitLab (Response BSL.ByteString)
 gitlabHTTP httpMethod contentType urlPath urlParams contentParams = do
-  cfg <- serverCfg <$> ask
-  manager <- httpManager <$> ask
+  cfg <- serverCfg <$> MR.ask
+  manager <- httpManager <$> MR.ask
   let url' = url cfg <> "/api/v4" <> urlPath <> T.decodeUtf8 (renderQuery True urlParams)
   let request' = parseRequest_ (T.unpack url')
       request =
@@ -277,8 +277,8 @@ tryGitLab ::
 tryGitLab i request maxRetries manager lastException
   | i == maxRetries = error (show lastException)
   | otherwise =
-    httpLbs request manager
-      `Exception.catch` \ex -> tryGitLab (i + 1) request maxRetries manager (Just ex)
+      httpLbs request manager
+        `Exception.catch` \ex -> tryGitLab (i + 1) request maxRetries manager (Just ex)
 
 parseOne :: FromJSON a => BSL.ByteString -> Maybe a
 parseOne bs =
