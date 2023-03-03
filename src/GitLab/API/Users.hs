@@ -158,6 +158,7 @@ userAttributes usr isAdmin =
     (Just (user_username usr))
     (user_view_diffs_file_by_file usr)
     (user_website_url usr)
+    (user_pronouns usr)
 
 -- | Creates a new user. Note only administrators can create new
 -- users. Either password, reset_password, or force_random_password
@@ -504,7 +505,7 @@ rejectUser = userAction "/reject" "rejectUser"
 -- | No group filters applied, thereby returning all groups.
 defaultUserFilters :: UserAttrs
 defaultUserFilters =
-  UserAttrs Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing
+  UserAttrs Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing
 
 -- | Attributes related to a group
 data UserAttrs = UserAttrs
@@ -557,7 +558,9 @@ data UserAttrs = UserAttrs
     -- | Flag indicating the user sees only one file diff per page
     userFilter_view_diffs_file_by_file :: Maybe Bool,
     -- | User's website URL
-    userFilter_website :: Maybe Text
+    userFilter_website :: Maybe Text,
+    -- | User's pronouns
+    userFilter_pronouns :: Maybe Text
   }
 
 userAttrs :: UserAttrs -> [GitLabParam]
@@ -587,7 +590,8 @@ userAttrs filters =
       (\t -> Just ("twitter", textToBS t)) =<< userFilter_twitter filters,
       (\t -> Just ("username", textToBS t)) =<< userFilter_username filters,
       (\b -> Just ("view_diffs_file_by_file", textToBS (showBool b))) =<< userFilter_view_diffs_file_by_file filters,
-      (\t -> Just ("website", textToBS t)) =<< userFilter_website filters
+      (\t -> Just ("website", textToBS t)) =<< userFilter_website filters,
+      (\t -> Just ("pronouns", textToBS t)) =<< userFilter_pronouns filters
     ]
   where
     textToBS = Just . T.encodeUtf8
