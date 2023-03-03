@@ -523,6 +523,7 @@ data User = User
     user_public_email :: Maybe Text,
     user_organization :: Maybe Text,
     user_job_title :: Maybe Text,
+    user_pronouns :: Maybe Text,
     user_linkedin :: Maybe Text,
     user_confirmed_at :: Maybe UTCTime,
     user_identities :: Maybe [Identity],
