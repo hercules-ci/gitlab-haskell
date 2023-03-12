@@ -21,6 +21,9 @@ import qualified Control.Exception as E
 import Control.Monad
 import Control.Monad.IO.Class
 import qualified Control.Monad.Reader as MR
+import Data.Text (Text)
+import qualified Data.Text as T
+import qualified Data.Text.IO as TIO
 import Data.Typeable
 import GitLab.SystemHooks.Types
 import GitLab.Types
@@ -31,23 +34,23 @@ import System.Posix.Files
 -- received from the GitLab server from standard input.
 receive :: [Rule] -> GitLab ()
 receive rules = do
-  eventContent <- liftIO getContents
+  eventContent <- liftIO TIO.getContents
   receiveString eventContent rules
 
 -- | Attempts to fire each rule in sequence. Reads the JSON data
 -- received from a function argument.
-receiveString :: String -> [Rule] -> GitLab ()
+receiveString :: Text -> [Rule] -> GitLab ()
 receiveString eventContent rules = do
   traceSystemHook eventContent
   mapM_ (fire eventContent) rules
 
-traceSystemHook :: String -> GitLab ()
+traceSystemHook :: Text -> GitLab ()
 traceSystemHook eventContent = do
   cfg <- serverCfg <$> MR.ask
   liftIO $
     E.catch
       ( when (debugSystemHooks cfg) $ do
-          fpath <- writeSystemTempFile "gitlab-system-hook-" eventContent
+          fpath <- writeSystemTempFile "gitlab-system-hook-" (T.unpack eventContent)
           void $ setFileMode fpath otherReadMode
       )
       -- runGitLabDbg must have been used, which doesn't define a GitLabServerConfig
@@ -60,7 +63,7 @@ orElse f g = do
     then return True
     else g
 
-fire :: String -> Rule -> GitLab ()
+fire :: Text -> Rule -> GitLab ()
 fire contents rule = do
   result <- tryFire contents rule
   when result $
@@ -72,7 +75,7 @@ fire contents rule = do
 
 -- | Try to fire a GitLab rule, returns 'True' if the rule fired and
 -- 'False' if it did not fire.
-tryFire :: String -> Rule -> GitLab Bool
+tryFire :: Text -> Rule -> GitLab Bool
 tryFire contents (Match _ f) = do
   fireIf'
     (Just (\_ -> return True))

@@ -57,8 +57,10 @@ module GitLab.SystemHooks.Types
 where
 
 import Data.Aeson
-import qualified Data.ByteString.Lazy.Char8 as BSL
+import qualified Data.ByteString as BS
+-- import qualified Data.ByteString.Lazy.Char8 as BSL
 import Data.Text (Text)
+import qualified Data.Text.Encoding as T
 import Data.Typeable
 import GHC.Generics
 import GitLab.Types
@@ -74,9 +76,9 @@ class (FromJSON a) => SystemHook a where
   matchIf :: String -> (a -> GitLab Bool) -> (a -> GitLab ()) -> Rule
 
 -- | Parse JSON data into GitLab events.
-parseEvent :: (FromJSON a) => String -> Maybe a
-parseEvent string =
-  case eitherDecode (BSL.pack string) of
+parseEvent :: (FromJSON a) => Text -> Maybe a
+parseEvent eventText =
+  case eitherDecode (BS.fromStrict (T.encodeUtf8 eventText)) of
     Left _error -> Nothing
     Right event -> Just event
 
