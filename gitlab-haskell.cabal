@@ -60,7 +60,7 @@ library
               , http-conduit
               , connection
               , aeson >= 2.0.0.0
-              , bytestring
+              , bytestring >= 0.11.0.0
               , text
               , http-client
               , http-types
