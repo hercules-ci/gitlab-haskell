@@ -469,7 +469,7 @@ data Push = Push
     push_checkout_sha :: Text,
     push_user_id :: Int,
     push_user_name :: Text,
-    push_user_email :: Text,
+    push_user_email :: Maybe Text,
     push_user_avatar :: Text,
     push_project_id :: Int,
     push_project :: ProjectEvent,
