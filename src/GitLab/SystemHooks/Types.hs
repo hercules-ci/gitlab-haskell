@@ -469,6 +469,7 @@ data Push = Push
     push_checkout_sha :: Text,
     push_user_id :: Int,
     push_user_name :: Text,
+    push_user_username :: Maybe Text,
     push_user_email :: Maybe Text,
     push_user_avatar :: Text,
     push_project_id :: Int,
@@ -1171,6 +1172,7 @@ instance FromJSON Push where
                 <*> v .: "checkout_sha"
                 <*> v .: "user_id"
                 <*> v .: "user_name"
+                <*> v .: "user_username"
                 <*> v .: "user_email"
                 <*> v .: "user_avatar"
                 <*> v .: "project_id"
