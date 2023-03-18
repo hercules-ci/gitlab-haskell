@@ -111,5 +111,6 @@ test-suite test-gitlab-haskell
                , ansi-wl-pprint
                , vector
                , unordered-containers
+               , text
   ghc-options: -Wall
                

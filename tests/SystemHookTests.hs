@@ -4,6 +4,7 @@
 module SystemHookTests (systemHookTests) where
 
 import Control.Monad.IO.Class
+import qualified Data.Text.IO as TIO
 import GitLab
 import Test.Tasty
 import Test.Tasty.HUnit
@@ -18,132 +19,132 @@ parserTests =
     "GitLab system hook rules"
     [ testCase
         "project-create-event"
-        ( readFile "data/system-hooks/project-created.json"
+        ( TIO.readFile "data/system-hooks/project-created.json"
             >>= \eventJson -> parseEvent eventJson @?= Just projectCreatedHaskell
         ),
       testCase
         "project-destroy-event"
-        ( readFile "data/system-hooks/project-destroyed.json"
+        ( TIO.readFile "data/system-hooks/project-destroyed.json"
             >>= \eventJson -> parseEvent eventJson @?= Just projectDestroyedHaskell
         ),
       testCase
         "project-rename-event"
-        ( readFile "data/system-hooks/project-renamed.json"
+        ( TIO.readFile "data/system-hooks/project-renamed.json"
             >>= \eventJson -> parseEvent eventJson @?= Just projectRenamedHaskell
         ),
       testCase
         "project-transfer-event"
-        ( readFile "data/system-hooks/project-transferred.json"
+        ( TIO.readFile "data/system-hooks/project-transferred.json"
             >>= \eventJson -> parseEvent eventJson @?= Just projectTransferredHaskell
         ),
       testCase
         "project-update-event"
-        ( readFile "data/system-hooks/project-updated.json"
+        ( TIO.readFile "data/system-hooks/project-updated.json"
             >>= \eventJson -> parseEvent eventJson @?= Just projectUpdatedHaskell
         ),
       testCase
         "new-team-member-event"
-        ( readFile "data/system-hooks/new-team-member.json"
+        ( TIO.readFile "data/system-hooks/new-team-member.json"
             >>= \eventJson -> parseEvent eventJson @?= Just userAddedToTeamHaskell
         ),
       testCase
         "team-member-removed-event"
-        ( readFile "data/system-hooks/team-member-removed.json"
+        ( TIO.readFile "data/system-hooks/team-member-removed.json"
             >>= \eventJson -> parseEvent eventJson @?= Just userRemovedFromTeamHaskell
         ),
       testCase
         "team-member-updated-event"
-        ( readFile "data/system-hooks/team-member-updated.json"
+        ( TIO.readFile "data/system-hooks/team-member-updated.json"
             >>= \eventJson -> parseEvent eventJson @?= Just userUpdatedForTeamHaskell
         ),
       testCase
         "user-created-event"
-        ( readFile "data/system-hooks/user-created.json"
+        ( TIO.readFile "data/system-hooks/user-created.json"
             >>= \eventJson -> parseEvent eventJson @?= Just userCreatedHaskell
         ),
       testCase
         "user-removed-event"
-        ( readFile "data/system-hooks/user-removed.json"
+        ( TIO.readFile "data/system-hooks/user-removed.json"
             >>= \eventJson -> parseEvent eventJson @?= Just userRemovedHaskell
         ),
       testCase
         "user-failed-login-event"
-        ( readFile "data/system-hooks/user-failed-login.json"
+        ( TIO.readFile "data/system-hooks/user-failed-login.json"
             >>= \eventJson -> parseEvent eventJson @?= Just userFailedLoginHaskell
         ),
       testCase
         "user-renamed-event"
-        ( readFile "data/system-hooks/user-renamed.json"
+        ( TIO.readFile "data/system-hooks/user-renamed.json"
             >>= \eventJson -> parseEvent eventJson @?= Just userRenamedHaskell
         ),
       testCase
         "key-added-event"
-        ( readFile "data/system-hooks/key-added.json"
+        ( TIO.readFile "data/system-hooks/key-added.json"
             >>= \eventJson -> parseEvent eventJson @?= Just keyCreatedHaskell
         ),
       testCase
         "key-removed-event"
-        ( readFile "data/system-hooks/key-removed.json"
+        ( TIO.readFile "data/system-hooks/key-removed.json"
             >>= \eventJson -> parseEvent eventJson @?= Just keyRemovedHaskell
         ),
       testCase
         "group-created-event"
-        ( readFile "data/system-hooks/group-created.json"
+        ( TIO.readFile "data/system-hooks/group-created.json"
             >>= \eventJson -> parseEvent eventJson @?= Just groupCreatedHaskell
         ),
       testCase
         "group-removed-event"
-        ( readFile "data/system-hooks/group-removed.json"
+        ( TIO.readFile "data/system-hooks/group-removed.json"
             >>= \eventJson -> parseEvent eventJson @?= Just groupRemovedHaskell
         ),
       testCase
         "group-renamed-event"
-        ( readFile "data/system-hooks/group-renamed.json"
+        ( TIO.readFile "data/system-hooks/group-renamed.json"
             >>= \eventJson -> parseEvent eventJson @?= Just groupRenamedHaskell
         ),
       testCase
         "new-group-member-event"
-        ( readFile "data/system-hooks/new-group-member.json"
+        ( TIO.readFile "data/system-hooks/new-group-member.json"
             >>= \eventJson -> parseEvent eventJson @?= Just newGroupMemberHaskell
         ),
       testCase
         "group-member-removed-event"
-        ( readFile "data/system-hooks/group-member-removed.json"
+        ( TIO.readFile "data/system-hooks/group-member-removed.json"
             >>= \eventJson -> parseEvent eventJson @?= Just groupMemberRemovedHaskell
         ),
       testCase
         "group-member-updated-event"
-        ( readFile "data/system-hooks/group-member-updated.json"
+        ( TIO.readFile "data/system-hooks/group-member-updated.json"
             >>= \eventJson -> parseEvent eventJson @?= Just groupMemberUpdatedHaskell
         ),
       testCase
         "push-event"
-        ( readFile "data/system-hooks/push.json"
+        ( TIO.readFile "data/system-hooks/push.json"
             >>= \eventJson -> parseEvent eventJson @?= Just pushHaskell
         ),
       testCase
         "tag-push-event"
-        ( readFile "data/system-hooks/tag-push.json"
+        ( TIO.readFile "data/system-hooks/tag-push.json"
             >>= \eventJson -> parseEvent eventJson @?= Just tagPushHaskell
         ),
       testCase
         "merge-request-event"
-        ( readFile "data/system-hooks/merge-request.json"
+        ( TIO.readFile "data/system-hooks/merge-request.json"
             >>= \eventJson -> parseEvent eventJson @?= Just mergeRequestHaskell
         ),
       testCase
         "merge-request-event-hw-october-2022"
-        ( readFile "data/system-hooks/merge-request-gitlab-15.5.0.json"
+        ( TIO.readFile "data/system-hooks/merge-request-gitlab-15.5.0.json"
             >>= \eventJson -> parseEvent eventJson @?= Just mergeRequestGitLab_15_5_0_Haskell
         ),
       testCase
         "merge-request-event-hw-maybe-descriptions"
-        ( readFile "data/system-hooks/merge-request-haskell-gitlab-d1ca1037944616ac940284c5f8e49b5d9bcbf83c.json"
+        ( TIO.readFile "data/system-hooks/merge-request-haskell-gitlab-d1ca1037944616ac940284c5f8e49b5d9bcbf83c.json"
             >>= \eventJson -> parseEvent eventJson @?= Just mergeRequestGitLab_15_5_0_maybe_descriptions_Haskell
         ),
       testCase
         "repository-update-event"
-        ( readFile "data/system-hooks/repository-update.json"
+        ( TIO.readFile "data/system-hooks/repository-update.json"
             >>= \eventJson -> parseEvent eventJson @?= Just repositoryUpdateHaskell
         )
     ]
@@ -152,21 +153,21 @@ matchTest :: String -> String -> Rule -> String -> Rule -> [TestTree]
 matchTest lbl jsonFilename rule wrongJson wrongRule =
   [ testCase lbl $
       runGitLabDbg
-        ( liftIO (readFile ("data/system-hooks/" <> jsonFilename))
+        ( liftIO (TIO.readFile ("data/system-hooks/" <> jsonFilename))
             >>= \eventJson -> tryFire eventJson rule
         )
         @? (lbl <> " failed"),
     testCase (lbl <> "-wrong-json") $
       not
         <$> runGitLabDbg
-          ( liftIO (readFile ("data/system-hooks/" <> wrongJson))
+          ( liftIO (TIO.readFile ("data/system-hooks/" <> wrongJson))
               >>= \eventJson -> tryFire eventJson rule
           )
         @? (lbl <> "-wrong-json failed"),
     testCase (lbl <> "-wrong-rule") $
       not
         <$> runGitLabDbg
-          ( liftIO (readFile ("data/system-hooks/" <> jsonFilename))
+          ( liftIO (TIO.readFile ("data/system-hooks/" <> jsonFilename))
               >>= \eventJson -> tryFire eventJson wrongRule
           )
         @? (lbl <> "-wrong-rule failed")
@@ -176,14 +177,14 @@ matchIfTest :: String -> String -> Rule -> Rule -> [TestTree]
 matchIfTest lbl jsonFilename yesFire noFire =
   [ testCase (lbl <> "-yes") $
       runGitLabDbg
-        ( liftIO (readFile ("data/system-hooks/" <> jsonFilename))
+        ( liftIO (TIO.readFile ("data/system-hooks/" <> jsonFilename))
             >>= \eventJson -> tryFire eventJson yesFire
         )
         @? (lbl <> "-fireIf-yes failed"),
     testCase (lbl <> "-no") $
       not
         <$> runGitLabDbg
-          ( liftIO (readFile ("data/system-hooks/" <> jsonFilename))
+          ( liftIO (TIO.readFile ("data/system-hooks/" <> jsonFilename))
               >>= \eventJson -> tryFire eventJson noFire
           )
         @? (lbl <> "-fireIf-no failed")
@@ -191,21 +192,21 @@ matchIfTest lbl jsonFilename yesFire noFire =
 
 -- [ testCase lbl $
 --     runGitLabDbg
---       ( liftIO (readFile ("data/system-hooks/" <> jsonFilename))
+--       ( liftIO (TIO.readFile ("data/system-hooks/" <> jsonFilename))
 --           >>= \eventJson -> fire eventJson rule
 --       )
 --       @? (lbl <> " failed"),
 --   testCase (lbl <> "-wrong-json") $
 --     not
 --       <$> runGitLabDbg
---         ( liftIO (readFile ("data/system-hooks/" <> wrongJson))
+--         ( liftIO (TIO.readFile ("data/system-hooks/" <> wrongJson))
 --             >>= \eventJson -> fire eventJson rule
 --         )
 --       @? (lbl <> "-wrong-json failed"),
 --   testCase (lbl <> "-wrong-rule") $
 --     not
 --       <$> runGitLabDbg
---         ( liftIO (readFile ("data/system-hooks/" <> jsonFilename))
+--         ( liftIO (TIO.readFile ("data/system-hooks/" <> jsonFilename))
 --             >>= \eventJson -> fire eventJson wrongRule
 --         )
 --       @? (lbl <> "-wrong-rule failed")
@@ -273,28 +274,28 @@ receiveTests =
     "GitLab system hooks receive"
     [ testCase "1-rule-match" $
         runGitLabDbg $
-          liftIO (readFile "data/system-hooks/project-created.json")
+          liftIO (TIO.readFile "data/system-hooks/project-created.json")
             >>= \eventJson ->
               receiveString
                 eventJson
                 [projectCreateRule],
       testCase "1-rule-no-match" $
         runGitLabDbg $
-          liftIO (readFile "data/system-hooks/project-created.json")
+          liftIO (TIO.readFile "data/system-hooks/project-created.json")
             >>= \eventJson ->
               receiveString
                 eventJson
                 [projectRenameRule],
       testCase
         "2-rules"
-        $ runGitLabDbg $
-          liftIO (readFile "data/system-hooks/project-created.json")
-            >>= \eventJson ->
-              receiveString
-                eventJson
-                [ projectCreateRule,
-                  projectDestroyRule
-                ]
+        $ runGitLabDbg
+        $ liftIO (TIO.readFile "data/system-hooks/project-created.json")
+          >>= \eventJson ->
+            receiveString
+              eventJson
+              [ projectCreateRule,
+                projectDestroyRule
+              ]
     ]
 
 projectCreateRule :: Rule
@@ -1434,7 +1435,8 @@ pushHaskell =
       push_checkout_sha = "da1560886d4f094c3e6c9ef40349f7d38b5d27d7",
       push_user_id = 4,
       push_user_name = "John Smith",
-      push_user_email = "john@example.com",
+      push_user_email = Just "john@example.com",
+      push_user_username = Just "abc1",
       push_user_avatar = "https://s.gravatar.com/avatar/d4c74594d841139328695756648b6bd6?s=8://s.gravatar.com/avatar/d4c74594d841139328695756648b6bd6?s=80",
       push_project_id = 15,
       push_project = ProjectEvent {projectEvent_name = "Diaspora", projectEvent_description = Just "", projectEvent_web_url = "http://example.com/mike/diaspora", projectEvent_avatar_url = Nothing, projectEvent_git_ssh_url = "git@example.com:mike/diaspora.git", projectEvent_git_http_url = "http://example.com/mike/diaspora.git", projectEvent_namespace = "Mike", projectEvent_visibility_level = Private, projectEvent_path_with_namespace = "mike/diaspora", projectEvent_default_branch = "master", projectEvent_homepage = Just "http://example.com/mike/diaspora", projectEvent_url = "git@example.com:mike/diaspora.git", projectEvent_ssh_url = "git@example.com:mike/diaspora.git", projectEvent_http_url = "http://example.com/mike/diaspora.git"},
