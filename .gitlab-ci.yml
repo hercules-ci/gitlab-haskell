@@ -16,20 +16,20 @@ cache:
     - .stack-work/
     - .stack-root/
 
-build-lts-17:
-  stage: build
-  script:
-    - stack --no-terminal --resolver=lts-17 build --fast
+# build-lts-17:
+#   stage: build
+#   script:
+#     - stack --no-terminal --resolver=lts-17 build --fast
 
-build-lts-18:
-  stage: build
-  script:
-    - stack --no-terminal --resolver=lts-18 build --fast
+# build-lts-18:
+#   stage: build
+#   script:
+#     - stack --no-terminal --resolver=lts-18 build --fast
 
-build-lts-19:
-  stage: build
-  script:
-    - stack --no-terminal --resolver=lts-19 build --fast
+# build-lts-19:
+#   stage: build
+#   script:
+#     - stack --no-terminal --resolver=lts-19 build --fast
 
 build-lts-20:
   stage: build
@@ -42,23 +42,23 @@ build-lts-nightly:
   script:
     - stack --no-terminal --resolver=nightly build --fast
 
-test-lts-17:
-  stage: test
-  needs: ["build-lts-17"]
-  script:
-    - stack --no-terminal  --resolver=lts-17 test --fast
+# test-lts-17:
+#   stage: test
+#   needs: ["build-lts-17"]
+#   script:
+#     - stack --no-terminal  --resolver=lts-17 test --fast
 
-test-lts-18:
-  stage: test
-  needs: ["build-lts-18"]
-  script:
-    - stack --no-terminal  --resolver=lts-18 test --fast
+# test-lts-18:
+#   stage: test
+#   needs: ["build-lts-18"]
+#   script:
+#     - stack --no-terminal  --resolver=lts-18 test --fast
 
-test-lts-19:
-  stage: test
-  needs: ["build-lts-19"]
-  script:
-    - stack --no-terminal  --resolver=lts-19 test --fast
+# test-lts-19:
+#   stage: test
+#   needs: ["build-lts-19"]
+#   script:
+#     - stack --no-terminal  --resolver=lts-19 test --fast
 
 test-lts-20:
   stage: test
