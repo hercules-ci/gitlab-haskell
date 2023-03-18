@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE GADTs #-}
@@ -57,8 +58,6 @@ module GitLab.SystemHooks.Types
 where
 
 import Data.Aeson
-import qualified Data.ByteString as BS
--- import qualified Data.ByteString.Lazy.Char8 as BSL
 import Data.Text (Text)
 import qualified Data.Text.Encoding as T
 import Data.Typeable
@@ -78,7 +77,7 @@ class (FromJSON a) => SystemHook a where
 -- | Parse JSON data into GitLab events.
 parseEvent :: (FromJSON a) => Text -> Maybe a
 parseEvent eventText =
-  case eitherDecode (BS.fromStrict (T.encodeUtf8 eventText)) of
+  case eitherDecodeStrict (T.encodeUtf8 eventText) of
     Left _error -> Nothing
     Right event -> Just event
 
