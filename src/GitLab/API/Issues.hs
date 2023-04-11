@@ -189,7 +189,7 @@ projectIssue p issId =
   where
     urlPath =
       T.pack
-        "/project/"
+        "/projects/"
         <> T.pack (show (project_id p))
         <> "/issues/"
         <> T.pack (show issId)
