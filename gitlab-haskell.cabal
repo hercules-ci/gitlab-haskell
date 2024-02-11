@@ -163,7 +163,7 @@ extra-source-files:
   , data/api/merge-requests/create-merge-request.json
  
 source-repository head
-type: git
+  type: git
   location: https://gitlab.com/robstewart57/gitlab-haskell
 
 library
