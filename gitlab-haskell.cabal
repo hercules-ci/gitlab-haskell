@@ -198,7 +198,7 @@ library
   build-depends:
                 base >=4.7 && <5
               , http-conduit
-              , connection
+              , crypton-connection
               , aeson >= 2.0.0.0
               , bytestring
               , text
