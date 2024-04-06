@@ -172,12 +172,15 @@ gitlabHTTP httpMethod contentType urlPath urlParams contentParams = do
   cfg <- serverCfg <$> MR.ask
   manager <- httpManager <$> MR.ask
   let url' = url cfg <> "/api/v4" <> urlPath <> T.decodeUtf8 (renderQuery True urlParams)
+  let authHeader = case token cfg of
+        AuthMethodToken t -> ("PRIVATE-TOKEN", T.encodeUtf8 t)
+        AuthMethodOAuth t -> ("Authorization", "Bearer " <> T.encodeUtf8 t)
   let request' = parseRequest_ (T.unpack url')
       request =
         request'
           { method = httpMethod,
             requestHeaders =
-              [ ("PRIVATE-TOKEN", T.encodeUtf8 (token cfg)),
+              [ authHeader,
                 ("content-type", contentType)
               ],
             requestBody = RequestBodyBS (renderQuery False contentParams)
