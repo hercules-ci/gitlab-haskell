@@ -18,7 +18,7 @@ module GitLab.Types
     GitLabT (..),
     GitLabState (..),
     GitLabServerConfig (..),
-    AuthMethod(..),
+    AuthMethod (..),
     defaultGitLabServer,
     ArchiveFormat (..),
     AccessLevel (..),
@@ -146,8 +146,6 @@ data GitLabState = GitLabState
 data GitLabServerConfig = GitLabServerConfig
   { url :: Text,
     token :: AuthMethod,
-    -- | milliseconds
-    timeout :: Int,
     -- | how many times to retry a HTTP request before giving up and returning an error.
     retries :: Int,
     -- | write system hook events to files in the system temporary
@@ -161,7 +159,6 @@ defaultGitLabServer =
   GitLabServerConfig
     { url = "https://gitlab.com",
       token = AuthMethodToken "",
-      timeout = 15000000, -- 15 seconds
       retries = 5,
       debugSystemHooks = False
     }
