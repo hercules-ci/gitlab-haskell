@@ -18,6 +18,7 @@ module GitLab.Types
     GitLabT (..),
     GitLabState (..),
     GitLabServerConfig (..),
+    AuthMethod(..),
     defaultGitLabServer,
     ArchiveFormat (..),
     AccessLevel (..),
@@ -144,8 +145,7 @@ data GitLabState = GitLabState
 -- | configuration data specific to a GitLab server.
 data GitLabServerConfig = GitLabServerConfig
   { url :: Text,
-    -- | personal access token, see <https://docs.gitlab.com/ee/user/profile/personal_access_tokens.html>
-    token :: Text,
+    token :: AuthMethod,
     -- | milliseconds
     timeout :: Int,
     -- | how many times to retry a HTTP request before giving up and returning an error.
@@ -160,11 +160,16 @@ defaultGitLabServer :: GitLabServerConfig
 defaultGitLabServer =
   GitLabServerConfig
     { url = "https://gitlab.com",
-      token = "",
+      token = AuthMethodToken "",
       timeout = 15000000, -- 15 seconds
       retries = 5,
       debugSystemHooks = False
     }
+
+-- | personal access token, see <https://docs.gitlab.com/ee/user/profile/personal_access_tokens.html>
+data AuthMethod
+  = AuthMethodToken Text
+  | AuthMethodOAuth Text
 
 -- https://docs.gitlab.com/ee/api/repositories.html#get-file-archive
 -- tar.gz, tar.bz2, tbz, tbz2, tb2, bz2, tar, and zip

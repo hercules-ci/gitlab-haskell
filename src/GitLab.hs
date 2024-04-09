@@ -106,7 +106,7 @@ runGitLabPassPrompt cfg action = do
   hostUrl <- getLine
   liftIO (putStr "Enter GitLab access token\n> ")
   pass <- getLine
-  runGitLab (cfg {url = T.pack hostUrl, token = T.pack pass}) action
+  runGitLab (cfg {url = T.pack hostUrl, token = AuthMethodToken (T.pack pass)}) action
 
 -- | The same as 'runGitLab', except that it also takes a connection
 -- manager as an argument.
