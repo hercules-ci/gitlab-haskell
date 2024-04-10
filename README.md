@@ -46,7 +46,7 @@ user "joe".
       runGitLab
         (defaultGitLabServer
            { url = "https://gitlab.example.com"
-           , token="my_token"} )
+           , token = AuthMethodToken "my_token"} )
         (searchUser "joe" >>= userProjects . fromJust)
 
 This library can also be used to implement rule based GitLab file
