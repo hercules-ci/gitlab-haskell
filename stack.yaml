@@ -3,7 +3,8 @@ resolver: lts-22.12
 packages:
 - .
 
-extra-deps: []
+extra-deps:
+- crypton-connection-0.4.1
 
 # old weeder implementation
 # ghc-options: {"$locals": -ddump-to-file -ddump-hi}

@@ -39,6 +39,7 @@ where
 
 import Control.Monad.IO.Class
 import Control.Monad.Trans.Reader
+import Data.Default.Class
 import qualified Data.Text as T
 import GitLab.API.Boards
 import GitLab.API.Branches
@@ -62,7 +63,6 @@ import GitLab.SystemHooks.GitLabSystemHooks
 import GitLab.SystemHooks.Rules
 import GitLab.SystemHooks.Types
 import GitLab.Types
-import Network.Connection (TLSSettings (..))
 import Network.HTTP.Conduit
 import Network.HTTP.Types.Status
 import System.IO
@@ -87,7 +87,7 @@ import System.IO
 runGitLab :: GitLabServerConfig -> GitLab a -> IO a
 runGitLab cfg action = do
   liftIO $ hSetBuffering stdout LineBuffering
-  let settings = mkManagerSettings (TLSSettingsSimple True False False) Nothing
+  let settings = mkManagerSettings def Nothing
   manager <- liftIO $ newManager settings
   runGitLabWithManager manager cfg action
 
