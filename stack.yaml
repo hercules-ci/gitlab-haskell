@@ -9,6 +9,6 @@ extra-deps:
 # old weeder implementation
 # ghc-options: {"$locals": -ddump-to-file -ddump-hi}
 
-# for weeder 2.0
+# for stan and weeder 2.0
 # ghc-options:
-#  "$locals": -fwrite-ide-info
+#  "$locals": -fwrite-ide-info -hiedir=.hie
