@@ -46,7 +46,6 @@ receiveString eventContent rules = do
 
 traceSystemHook :: Text -> GitLab ()
 traceSystemHook eventContent = do
-  -- cfg <- serverCfg <$> MR.ask
   cfg <- MR.asks serverCfg
   liftIO $
     E.catch
