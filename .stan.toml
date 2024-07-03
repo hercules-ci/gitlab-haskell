@@ -1,24 +1,4 @@
 [[check]]
 type = "Exclude"
-id = "STAN-0208"
-scope = "all"
-
-[[check]]
-type = "Exclude"
-id = "STAN-0212"
-scope = "all"
-
-[[check]]
-type = "Exclude"
 id = "STAN-0209"
-scope = "all"
-
-[[check]]
-type = "Exclude"
-id = "STAN-0206"
-scope = "all"
-
-[[check]]
-type = "Exclude"
-id = "STAN-0103"
-scope = "all"
+file = "src/GitLab/API/Projects.hs"
