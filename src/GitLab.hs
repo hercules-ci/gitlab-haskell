@@ -130,4 +130,6 @@ runGitLabWithManager manager cfg (GitLabT action) = do
 runGitLabDbg :: GitLab a -> IO a
 runGitLabDbg (GitLabT action) = do
   liftIO $ hSetBuffering stdout LineBuffering
-  runReaderT action undefined
+  manager <- liftIO $ newManager (mkManagerSettings def Nothing)
+  let cfg = GitLabServerConfig {url = "", token = AuthMethodToken "", retries = 1, debugSystemHooks = False}
+  runReaderT action (GitLabState cfg manager)
