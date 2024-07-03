@@ -169,8 +169,8 @@ gitlabHTTP ::
   [GitLabParam] ->
   GitLab (Response BSL.ByteString)
 gitlabHTTP httpMethod contentType urlPath urlParams contentParams = do
-  cfg <- serverCfg <$> MR.ask
-  manager <- httpManager <$> MR.ask
+  cfg <- MR.asks serverCfg
+  manager <- MR.asks httpManager
   let url' = url cfg <> "/api/v4" <> urlPath <> T.decodeUtf8 (renderQuery True urlParams)
   let authHeader = case token cfg of
         AuthMethodToken t -> ("PRIVATE-TOKEN", T.encodeUtf8 t)
