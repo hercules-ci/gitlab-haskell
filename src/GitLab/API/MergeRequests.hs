@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE StrictData #-}
 
 -- |
 -- Module      : MergeRequests
@@ -227,7 +228,9 @@ acceptMergeRequest' projectId mergeRequestIid = gitlabPost addr params
       ]
     addr =
       T.pack $
-        "/projects/" <> show projectId <> "/merge_requests/"
+        "/projects/"
+          <> show projectId
+          <> "/merge_requests/"
           <> show mergeRequestIid
           <> "/merge"
 
@@ -252,7 +255,9 @@ deleteMergeRequest' projectId mergeRequestIid = gitlabDelete addr []
   where
     addr =
       T.pack $
-        "/projects/" <> show projectId <> "/merge_requests/"
+        "/projects/"
+          <> show projectId
+          <> "/merge_requests/"
           <> show mergeRequestIid
 
 -- | Attributes when searching for merge requests with the

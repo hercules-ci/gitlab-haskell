@@ -1,6 +1,7 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE StrictData #-}
 
 -- |
 -- Module      : Projects
@@ -586,12 +587,16 @@ transferProject' projId namespaceString = do
 --------------------
 -- Additional functionality beyond the GitLab Projects API
 
--- | Returns 'True' is a projecthas multiple email addresses
+-- | Returns 'True' is a project has multiple email addresses
 -- associated with all commits in a project, 'False' otherwise.
 multipleCommitters :: Project -> GitLab Bool
 multipleCommitters prj = do
   emailAddresses <- commitsEmailAddresses prj
-  return (length (nub emailAddresses) > 1)
+  return $
+    case nub emailAddresses of
+      [] -> False
+      [_] -> False
+      (_ : _) -> True
 
 -- | gets the email addresses in the author information in all commit
 -- for a project.
