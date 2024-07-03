@@ -1,0 +1,2 @@
+roots = [ "^Main.main$", "^GitLab.runGitLab"]
+type-class-roots = true
