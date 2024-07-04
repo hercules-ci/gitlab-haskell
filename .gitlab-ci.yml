@@ -3,6 +3,7 @@ image: fpco/stack-build:latest
 # https://docs.gitlab.com/ee/ci/yaml/#stages
 # jobs of the same stage are executed in parallel
 stages:
+  - clean
   - build
   - test
 
@@ -10,11 +11,16 @@ stages:
 variables:
     STACK_ROOT: "${CI_PROJECT_DIR}/.stack-root"
 
+clean-stack:
+  stage: clean
+  script:
+    - stack --no-terminal clean
+
 # https://docs.gitlab.com/ee/ci/yaml/#cache
-cache:
-  paths:
-    - .stack-work/
-    - .stack-root/
+# cache:
+#   paths:
+#     - .stack-work/
+#     - .stack-root/
 
 # build-lts-13:
 #   stage: build
