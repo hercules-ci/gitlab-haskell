@@ -10,7 +10,7 @@ main =
   runGitLab
     ( defaultGitLabServer
         { url = "https://gitlab.example.com",
-          token = "abcde12345"
+          token = AuthMethodToken "abcde12345"
         }
     )
     ( receive
@@ -20,8 +20,8 @@ main =
                 return (projectCreate_name projEvent == "test_project123")
             )
             ( \projEvent@ProjectCreate {} -> do
-                Right (Just project) <- searchProjectId (projectCreate_project_id projEvent)
-                void $ newIssue project "the title" "the description"
+                Right (Just proj) <- project (projectCreate_project_id projEvent)
+                void $ newIssue proj "the title" "the description" (defaultIssueAttrs (project_id proj))
             )
         ]
     )

@@ -6,10 +6,7 @@ module Main
 where
 
 import Data.Maybe (fromJust)
-import qualified Data.Text as T
 import GitLab
-import GitLab.API.Projects
-import System.Environment
 
 main :: IO ()
 main = do
@@ -17,8 +14,8 @@ main = do
     runGitLab
       ( defaultGitLabServer
           { url = "https://gitlab.com",
-            token = T.pack "insert your token here"
+            token = AuthMethodToken "insert your token here"
           }
       )
-      (searchUser "robstewart57" >>= userProjects . fromJust)
+      (searchUser "robstewart57" >>= \usr -> userProjects (fromJust usr) defaultProjectSearchAttrs)
   print myProjects
