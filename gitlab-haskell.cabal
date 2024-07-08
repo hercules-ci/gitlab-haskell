@@ -1,7 +1,7 @@
 cabal-version: 2.4
 name:           gitlab-haskell
 category:       Git
-version:        1.0.0.5
+version:        1.0.1.0
 synopsis:       A Haskell library for the GitLab web API
 description:
             This library lifts the GitLab REST API into Haskell: <https://docs.gitlab.com/ee/api/>
