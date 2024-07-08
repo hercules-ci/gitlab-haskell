@@ -70,7 +70,7 @@ user "joe".
         (defaultGitLabServer
            { url = "https://gitlab.example.com"
            , token = AuthMethodToken "my_token"} )
-        (searchUser "joe" >>= userProjects . fromJust)
+        (searchUser "joe" >>=  \usr -> userProjects (fromJust usr) defaultProjectSearchAttrs)
 
 ## Library use
 
