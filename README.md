@@ -29,8 +29,8 @@ The library parses JSON results into Haskell data types in the
 GitLab data with data types and functions that the library
 provides. E.g.
 
-    searchUser     :: Text -> GitLab (Maybe User)
-    userProjects   :: User -> GitLab (Maybe [Project])
+    searchUser   :: Text -> GitLab (Maybe User)
+    userProjects :: User -> ProjectSearchAttrs -> GitLab (Maybe [Project])
 
 ## Server-side GitLab file hooks
 
