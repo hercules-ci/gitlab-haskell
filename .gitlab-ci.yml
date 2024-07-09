@@ -20,7 +20,7 @@ build:
       - .stack-work/
       - .stack-root/
   script:
-    - stack --no-terminal --fast build
+    - stack --no-terminal build --fast
 
 test:
   cache:
@@ -29,7 +29,7 @@ test:
       - .stack-work/
       - .stack-root/
   script:
-    - stack --no-terminal --fast test
+    - stack --no-terminal test --fast
 
 # https://docs.gitlab.com/ee/ci/yaml/#cache
 # cache:
