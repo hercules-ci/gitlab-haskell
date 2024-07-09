@@ -1,9 +1,10 @@
-image: fpco/stack-build:latest
+# See: https://mastodon.scot/@dburke@mastodon.social/112756867937534489
+
+image: fpco/stack-build:lts-22
 
 # https://docs.gitlab.com/ee/ci/yaml/#stages
 # jobs of the same stage are executed in parallel
 stages:
-  - clean
   - build
   - test
 
@@ -11,10 +12,24 @@ stages:
 variables:
     STACK_ROOT: "${CI_PROJECT_DIR}/.stack-root"
 
-clean-stack:
-  stage: clean
+build:
+  # https://docs.gitlab.com/ee/ci/yaml/#cache
+  cache:
+    key: "$CI_JOB_NAME"
+    paths:
+      - .stack-work/
+      - .stack-root/
   script:
-    - stack --no-terminal clean
+    - stack --no-terminal --fast build
+
+test:
+  cache:
+    key: "$CI_JOB_NAME"
+    paths:
+      - .stack-work/
+      - .stack-root/
+  script:
+    - stack --no-terminal --fast test
 
 # https://docs.gitlab.com/ee/ci/yaml/#cache
 # cache:
@@ -52,21 +67,21 @@ clean-stack:
 #   script:
 #     - stack --no-terminal --resolver=lts-18 build --fast
 
-build-lts-19:
-  stage: build
-  script:
-    - stack --no-terminal --resolver=lts-19 build --fast
+# build-lts-19:
+#   stage: build
+#   script:
+#     - stack --no-terminal --resolver=lts-19 build --fast
 
-build-lts-20:
-  stage: build
-  script:
-    - stack --no-terminal --resolver=lts-20 build --fast
+# build-lts-20:
+#   stage: build
+#   script:
+#     - stack --no-terminal --resolver=lts-20 build --fast
 
-build-lts-nightly:
-  stage: build
-  allow_failure: true
-  script:
-    - stack --no-terminal --resolver=nightly build --fast
+# build-lts-nightly:
+#   stage: build
+#   allow_failure: true
+#   script:
+#     - stack --no-terminal --resolver=nightly build --fast
 
 # test-lts-13:
 #   stage: test
@@ -104,21 +119,21 @@ build-lts-nightly:
 #   script:
 #     - stack --no-terminal  --resolver=lts-18 test --fast
 
-test-lts-19:
-  stage: test
-  needs: ["build-lts-19"]
-  script:
-    - stack --no-terminal  --resolver=lts-19 test --fast
+# test-lts-19:
+#   stage: test
+#   needs: ["build-lts-19"]
+#   script:
+#     - stack --no-terminal  --resolver=lts-19 test --fast
 
-test-lts-20:
-  stage: test
-  needs: ["build-lts-20"]
-  script:
-    - stack --no-terminal  --resolver=lts-20 test --fast
+# test-lts-20:
+#   stage: test
+#   needs: ["build-lts-20"]
+#   script:
+#     - stack --no-terminal  --resolver=lts-20 test --fast
 
-test-lts-nightly:
-  stage: test
-  needs: ["build-lts-nightly"]
-  allow_failure: true
-  script:
-    - stack --no-terminal  --resolver=nightly test --fast
+# test-lts-nightly:
+#   stage: test
+#   needs: ["build-lts-nightly"]
+#   allow_failure: true
+#   script:
+#     - stack --no-terminal  --resolver=nightly test --fast
