@@ -13,7 +13,7 @@ stages:
 variables:
     STACK_ROOT: "${CI_PROJECT_DIR}/.stack-root"
 
-build-lts-13:
+build-lts-19:
   # https://docs.gitlab.com/ee/ci/yaml/#cache
   stage: build
   cache:
@@ -22,18 +22,18 @@ build-lts-13:
       - .stack-work/
       - .stack-root/
   script:
-    - stack --no-terminal --resolver=lts-13 build gitlab-haskell --fast
+    - stack --no-terminal --resolver=lts-19 build gitlab-haskell --fast
 
-test-lts-13:
+test-lts-19:
   cache:
     key: "$CI_JOB_NAME"
     paths:
       - .stack-work/
       - .stack-root/
   stage: test
-  needs: ["build-lts-13"]
+  needs: ["build-lts-19"]
   script:
-    - stack --no-terminal --resolver=lts-13 test gitlab-haskell --fast
+    - stack --no-terminal --resolver=lts-19 test gitlab-haskell --fast
 
 examples:
   cache:
@@ -42,9 +42,9 @@ examples:
       - .stack-work/
       - .stack-root/
   stage: compile-examples
-  needs: ["build-lts-13"]
+  needs: ["build-lts-19"]
   script:
-    - stack --no-terminal --resolver=lts-13 build examples --fast
+    - stack --no-terminal --resolver=lts-19 build examples --fast
 
 # https://docs.gitlab.com/ee/ci/yaml/#cache
 # cache:
