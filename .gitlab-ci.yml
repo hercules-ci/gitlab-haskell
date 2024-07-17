@@ -15,30 +15,30 @@ variables:
 
 build:
   # https://docs.gitlab.com/ee/ci/yaml/#cache
-  cache:
-    key: "$CI_JOB_NAME"
-    paths:
-      - .stack-work/
-      - .stack-root/
+  # cache:
+  #   key: "$CI_JOB_NAME"
+  #   paths:
+  #     - .stack-work/
+  #     - .stack-root/
   script:
     - stack --no-terminal build gitlab-haskell --fast
 
 test:
-  cache:
-    key: "$CI_JOB_NAME"
-    paths:
-      - .stack-work/
-      - .stack-root/
+  # cache:
+  #   key: "$CI_JOB_NAME"
+  #   paths:
+  #     - .stack-work/
+  #     - .stack-root/
   needs: ["build"]
   script:
     - stack --no-terminal test gitlab-haskell --fast
 
 compile-examples:
-  cache:
-    key: "$CI_JOB_NAME"
-    paths:
-      - .stack-work/
-      - .stack-root/
+  # cache:
+  #   key: "$CI_JOB_NAME"
+  #   paths:
+  #     - .stack-work/
+  #     - .stack-root/
   needs: ["build"]
   script:
     - stack --no-terminal build examples --fast
