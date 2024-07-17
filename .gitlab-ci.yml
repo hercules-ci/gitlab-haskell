@@ -1,6 +1,6 @@
 # See: https://mastodon.scot/@dburke@mastodon.social/112756867937534489
 
-image: fpco/stack-build:lts-22
+image: fpco/stack-build:lts-22.29
 
 # https://docs.gitlab.com/ee/ci/yaml/#stages
 # jobs of the same stage are executed in parallel
