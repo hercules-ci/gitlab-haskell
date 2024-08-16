@@ -18,7 +18,7 @@ import qualified Control.Exception as Exception
 import Control.Monad.IO.Class
 import qualified Control.Monad.Reader as MR
 import Data.Aeson
-import Data.ByteString
+import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as BSL
 import Data.Maybe (isJust)
 import Data.Text (Text)
@@ -35,7 +35,7 @@ newtype GitLabException = GitLabException String
 
 instance Exception.Exception GitLabException
 
-type GitLabParam = (ByteString, Maybe ByteString)
+type GitLabParam = (BS.ByteString, Maybe BS.ByteString)
 
 gitlabGetOne ::
   (FromJSON a) =>
@@ -158,9 +158,9 @@ gitlabGetByteStringResponse urlPath params =
 
 gitlabHTTP ::
   -- | HTTP method (PUT, POST, DELETE, GET)
-  ByteString ->
+  BS.ByteString ->
   -- | Content type (content-type)
-  ByteString ->
+  BS.ByteString ->
   -- | the URL
   Text ->
   -- | the URL parameters for GET calls
@@ -190,9 +190,9 @@ gitlabHTTP httpMethod contentType urlPath urlParams contentParams = do
 gitlabHTTPOne ::
   FromJSON a =>
   -- | HTTP method (PUT, POST, DELETE, GET)
-  ByteString ->
+  BS.ByteString ->
   -- | Content type (content-type)
-  ByteString ->
+  BS.ByteString ->
   -- | the URL
   Text ->
   -- | the URL query data for GET calls
@@ -216,9 +216,9 @@ gitlabHTTPOne httpMethod contentType urlPath urlParams contentParams = do
 gitlabHTTPMany ::
   (FromJSON a) =>
   -- | HTTP method (PUT, POST, DELETE, GET)
-  ByteString ->
+  BS.ByteString ->
   -- | Content type (content-type)
-  ByteString ->
+  BS.ByteString ->
   -- | the URL
   Text ->
   -- | the URL query data for GET calls
@@ -258,7 +258,7 @@ hasNextPage resp =
     findPages [] = False
     findPages (("X-Next-Page", bs) : _) = isJust $ readNP bs
     findPages (_ : xs) = findPages xs
-    readNP :: ByteString -> Maybe Int
+    readNP :: BS.ByteString -> Maybe Int
     readNP bs = readMaybe (T.unpack (T.decodeUtf8 bs))
 
 successStatus :: Status -> Bool
