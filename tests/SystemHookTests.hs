@@ -23,6 +23,11 @@ parserTests =
             >>= \eventJson -> parseEvent eventJson @?= Just projectCreatedHaskell
         ),
       testCase
+        "project-create-diacritics-event"
+        ( TIO.readFile "data/system-hooks/project-created-diacritics.json"
+            >>= \eventJson -> parseEvent eventJson @?= Just projectCreatedDiatricsHaskell
+        ),
+      testCase
         "project-destroy-event"
         ( TIO.readFile "data/system-hooks/project-destroyed.json"
             >>= \eventJson -> parseEvent eventJson @?= Just projectDestroyedHaskell
@@ -1143,6 +1148,21 @@ projectCreatedHaskell =
       projectCreate_owner_name = "John Smith",
       projectCreate_path = "storecloud",
       projectCreate_path_with_namespace = "jsmith/storecloud",
+      projectCreate_project_id = 74,
+      projectCreate_project_visibility = Private
+    }
+
+projectCreatedDiatricsHaskell :: ProjectCreate
+projectCreatedDiatricsHaskell =
+  ProjectCreate
+    { projectCreate_created_at = "2012-07-21T07:30:54Z",
+      projectCreate_updated_at = "2012-07-21T07:38:22Z",
+      projectCreate_action = "project_create",
+      projectCreate_name = "StoreCloud",
+      projectCreate_owner_email = "eloisesmith@gmail.com",
+      projectCreate_owner_name = "Smith, Eloïse",
+      projectCreate_path = "storecloud",
+      projectCreate_path_with_namespace = "eloisesmith/storecloud",
       projectCreate_project_id = 74,
       projectCreate_project_visibility = Private
     }
