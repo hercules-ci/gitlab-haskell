@@ -28,7 +28,7 @@ import Data.Typeable
 import GitLab.SystemHooks.Types
 import GitLab.Types
 import System.IO.Temp
-import System.Posix.Files
+import System.PosixCompat.Files
 
 -- | Attempts to fire each rule in sequence. Reads the JSON data
 -- received from the GitLab server from standard input.

@@ -207,7 +207,7 @@ library
               , transformers
               , time >= 1.9
               , temporary
-              , unix
+              , unix-compat
               , mtl
               , data-default-class
   default-language: Haskell2010
