@@ -42,14 +42,19 @@ receive rules = do
 receiveString :: Text -> [Rule] -> GitLab ()
 receiveString eventContent rules = do
   traceSystemHook eventContent
-  mapM_ (fire eventContent) rules
+  didFire <- mapM (fire eventContent) rules
+  when (not (or didFire)) $ do
+    cfg <- MR.asks serverCfg
+    when (debugSystemHooks cfg == UnprocessedEvents || debugSystemHooks cfg == AllEvents) $ liftIO $ do
+      fpath <- writeSystemTempFile "gitlab-system-hook-unprocessed-" (T.unpack eventContent)
+      void $ setFileMode fpath otherReadMode
 
 traceSystemHook :: Text -> GitLab ()
 traceSystemHook eventContent = do
   cfg <- MR.asks serverCfg
   liftIO $
     E.catch
-      ( when (debugSystemHooks cfg) $ do
+      ( when (debugSystemHooks cfg == AllJSON || debugSystemHooks cfg == AllEvents) $ do
           fpath <- writeSystemTempFile "gitlab-system-hook-" (T.unpack eventContent)
           void $ setFileMode fpath otherReadMode
       )
@@ -63,11 +68,14 @@ orElse f g = do
     then return True
     else g
 
-fire :: Text -> Rule -> GitLab ()
+fire :: Text -> Rule -> GitLab Bool
 fire contents rule = do
   result <- tryFire contents rule
-  when result $
-    liftIO (putStrLn ("fired: " <> labelOf rule))
+  case result of
+    True -> do
+      liftIO (putStrLn ("fired: " <> labelOf rule))
+      return True
+    False -> return False
   where
     labelOf :: Rule -> String
     labelOf (Match lbl _) = lbl

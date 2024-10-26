@@ -105,6 +105,7 @@ module GitLab.Types
     EventActionName (..),
     EventTargetType (..),
     PushData (..),
+    DebugSystemHooks (..),
   )
 where
 
@@ -130,7 +131,7 @@ newtype GitLabT m a = GitLabT (MR.ReaderT GitLabState m a)
 instance MT.MonadTrans GitLabT where
   lift = GitLabT . MT.lift
 
-instance MIO.MonadIO m => MIO.MonadIO (GitLabT m) where
+instance (MIO.MonadIO m) => MIO.MonadIO (GitLabT m) where
   liftIO = GitLabT . MIO.liftIO
 
 -- | Utility type which uses 'IO' as underlying monad
@@ -148,10 +149,20 @@ data GitLabServerConfig = GitLabServerConfig
     token :: AuthMethod,
     -- | how many times to retry a HTTP request before giving up and returning an error.
     retries :: Int,
-    -- | write system hook events to files in the system temporary
-    -- directory.
-    debugSystemHooks :: Bool
+    -- | write system hook events to files in the system temporary directory.
+    debugSystemHooks :: DebugSystemHooks
   }
+
+data DebugSystemHooks
+  = -- | Report all JSON objects received and unprocessed events
+    AllEvents
+  | -- | Report unprocessed events
+    UnprocessedEvents
+  | -- | Report all JSON objects received
+    AllJSON
+  | -- | No debugging
+    NoHookDebugging
+  deriving (Eq)
 
 -- | default settings, the 'url' and 'token' values will need to be overwritten.
 defaultGitLabServer :: GitLabServerConfig
@@ -160,7 +171,7 @@ defaultGitLabServer =
     { url = "https://gitlab.com",
       token = AuthMethodToken "",
       retries = 5,
-      debugSystemHooks = False
+      debugSystemHooks = NoHookDebugging
     }
 
 -- | personal access token, see <https://docs.gitlab.com/ee/user/profile/personal_access_tokens.html>
