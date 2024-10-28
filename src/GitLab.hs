@@ -131,5 +131,5 @@ runGitLabDbg :: GitLab a -> IO a
 runGitLabDbg (GitLabT action) = do
   liftIO $ hSetBuffering stdout LineBuffering
   manager <- liftIO $ newManager (mkManagerSettings def Nothing)
-  let cfg = GitLabServerConfig {url = "", token = AuthMethodToken "", retries = 1, debugSystemHooks = NoHookDebugging}
+  let cfg = GitLabServerConfig {url = "", token = AuthMethodToken "", retries = 1, debugSystemHooks = Nothing}
   runReaderT action (GitLabState cfg manager)

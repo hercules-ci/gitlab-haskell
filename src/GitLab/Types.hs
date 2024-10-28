@@ -150,7 +150,7 @@ data GitLabServerConfig = GitLabServerConfig
     -- | how many times to retry a HTTP request before giving up and returning an error.
     retries :: Int,
     -- | write system hook events to files in the system temporary directory.
-    debugSystemHooks :: DebugSystemHooks
+    debugSystemHooks :: Maybe DebugSystemHooks
   }
 
 data DebugSystemHooks
@@ -160,8 +160,6 @@ data DebugSystemHooks
     UnprocessedEvents
   | -- | Report all JSON objects received
     AllJSON
-  | -- | No debugging
-    NoHookDebugging
   deriving (Eq)
 
 -- | default settings, the 'url' and 'token' values will need to be overwritten.
@@ -171,7 +169,7 @@ defaultGitLabServer =
     { url = "https://gitlab.com",
       token = AuthMethodToken "",
       retries = 5,
-      debugSystemHooks = NoHookDebugging
+      debugSystemHooks = Nothing
     }
 
 -- | personal access token, see <https://docs.gitlab.com/ee/user/profile/personal_access_tokens.html>
