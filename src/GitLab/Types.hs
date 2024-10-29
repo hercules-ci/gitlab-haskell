@@ -154,9 +154,7 @@ data GitLabServerConfig = GitLabServerConfig
   }
 
 data DebugSystemHooks
-  = -- | Report all JSON objects received and unprocessed events
-    AllEvents
-  | -- | Report unprocessed events
+  = -- | Report JSON objects only of unprocessed events
     UnprocessedEvents
   | -- | Report all JSON objects received
     AllJSON
