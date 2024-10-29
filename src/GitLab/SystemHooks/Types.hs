@@ -1477,4 +1477,4 @@ instance FromJSON ProjectAction where
   parseJSON (String "tag_push") = return TagPushed
   parseJSON (String "repository_update") = return RepositoryUpdated
   parseJSON (String "merge_request") = return MergeRequested
-  parseJSON s = error ("unexpected system hook event: " <> show s)
+  parseJSON s = fail ("unexpected system hook event: " <> show s)
