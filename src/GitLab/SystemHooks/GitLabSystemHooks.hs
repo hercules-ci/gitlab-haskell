@@ -45,7 +45,7 @@ receiveString eventContent rules = do
   didFire <- mapM (fire eventContent) rules
   when (not (or didFire)) $ do
     cfg <- MR.asks serverCfg
-    when (debugSystemHooks cfg == Just UnprocessedEvents || debugSystemHooks cfg == Just AllEvents) $ liftIO $ do
+    when (debugSystemHooks cfg == Just UnprocessedEvents) $ liftIO $ do
       fpath <- writeSystemTempFile "gitlab-system-hook-unprocessed-" (T.unpack eventContent)
       void $ setFileMode fpath otherReadMode
 
@@ -54,7 +54,7 @@ traceSystemHook eventContent = do
   cfg <- MR.asks serverCfg
   liftIO $
     E.catch
-      ( when (debugSystemHooks cfg == Just AllJSON || debugSystemHooks cfg == Just AllEvents) $ do
+      ( when (debugSystemHooks cfg == Just AllJSON) $ do
           fpath <- writeSystemTempFile "gitlab-system-hook-" (T.unpack eventContent)
           void $ setFileMode fpath otherReadMode
       )
