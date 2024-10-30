@@ -21,6 +21,7 @@ import qualified Control.Exception as E
 import Control.Monad
 import Control.Monad.IO.Class
 import qualified Control.Monad.Reader as MR
+import Data.Maybe
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.IO as TIO
@@ -41,10 +42,20 @@ receive rules = do
 -- received from a function argument.
 receiveString :: Text -> [Rule] -> GitLab ()
 receiveString eventContent rules = do
+  -- maybe log the JSON received
   traceSystemHook eventContent
+  -- fire the rules
   didFire <- mapM (fire eventContent) rules
+  -- if nothing fired
   when (not (or didFire)) $ do
     cfg <- MR.asks serverCfg
+    -- maybe log the JSON if it was not parsed
+    when (debugSystemHooks cfg == Just NonParsedJSON) $ liftIO $ do
+      -- no rules fired, was it because the JSON was not parsed?
+      when (not (attemptGitLabEvenParse eventContent)) $ do
+        fpath <- writeSystemTempFile "gitlab-system-hook-nonparsed-" (T.unpack eventContent)
+        void $ setFileMode fpath otherReadMode
+    -- maybe log the JSON if no rules were fired for it
     when (debugSystemHooks cfg == Just UnprocessedEvents) $ liftIO $ do
       fpath <- writeSystemTempFile "gitlab-system-hook-unprocessed-" (T.unpack eventContent)
       void $ setFileMode fpath otherReadMode
@@ -304,3 +315,33 @@ fireIf' castPred castF parsed = do
                   f' parsed'
                   return True
                 else return False
+
+attemptGitLabEvenParse :: T.Text -> Bool
+attemptGitLabEvenParse content =
+  isJust (go content)
+  where
+    go contents = do
+      _ <- parseEvent contents :: Maybe ProjectCreate
+      _ <- parseEvent contents :: Maybe ProjectDestroy
+      _ <- parseEvent contents :: Maybe ProjectRename
+      _ <- parseEvent contents :: Maybe ProjectTransfer
+      _ <- parseEvent contents :: Maybe ProjectUpdate
+      _ <- parseEvent contents :: Maybe GroupMemberUpdate
+      _ <- parseEvent contents :: Maybe UserAddToTeam
+      _ <- parseEvent contents :: Maybe UserUpdateForTeam
+      _ <- parseEvent contents :: Maybe UserRemoveFromTeam
+      _ <- parseEvent contents :: Maybe UserCreate
+      _ <- parseEvent contents :: Maybe UserRemove
+      _ <- parseEvent contents :: Maybe UserFailedLogin
+      _ <- parseEvent contents :: Maybe UserRename
+      _ <- parseEvent contents :: Maybe KeyCreate
+      _ <- parseEvent contents :: Maybe KeyRemove
+      _ <- parseEvent contents :: Maybe GroupCreate
+      _ <- parseEvent contents :: Maybe GroupRemove
+      _ <- parseEvent contents :: Maybe GroupRename
+      _ <- parseEvent contents :: Maybe NewGroupMember
+      _ <- parseEvent contents :: Maybe GroupMemberRemove
+      _ <- parseEvent contents :: Maybe Push
+      _ <- parseEvent contents :: Maybe TagPush
+      _ <- parseEvent contents :: Maybe RepositoryUpdate
+      parseEvent contents :: Maybe MergeRequestEvent
