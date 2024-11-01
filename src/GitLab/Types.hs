@@ -543,7 +543,7 @@ data User = User
     user_followers :: Maybe Int,
     user_bot :: Maybe Bool,
     user_following :: Maybe Int,
-    user_state :: Text,
+    user_state :: Maybe Text,
     user_avatar_url :: Maybe Text,
     user_web_url :: Maybe Text,
     user_location :: Maybe Text,
@@ -781,11 +781,11 @@ data Diff = Diff
 
 -- | repositories.
 data Repository = Repository
-  { repository_id :: Text,
+  { repository_id :: Maybe Text,
     repository_name :: Text,
-    repository_type :: Text,
-    repository_path :: Text,
-    repository_mode :: Text
+    repository_type :: Maybe Text,
+    repository_path :: Maybe Text,
+    repository_mode :: Maybe Text
   }
   deriving (Show, Eq)
 

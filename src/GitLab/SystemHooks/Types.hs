@@ -5,6 +5,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE StrictData #-}
+{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeFamilies #-}
 
 -- |
@@ -53,6 +54,9 @@ module GitLab.SystemHooks.Types
     ObjectAttributes (..),
     MergeParams (..),
     UserEvent (..),
+    Build (..),
+    BuildCommit (..),
+    BuildProject (..),
     parseEvent,
   )
 where
@@ -720,7 +724,72 @@ data ProjectAction
   | TagPushed
   | RepositoryUpdated
   | MergeRequested
+  | Built
   deriving (Show, Eq)
+
+-- | CI build
+data Build = Build
+  { build_object_kind :: Text,
+    build_ref :: Text,
+    build_tag :: Bool,
+    build_before_sha :: Text,
+    build_sha :: Text,
+    build_retries_count :: Int,
+    build_build_id :: Int,
+    build_build_name :: Text,
+    build_build_stage :: Text,
+    build_build_status :: Text,
+    build_created_at :: Text,
+    build_started_at :: Maybe Text,
+    build_finished_at :: Maybe Text,
+    build_duration :: Maybe Text,
+    build_queued_duration :: Maybe Text,
+    build_allow_failure :: Bool,
+    build_failure_reason :: Text,
+    build_pipeline_id :: Int,
+    build_runner :: Maybe Text,
+    build_project_id :: Int,
+    build_project_name :: Text,
+    build_user :: User,
+    build_commit :: BuildCommit,
+    build_repository :: Repository,
+    build_project :: BuildProject,
+    build_environment :: Maybe Text
+  }
+  deriving (Typeable, Show, Eq, Generic)
+
+-- | CI build commit
+data BuildCommit = BuildCommit
+  { build_commit_id :: Int,
+    build_commit_name :: Maybe Text,
+    build_commit_sha :: Text,
+    build_commit_message :: Text,
+    build_commit_author_name :: Text,
+    build_commit_author_email :: Text,
+    build_commit_author_url :: Text,
+    build_commit_status :: Text,
+    build_commit_duration :: Maybe Text,
+    build_commit_started_at :: Maybe Text,
+    build_commit_finished_at :: Maybe Text
+  }
+  deriving (Typeable, Show, Eq, Generic)
+
+-- | CI build commit
+data BuildProject = BuildProject
+  { build_project_project_id :: Int,
+    build_project_project_name :: Text,
+    build_project_description :: Maybe Text,
+    build_project_web_url :: Text,
+    build_project_avatar_url :: Maybe Text,
+    build_project_git_ssh_url :: Text,
+    build_project_git_http_url :: Text,
+    build_project_namespace :: Text,
+    build_project_visibility_level :: Int,
+    build_project_path_with_namespace :: Text,
+    build_project_default_branch :: Text,
+    build_project_ci_config_path :: Maybe Text
+  }
+  deriving (Typeable, Show, Eq, Generic)
 
 instance FromJSON ProjectCreate where
   parseJSON =
@@ -1254,6 +1323,44 @@ instance FromJSON MergeRequestEvent where
             _unexpected -> fail "merge_request parsing failed"
         _unexpected -> fail "merge_request parsing failed"
 
+instance FromJSON Build where
+  parseJSON =
+    withObject "Build" $ \v -> do
+      isProjectEvent <- v .:? "object_kind"
+      case isProjectEvent of
+        Just theEvent ->
+          case theEvent of
+            Built ->
+              Build
+                <$> v .: "object_kind"
+                <*> v .: "ref"
+                <*> v .: "tag"
+                <*> v .: "before_sha"
+                <*> v .: "sha"
+                <*> v .: "retries_count"
+                <*> v .: "build_id"
+                <*> v .: "build_name"
+                <*> v .: "build_stage"
+                <*> v .: "build_status"
+                <*> v .: "build_created_at"
+                <*> v .: "build_started_at"
+                <*> v .: "build_finished_at"
+                <*> v .: "build_duration"
+                <*> v .: "build_queued_duration"
+                <*> v .: "build_allow_failure"
+                <*> v .: "build_failure_reason"
+                <*> v .: "pipeline_id"
+                <*> v .: "runner"
+                <*> v .: "project_id"
+                <*> v .: "project_name"
+                <*> v .: "user"
+                <*> v .: "commit"
+                <*> v .: "repository"
+                <*> v .: "project"
+                <*> v .: "environment"
+            _unexpected -> fail "build parsing failed"
+        _unexpected -> fail "build parsing failed"
+
 bodyNoPrefix :: String -> String
 bodyNoPrefix "projectEvent_name" = "name"
 bodyNoPrefix "projectEvent_description" = "description"
@@ -1344,6 +1451,29 @@ bodyNoPrefix "mergeRequestChanges_title" = "title"
 bodyNoPrefix "mergeRequestChanges_updated_at" = "updated_at"
 bodyNoPrefix "mergeRequestChange_previous" = "previous"
 bodyNoPrefix "mergeRequestChange_current" = "current"
+bodyNoPrefix "build_commit_id" = "id"
+bodyNoPrefix "build_commit_name" = "name"
+bodyNoPrefix "build_commit_sha" = "sha"
+bodyNoPrefix "build_commit_message" = "message"
+bodyNoPrefix "build_commit_author_name" = "author_name"
+bodyNoPrefix "build_commit_author_email" = "author_email"
+bodyNoPrefix "build_commit_author_url" = "author_url"
+bodyNoPrefix "build_commit_status" = "status"
+bodyNoPrefix "build_commit_duration" = "duration"
+bodyNoPrefix "build_commit_started_at" = "started_at"
+bodyNoPrefix "build_commit_finished_at" = "finished_at"
+bodyNoPrefix "build_project_project_id" = "id"
+bodyNoPrefix "build_project_project_name" = "name"
+bodyNoPrefix "build_project_description" = "description"
+bodyNoPrefix "build_project_web_url" = "web_url"
+bodyNoPrefix "build_project_avatar_url" = "avatar_url"
+bodyNoPrefix "build_project_git_ssh_url" = "git_ssh_url"
+bodyNoPrefix "build_project_git_http_url" = "git_http_url"
+bodyNoPrefix "build_project_namespace" = "namespace"
+bodyNoPrefix "build_project_visibility_level" = "visibility_level"
+bodyNoPrefix "build_project_path_with_namespace" = "path_with_namespace"
+bodyNoPrefix "build_project_default_branch" = "default_branch"
+bodyNoPrefix "build_project_ci_config_path" = "ci_config_path"
 bodyNoPrefix s = error ("uexpected JSON field prefix: " <> s)
 
 instance FromJSON ProjectEvent where
@@ -1418,6 +1548,22 @@ instance FromJSON MergeRequestChanges where
           }
       )
 
+instance FromJSON BuildCommit where
+  parseJSON =
+    genericParseJSON
+      ( defaultOptions
+          { fieldLabelModifier = bodyNoPrefix
+          }
+      )
+
+instance FromJSON BuildProject where
+  parseJSON =
+    genericParseJSON
+      ( defaultOptions
+          { fieldLabelModifier = bodyNoPrefix
+          }
+      )
+
 instance (FromJSON a) => FromJSON (MergeRequestChange a) where
   parseJSON =
     genericParseJSON
@@ -1477,4 +1623,5 @@ instance FromJSON ProjectAction where
   parseJSON (String "tag_push") = return TagPushed
   parseJSON (String "repository_update") = return RepositoryUpdated
   parseJSON (String "merge_request") = return MergeRequested
+  parseJSON (String "build") = return Built
   parseJSON s = fail ("unexpected system hook event: " <> show s)
