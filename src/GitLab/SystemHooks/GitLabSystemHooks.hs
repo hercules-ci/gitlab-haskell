@@ -21,7 +21,6 @@ import qualified Control.Exception as E
 import Control.Monad
 import Control.Monad.IO.Class
 import qualified Control.Monad.Reader as MR
-import Data.Maybe
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.IO as TIO
@@ -52,7 +51,7 @@ receiveString eventContent rules = do
     -- maybe log the JSON if it was not parsed
     when (debugSystemHooks cfg == Just NonParsedJSON) $ liftIO $ do
       -- no rules fired, was it because the JSON was not parsed?
-      when (not (attemptGitLabEvenParse eventContent)) $ do
+      when (not (attemptGitLabEventParse eventContent)) $ do
         fpath <- writeSystemTempFile "gitlab-system-hook-nonparsed-" (T.unpack eventContent)
         void $ setFileMode fpath otherReadMode
     -- maybe log the JSON if no rules were fired for it
@@ -316,32 +315,79 @@ fireIf' castPred castF parsed = do
                   return True
                 else return False
 
-attemptGitLabEvenParse :: T.Text -> Bool
-attemptGitLabEvenParse content =
-  isJust (go content)
-  where
-    go contents = do
-      _ <- parseEvent contents :: Maybe ProjectCreate
-      _ <- parseEvent contents :: Maybe ProjectDestroy
-      _ <- parseEvent contents :: Maybe ProjectRename
-      _ <- parseEvent contents :: Maybe ProjectTransfer
-      _ <- parseEvent contents :: Maybe ProjectUpdate
-      _ <- parseEvent contents :: Maybe GroupMemberUpdate
-      _ <- parseEvent contents :: Maybe UserAddToTeam
-      _ <- parseEvent contents :: Maybe UserUpdateForTeam
-      _ <- parseEvent contents :: Maybe UserRemoveFromTeam
-      _ <- parseEvent contents :: Maybe UserCreate
-      _ <- parseEvent contents :: Maybe UserRemove
-      _ <- parseEvent contents :: Maybe UserFailedLogin
-      _ <- parseEvent contents :: Maybe UserRename
-      _ <- parseEvent contents :: Maybe KeyCreate
-      _ <- parseEvent contents :: Maybe KeyRemove
-      _ <- parseEvent contents :: Maybe GroupCreate
-      _ <- parseEvent contents :: Maybe GroupRemove
-      _ <- parseEvent contents :: Maybe GroupRename
-      _ <- parseEvent contents :: Maybe NewGroupMember
-      _ <- parseEvent contents :: Maybe GroupMemberRemove
-      _ <- parseEvent contents :: Maybe Push
-      _ <- parseEvent contents :: Maybe TagPush
-      _ <- parseEvent contents :: Maybe RepositoryUpdate
-      parseEvent contents :: Maybe MergeRequestEvent
+-- | returns 'True' if at least on parsing attemps of the JSON is successful
+attemptGitLabEventParse :: T.Text -> Bool
+attemptGitLabEventParse contents =
+  -- note: this needs refactoring to be less verbose
+  case parseEvent contents :: Maybe ProjectCreate of
+    Just _ -> True
+    Nothing ->
+      case parseEvent contents :: Maybe ProjectDestroy of
+        Just _ -> True
+        Nothing ->
+          case parseEvent contents :: Maybe ProjectRename of
+            Just _ -> True
+            Nothing ->
+              case parseEvent contents :: Maybe ProjectTransfer of
+                Just _ -> True
+                Nothing ->
+                  case parseEvent contents :: Maybe ProjectUpdate of
+                    Just _ -> True
+                    Nothing ->
+                      case parseEvent contents :: Maybe GroupMemberUpdate of
+                        Just _ -> True
+                        Nothing ->
+                          case parseEvent contents :: Maybe UserAddToTeam of
+                            Just _ -> True
+                            Nothing ->
+                              case parseEvent contents :: Maybe UserUpdateForTeam of
+                                Just _ -> True
+                                Nothing ->
+                                  case parseEvent contents :: Maybe UserRemoveFromTeam of
+                                    Just _ -> True
+                                    Nothing ->
+                                      case parseEvent contents :: Maybe UserCreate of
+                                        Just _ -> True
+                                        Nothing ->
+                                          case parseEvent contents :: Maybe UserRemove of
+                                            Just _ -> True
+                                            Nothing ->
+                                              case parseEvent contents :: Maybe UserFailedLogin of
+                                                Just _ -> True
+                                                Nothing ->
+                                                  case parseEvent contents :: Maybe UserRename of
+                                                    Just _ -> True
+                                                    Nothing ->
+                                                      case parseEvent contents :: Maybe KeyCreate of
+                                                        Just _ -> True
+                                                        Nothing ->
+                                                          case parseEvent contents :: Maybe KeyRemove of
+                                                            Just _ -> True
+                                                            Nothing ->
+                                                              case parseEvent contents :: Maybe GroupCreate of
+                                                                Just _ -> True
+                                                                Nothing ->
+                                                                  case parseEvent contents :: Maybe GroupRemove of
+                                                                    Just _ -> True
+                                                                    Nothing ->
+                                                                      case parseEvent contents :: Maybe GroupRename of
+                                                                        Just _ -> True
+                                                                        Nothing ->
+                                                                          case parseEvent contents :: Maybe NewGroupMember of
+                                                                            Just _ -> True
+                                                                            Nothing ->
+                                                                              case parseEvent contents :: Maybe GroupMemberRemove of
+                                                                                Just _ -> True
+                                                                                Nothing ->
+                                                                                  case parseEvent contents :: Maybe Push of
+                                                                                    Just _ -> True
+                                                                                    Nothing ->
+                                                                                      case parseEvent contents :: Maybe TagPush of
+                                                                                        Just _ -> True
+                                                                                        Nothing ->
+                                                                                          case parseEvent contents :: Maybe RepositoryUpdate of
+                                                                                            Just _ -> True
+                                                                                            Nothing ->
+                                                                                              case parseEvent contents :: Maybe MergeRequestEvent of
+                                                                                                Just _ -> True
+                                                                                                Nothing -> False
