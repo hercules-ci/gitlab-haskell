@@ -824,8 +824,8 @@ data PipelineObjectAttributes = PipelineObjectAttributes
     pipeline_object_attributes_stages :: [Text],
     pipeline_object_attributes_created_at :: Text,
     pipeline_object_attributes_finished_at :: Text,
-    pipeline_object_attributes_duration :: Int,
-    pipeline_object_attributes_queued_duration :: Maybe Text,
+    pipeline_object_attributes_duration :: Double,
+    pipeline_object_attributes_queued_duration :: Maybe Double,
     pipeline_object_attributes_variables :: [Text],
     pipeline_object_attributes_url :: Text
   }
