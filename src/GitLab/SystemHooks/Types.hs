@@ -57,6 +57,11 @@ module GitLab.SystemHooks.Types
     Build (..),
     BuildCommit (..),
     BuildProject (..),
+    PipelineEvent (..),
+    PipelineObjectAttributes (..),
+    PipelineBuild (..),
+    Runner (..),
+    ArtifactsFile (..),
     parseEvent,
   )
 where
@@ -725,6 +730,7 @@ data ProjectAction
   | RepositoryUpdated
   | MergeRequested
   | Built
+  | Pipelined
   deriving (Show, Eq)
 
 -- | CI build
@@ -788,6 +794,80 @@ data BuildProject = BuildProject
     build_project_path_with_namespace :: Text,
     build_project_default_branch :: Text,
     build_project_ci_config_path :: Maybe Text
+  }
+  deriving (Typeable, Show, Eq, Generic)
+
+-- | CI pipelines
+data PipelineEvent = PipelineEvent
+  { pipeline_event_object_kind :: Text,
+    pipeline_event_object_attributes :: PipelineObjectAttributes,
+    pipeline_event_merge_request :: Maybe Text,
+    pipeline_event_user :: User,
+    pipeline_event_project :: BuildProject,
+    pipeline_event_commit :: CommitEvent,
+    pipeline_event_builds :: [PipelineBuild]
+  }
+  deriving (Typeable, Show, Eq, Generic)
+
+-- | CI pipeline attributes
+data PipelineObjectAttributes = PipelineObjectAttributes
+  { pipeline_object_attributes_id :: Int,
+    pipeline_object_attributes_iid :: Int,
+    pipeline_object_attributes_name :: Maybe Text,
+    pipeline_object_attributes_ref :: Text,
+    pipeline_object_attributes_tag :: Bool,
+    pipeline_object_attributes_sha :: Text,
+    pipeline_object_attributes_before_sha :: Text,
+    pipeline_object_attributes_source :: Text,
+    pipeline_object_attributes_status :: Text,
+    pipeline_object_attributes_detailed_status :: Text,
+    pipeline_object_attributes_stages :: [Text],
+    pipeline_object_attributes_created_at :: Text,
+    pipeline_object_attributes_finished_at :: Text,
+    pipeline_object_attributes_duration :: Int,
+    pipeline_object_attributes_queued_duration :: Maybe Text,
+    pipeline_object_attributes_variables :: [Text],
+    pipeline_object_attributes_url :: Text
+  }
+  deriving (Typeable, Show, Eq, Generic)
+
+-- | CI pipeline attributes
+data PipelineBuild = PipelineBuild
+  { pipeline_build_id :: Int,
+    pipeline_build_stage :: Text,
+    pipeline_build_name :: Text,
+    pipeline_build_status :: Text,
+    pipeline_build_created_at :: Text,
+    pipeline_build_started_at :: Text,
+    pipeline_build_finished_at :: Text,
+    pipeline_build_duration :: Double,
+    pipeline_build_queued_duration :: Double,
+    pipeline_build_failure_reason :: Text,
+    pipeline_build_when :: Text, -- "on_success"
+    pipeline_build_manual :: Bool,
+    pipeline_build_allow_failure :: Bool,
+    pipeline_build_user :: UserEvent,
+    pipeline_build_runner :: Runner,
+    pipeline_build_artifacts_file :: ArtifactsFile,
+    pipeline_build_environment :: Maybe Text
+  }
+  deriving (Typeable, Show, Eq, Generic)
+
+-- | CI runner
+data Runner = Runner
+  { runner_id :: Int,
+    runner_description :: Text,
+    runner_runner_type :: Text, -- "instance_type"
+    runner_active :: Bool,
+    runner_is_shared :: Bool,
+    runner_tags :: [Text]
+  }
+  deriving (Typeable, Show, Eq, Generic)
+
+-- | CI artifacts file
+data ArtifactsFile = ArtifactsFile
+  { artifacts_file_filename :: Maybe Text,
+    artifacts_file_size :: Maybe Text -- could be Int or Double
   }
   deriving (Typeable, Show, Eq, Generic)
 
@@ -1358,8 +1438,32 @@ instance FromJSON Build where
                 <*> v .: "repository"
                 <*> v .: "project"
                 <*> v .: "environment"
+            unexpected -> fail ("build parsing failed: " <> show unexpected)
+        unexpected -> fail ("build parsing failed: " <> show unexpected)
+
+instance FromJSON PipelineEvent where
+  parseJSON =
+    withObject "Pipeline" $ \v -> do
+      isProjectEvent <- v .:? "object_kind"
+      case isProjectEvent of
+        Just theEvent ->
+          case theEvent of
+            Pipelined ->
+              PipelineEvent
+                <$> v .: "object_kind"
+                <*> v .: "object_attributes"
+                <*> v .: "merge_request"
+                <*> v .: "user"
+                <*> v .: "project"
+                <*> v .: "commit"
+                <*> v .: "builds"
             _unexpected -> fail "build parsing failed"
         _unexpected -> fail "build parsing failed"
+
+-- TODO: replace bodyNoPrefix with a template Haskell based approach in src/GitLab/Types.hs
+-- e.g.
+
+-- $(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "event_"), omitNothingFields = True} ''Event)
 
 bodyNoPrefix :: String -> String
 bodyNoPrefix "projectEvent_name" = "name"
@@ -1474,7 +1578,49 @@ bodyNoPrefix "build_project_visibility_level" = "visibility_level"
 bodyNoPrefix "build_project_path_with_namespace" = "path_with_namespace"
 bodyNoPrefix "build_project_default_branch" = "default_branch"
 bodyNoPrefix "build_project_ci_config_path" = "ci_config_path"
-bodyNoPrefix s = error ("uexpected JSON field prefix: " <> s)
+bodyNoPrefix "pipeline_object_attributes_id" = "id"
+bodyNoPrefix "pipeline_object_attributes_iid" = "iid"
+bodyNoPrefix "pipeline_object_attributes_name" = "name"
+bodyNoPrefix "pipeline_object_attributes_ref" = "ref"
+bodyNoPrefix "pipeline_object_attributes_tag" = "tag"
+bodyNoPrefix "pipeline_object_attributes_sha" = "sha"
+bodyNoPrefix "pipeline_object_attributes_before_sha" = "before_sha"
+bodyNoPrefix "pipeline_object_attributes_source" = "source"
+bodyNoPrefix "pipeline_object_attributes_status" = "status"
+bodyNoPrefix "pipeline_object_attributes_detailed_status" = "detailed_status"
+bodyNoPrefix "pipeline_object_attributes_stages" = "stages"
+bodyNoPrefix "pipeline_object_attributes_created_at" = "created_at"
+bodyNoPrefix "pipeline_object_attributes_finished_at" = "finished_at"
+bodyNoPrefix "pipeline_object_attributes_duration" = "duration"
+bodyNoPrefix "pipeline_object_attributes_queued_duration" = "queued_duration"
+bodyNoPrefix "pipeline_object_attributes_variables" = "variables"
+bodyNoPrefix "pipeline_object_attributes_url" = "url"
+bodyNoPrefix "pipeline_build_id" = "id"
+bodyNoPrefix "pipeline_build_stage" = "stage"
+bodyNoPrefix "pipeline_build_name" = "name"
+bodyNoPrefix "pipeline_build_status" = "status"
+bodyNoPrefix "pipeline_build_created_at" = "created_at"
+bodyNoPrefix "pipeline_build_started_at" = "started_at"
+bodyNoPrefix "pipeline_build_finished_at" = "finished_at"
+bodyNoPrefix "pipeline_build_duration" = "duration"
+bodyNoPrefix "pipeline_build_queued_duration" = "queued_duration"
+bodyNoPrefix "pipeline_build_failure_reason" = "failure_reason"
+bodyNoPrefix "pipeline_build_when" = "when"
+bodyNoPrefix "pipeline_build_manual" = "manual"
+bodyNoPrefix "pipeline_build_allow_failure" = "allow_failure"
+bodyNoPrefix "pipeline_build_user" = "user"
+bodyNoPrefix "pipeline_build_runner" = "runner"
+bodyNoPrefix "pipeline_build_artifacts_file" = "artifacts_file"
+bodyNoPrefix "pipeline_build_environment" = "environment"
+bodyNoPrefix "runner_id" = "id"
+bodyNoPrefix "runner_description" = "description"
+bodyNoPrefix "runner_runner_type" = "runner_type"
+bodyNoPrefix "runner_active" = "active"
+bodyNoPrefix "runner_is_shared" = "is_shared"
+bodyNoPrefix "runner_tags" = "tags"
+bodyNoPrefix "artifacts_file_filename" = "filename"
+bodyNoPrefix "artifacts_file_size" = "size"
+bodyNoPrefix s = fail ("uexpected JSON field prefix: " <> s)
 
 instance FromJSON ProjectEvent where
   parseJSON =
@@ -1572,6 +1718,38 @@ instance (FromJSON a) => FromJSON (MergeRequestChange a) where
           }
       )
 
+instance FromJSON PipelineObjectAttributes where
+  parseJSON =
+    genericParseJSON
+      ( defaultOptions
+          { fieldLabelModifier = bodyNoPrefix
+          }
+      )
+
+instance FromJSON PipelineBuild where
+  parseJSON =
+    genericParseJSON
+      ( defaultOptions
+          { fieldLabelModifier = bodyNoPrefix
+          }
+      )
+
+instance FromJSON Runner where
+  parseJSON =
+    genericParseJSON
+      ( defaultOptions
+          { fieldLabelModifier = bodyNoPrefix
+          }
+      )
+
+instance FromJSON ArtifactsFile where
+  parseJSON =
+    genericParseJSON
+      ( defaultOptions
+          { fieldLabelModifier = bodyNoPrefix
+          }
+      )
+
 instance FromJSON Label where
   parseJSON = withObject "Label" $ \obj -> do
     labelId <- obj .:? "id"
@@ -1624,4 +1802,5 @@ instance FromJSON ProjectAction where
   parseJSON (String "repository_update") = return RepositoryUpdated
   parseJSON (String "merge_request") = return MergeRequested
   parseJSON (String "build") = return Built
+  parseJSON (String "pipeline") = return Pipelined
   parseJSON s = fail ("unexpected system hook event: " <> show s)
