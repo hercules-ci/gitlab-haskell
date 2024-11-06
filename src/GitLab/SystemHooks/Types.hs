@@ -51,7 +51,7 @@ module GitLab.SystemHooks.Types
     Label (..),
     MergeRequestChanges (..),
     MergeRequestChange (..),
-    ObjectAttributes (..),
+    MergeRequestObjectAttributes (..),
     MergeParams (..),
     UserEvent (..),
     Build (..),
@@ -60,6 +60,12 @@ module GitLab.SystemHooks.Types
     PipelineEvent (..),
     PipelineObjectAttributes (..),
     PipelineBuild (..),
+    IssueEvent (..),
+    IssueEventObjectAttributes (..),
+    IssueEventChanges (..),
+    IssueChangesClosedAt (..),
+    IssueChangesStateId (..),
+    IssueChangesUpdatedAt (..),
     Runner (..),
     ArtifactsFile (..),
     parseEvent,
@@ -530,7 +536,8 @@ data RepositoryUpdate = RepositoryUpdate
 
 -- | A project event.
 data ProjectEvent = ProjectEvent
-  { projectEvent_name :: Text,
+  { projectEvent_id :: Maybe Int,
+    projectEvent_name :: Text,
     projectEvent_description :: Maybe Text,
     projectEvent_web_url :: Text,
     projectEvent_avatar_url :: Maybe Text,
@@ -599,7 +606,7 @@ data MergeRequestEvent = MergeRequestEvent
     mergeRequest_event_type :: Text,
     mergeRequest_user :: UserEvent,
     mergeRequest_project :: ProjectEvent,
-    mergeRequest_object_attributes :: ObjectAttributes,
+    mergeRequest_object_attributes :: MergeRequestObjectAttributes,
     mergeRequest_labels :: Maybe [Label],
     mergeRequest_changes :: MergeRequestChanges,
     mergeRequest_repository :: RepositoryEvent
@@ -646,7 +653,7 @@ data MergeRequestChange a = MergeRequestChange
   deriving (Typeable, Show, Eq, Generic)
 
 -- | Attributes associated with a merge request
-data ObjectAttributes = ObjectAttributes
+data MergeRequestObjectAttributes = MergeRequestObjectAttributes
   { objectAttributes_id :: Int,
     objectAttributes_target_branch :: Text,
     objectAttributes_source_branch :: Text,
@@ -698,9 +705,11 @@ newtype MergeParams = MergeParams
 
 -- | User associated with a merge request
 data UserEvent = UserEvent
-  { userEvent_name :: Text,
+  { userEvent_id :: Maybe Int,
+    userEvent_name :: Text,
     userEvent_username :: Text,
-    userEvent_avatar_url :: Text
+    userEvent_avatar_url :: Text,
+    userEvent_email :: Maybe Text
   }
   deriving (Typeable, Show, Eq, Generic)
 
@@ -870,6 +879,88 @@ data ArtifactsFile = ArtifactsFile
     artifacts_file_size :: Maybe Text -- could be Int or Double
   }
   deriving (Typeable, Show, Eq, Generic)
+
+-- | Issue event
+data IssueEvent = IssueEvent
+  { issue_event_event_type :: Maybe Text,
+    issue_event_user :: UserEvent,
+    issue_event_project :: Maybe ProjectEvent,
+    issue_event_object_attributes :: IssueEventObjectAttributes,
+    issue_event_labels :: Maybe [Label],
+    issue_event_changes :: IssueEventChanges,
+    issue_event_repository :: Maybe RepositoryEvent,
+    issue_event_assignees :: Maybe [UserEvent]
+  }
+  deriving (Typeable, Show, Eq, Generic)
+
+-- | Issue event object attributes
+data IssueEventObjectAttributes = IssueEventObjectAttributes
+  { issue_event_object_attributes_author_id :: Int,
+    issue_event_object_attributes_closed_at :: Text, -- change to UTCTime
+    issue_event_object_attributes_confidential :: Bool,
+    issue_event_object_attributes_created_at :: Text, -- change to UTCTime
+    issue_event_object_attributes_description :: Text,
+    issue_event_object_attributes_discussion_locked :: Maybe Bool,
+    issue_event_object_attributes_due_date :: Maybe Text, -- change to UTCTime
+    issue_event_object_attributes_id :: Int,
+    issue_event_object_attributes_iid :: Int,
+    issue_event_object_attributes_last_edited_at :: Maybe Text, -- change to UTCTime
+    issue_event_object_attributes_last_edited_by_id :: Maybe Int,
+    issue_event_object_attributes_milestone_id :: Maybe Int,
+    issue_event_object_attributes_move_to_id :: Maybe Int,
+    issue_event_object_attributes_duplicated_to_id :: Maybe Int,
+    issue_event_object_attributes_project_id :: Int,
+    issue_event_object_attributes_relative_position :: Int,
+    issue_event_object_attributes_state_id :: Int,
+    issue_event_object_attributes_time_estimate :: Int,
+    issue_event_object_attributes_title :: Text,
+    issue_event_object_attributes_updated_at :: Text, -- change to UTCTime
+    issue_event_object_attributes_updated_by_id :: Maybe Int,
+    issue_event_object_attributes_type :: Text, -- "Issue"
+    issue_event_object_attributes_url :: Text,
+    issue_event_object_attributes_total_time_spent :: Int,
+    issue_event_object_attributes_time_change :: Int,
+    issue_event_object_attributes_human_total_time_spent :: Maybe Int,
+    issue_event_object_attributes_human_time_change :: Maybe Int,
+    issue_event_object_attributes_human_time_estimate :: Maybe Int
+  }
+  deriving (Typeable, Show, Eq, Generic)
+
+-- | Issue event changes
+data IssueEventChanges = IssueEventChanges
+  { issue_event_changes_closed_at :: IssueChangesClosedAt,
+    issue_event_changes_state_id :: IssueChangesStateId,
+    issue_event_changes_updated_at :: IssueChangesUpdatedAt
+  }
+  deriving (Typeable, Show, Eq, Generic)
+
+-- | Issue event closed at
+data IssueChangesClosedAt = IssueChangesClosedAt
+  { issue_event_closed_at_previous :: Maybe Text, -- change to URLTime
+    issue_event_closed_at_current :: Text -- change to URLTime
+  }
+  deriving (Typeable, Show, Eq, Generic)
+
+-- | Issue event state id
+data IssueChangesStateId = IssueChangesStateId
+  { issue_event_state_id_previous :: Int,
+    issue_event_state_id_current :: Int
+  }
+  deriving (Typeable, Show, Eq, Generic)
+
+-- | Issue event updated at
+data IssueChangesUpdatedAt = IssueChangesUpdatedAt
+  { issue_event_updated_at_previous :: Text,
+    issue_event_updated_at_current :: Text
+  }
+  deriving (Typeable, Show, Eq, Generic)
+
+-- -- | Issue event state id
+-- data IssueEventUpdatedAt = IssueEventUpdatedAt
+--   { issue_event_closed_at_previous :: Maybe Text, -- change to URLTime
+--     issue_event_closed_at_current :: Text -- change to URLTime
+--   }
+--   deriving (Typeable, Show, Eq, Generic)
 
 instance FromJSON ProjectCreate where
   parseJSON =
@@ -1466,6 +1557,7 @@ instance FromJSON PipelineEvent where
 -- $(deriveJSON defaultOptions {fieldLabelModifier = drop (T.length "event_"), omitNothingFields = True} ''Event)
 
 bodyNoPrefix :: String -> String
+bodyNoPrefix "projectEvent_id" = "id"
 bodyNoPrefix "projectEvent_name" = "name"
 bodyNoPrefix "projectEvent_description" = "description"
 bodyNoPrefix "projectEvent_web_url" = "web_url"
@@ -1620,6 +1712,51 @@ bodyNoPrefix "runner_is_shared" = "is_shared"
 bodyNoPrefix "runner_tags" = "tags"
 bodyNoPrefix "artifacts_file_filename" = "filename"
 bodyNoPrefix "artifacts_file_size" = "size"
+bodyNoPrefix "issue_event_event_type" = "event_type"
+bodyNoPrefix "issue_event_user" = "user"
+bodyNoPrefix "issue_event_project" = "project"
+bodyNoPrefix "issue_event_object_attributes" = "object_attributes"
+bodyNoPrefix "issue_event_labels" = "labels"
+bodyNoPrefix "issue_event_changes" = "changes"
+bodyNoPrefix "issue_event_repository" = "repository"
+bodyNoPrefix "issue_event_assignees" = "assignees"
+bodyNoPrefix "issue_event_object_attributes_author_id" = "author_id"
+bodyNoPrefix "issue_event_object_attributes_closed_at" = "closed_at"
+bodyNoPrefix "issue_event_object_attributes_confidential" = "confidential"
+bodyNoPrefix "issue_event_object_attributes_created_at" = "created_at"
+bodyNoPrefix "issue_event_object_attributes_description" = "description"
+bodyNoPrefix "issue_event_object_attributes_discussion_locked" = "discussion_locked"
+bodyNoPrefix "issue_event_object_attributes_due_date" = "due_date"
+bodyNoPrefix "issue_event_object_attributes_id" = "id"
+bodyNoPrefix "issue_event_object_attributes_iid" = "iid"
+bodyNoPrefix "issue_event_object_attributes_last_edited_at" = "last_edited_at"
+bodyNoPrefix "issue_event_object_attributes_last_edited_by" = "last_edited_by"
+bodyNoPrefix "issue_event_object_attributes_milestone_id" = "milestone_id"
+bodyNoPrefix "issue_event_object_attributes_move_to_id" = "move_to_id"
+bodyNoPrefix "issue_event_object_attributes_duplicated_to_id" = "duplicated_to_id"
+bodyNoPrefix "issue_event_object_attributes_project_id" = "project_id"
+bodyNoPrefix "issue_event_object_attributes_relative_position" = "relative_position"
+bodyNoPrefix "issue_event_object_attributes_state_id" = "state_id"
+bodyNoPrefix "issue_event_object_attributes_time_estimate" = "time_estimate"
+bodyNoPrefix "issue_event_object_attributes_title" = "title"
+bodyNoPrefix "issue_event_object_attributes_updated_at" = "updated_at"
+bodyNoPrefix "issue_event_object_attributes_updated_by_id" = "updated_by_id"
+bodyNoPrefix "issue_event_object_attributes_type" = "type"
+bodyNoPrefix "issue_event_object_attributes_url" = "url"
+bodyNoPrefix "issue_event_object_attributes_total_time_spent" = "total_time_spent"
+bodyNoPrefix "issue_event_object_attributes_time_change" = "time_change"
+bodyNoPrefix "issue_event_object_attributes_human_total_time_spent" = "human_total_time_spent"
+bodyNoPrefix "issue_event_object_attributes_human_time_change" = "human_time_change"
+bodyNoPrefix "issue_event_object_attributes_human_time_estimate" = "human_time_estimate"
+bodyNoPrefix "issue_event_changes_closed_at" = "closed_at"
+bodyNoPrefix "issue_event_changes_state_id" = "state_id"
+bodyNoPrefix "issue_event_changes_updated_at" = "updated_at"
+bodyNoPrefix "issue_event_closed_at_previous" = "previous"
+bodyNoPrefix "issue_event_closed_at_current" = "current"
+bodyNoPrefix "issue_event_state_id_previous" = "previous"
+bodyNoPrefix "issue_event_state_id_current" = "current"
+bodyNoPrefix "issue_event_updated_at_previous" = "previous"
+bodyNoPrefix "issue_event_updated_at_current" = "current"
 bodyNoPrefix s = fail ("uexpected JSON field prefix: " <> s)
 
 instance FromJSON ProjectEvent where
@@ -1662,7 +1799,7 @@ instance FromJSON CommitAuthorEvent where
           }
       )
 
-instance FromJSON ObjectAttributes where
+instance FromJSON MergeRequestObjectAttributes where
   parseJSON =
     genericParseJSON
       ( defaultOptions
@@ -1743,6 +1880,54 @@ instance FromJSON Runner where
       )
 
 instance FromJSON ArtifactsFile where
+  parseJSON =
+    genericParseJSON
+      ( defaultOptions
+          { fieldLabelModifier = bodyNoPrefix
+          }
+      )
+
+instance FromJSON IssueEvent where
+  parseJSON =
+    genericParseJSON
+      ( defaultOptions
+          { fieldLabelModifier = bodyNoPrefix
+          }
+      )
+
+instance FromJSON IssueEventObjectAttributes where
+  parseJSON =
+    genericParseJSON
+      ( defaultOptions
+          { fieldLabelModifier = bodyNoPrefix
+          }
+      )
+
+instance FromJSON IssueEventChanges where
+  parseJSON =
+    genericParseJSON
+      ( defaultOptions
+          { fieldLabelModifier = bodyNoPrefix
+          }
+      )
+
+instance FromJSON IssueChangesClosedAt where
+  parseJSON =
+    genericParseJSON
+      ( defaultOptions
+          { fieldLabelModifier = bodyNoPrefix
+          }
+      )
+
+instance FromJSON IssueChangesStateId where
+  parseJSON =
+    genericParseJSON
+      ( defaultOptions
+          { fieldLabelModifier = bodyNoPrefix
+          }
+      )
+
+instance FromJSON IssueChangesUpdatedAt where
   parseJSON =
     genericParseJSON
       ( defaultOptions

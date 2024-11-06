@@ -203,6 +203,10 @@ tryFire contents (Match _ f) = do
       (Just (\_ -> return True))
       (cast f :: Maybe (Pipeline -> GitLab ()))
       (parseEvent contents :: Maybe Pipeline)
+    `orElse` fireIf'
+      (Just (\_ -> return True))
+      (cast f :: Maybe (Issue -> GitLab ()))
+      (parseEvent contents :: Maybe Issue)
 tryFire contents (MatchIf _ predF f) = do
   fireIf'
     (cast predF :: Maybe (ProjectCreate -> GitLab Bool))
@@ -312,6 +316,10 @@ tryFire contents (MatchIf _ predF f) = do
       (cast predF :: Maybe (Pipeline -> GitLab Bool))
       (cast f :: Maybe (Pipeline -> GitLab ()))
       (parseEvent contents :: Maybe Pipeline)
+    `orElse` fireIf'
+      (cast predF :: Maybe (Issue -> GitLab Bool))
+      (cast f :: Maybe (Issue -> GitLab ()))
+      (parseEvent contents :: Maybe Issue)
 
 fireIf' :: (Typeable a, Show a) => Maybe (a -> GitLab Bool) -> Maybe (a -> GitLab ()) -> Maybe a -> GitLab Bool
 fireIf' castPred castF parsed = do
@@ -412,4 +420,7 @@ attemptGitLabEventParse contents =
                                                                                                     Nothing ->
                                                                                                       case parseEvent contents :: Maybe Pipeline of
                                                                                                         Just _ -> True
-                                                                                                        Nothing -> False
+                                                                                                        Nothing ->
+                                                                                                          case parseEvent contents :: Maybe Issue of
+                                                                                                            Just _ -> True
+                                                                                                            Nothing -> False
