@@ -54,7 +54,7 @@ module GitLab.SystemHooks.Types
     MergeRequestObjectAttributes (..),
     MergeParams (..),
     UserEvent (..),
-    Build (..),
+    BuildEvent (..),
     BuildCommit (..),
     BuildProject (..),
     PipelineEvent (..),
@@ -743,33 +743,33 @@ data ProjectAction
   deriving (Show, Eq)
 
 -- | CI build
-data Build = Build
-  { build_object_kind :: Text,
-    build_ref :: Text,
-    build_tag :: Bool,
-    build_before_sha :: Text,
-    build_sha :: Text,
-    build_retries_count :: Int,
-    build_build_id :: Int,
-    build_build_name :: Text,
-    build_build_stage :: Text,
-    build_build_status :: Text,
-    build_created_at :: Text,
-    build_started_at :: Maybe Text,
-    build_finished_at :: Maybe Text,
-    build_duration :: Maybe Double,
-    build_queued_duration :: Maybe Double,
-    build_allow_failure :: Bool,
-    build_failure_reason :: Text,
-    build_pipeline_id :: Int,
-    build_runner :: Maybe Runner,
-    build_project_id :: Int,
-    build_project_name :: Text,
-    build_user :: User,
-    build_commit :: BuildCommit,
-    build_repository :: Repository,
-    build_project :: BuildProject,
-    build_environment :: Maybe Text
+data BuildEvent = BuildEvent
+  { build_event_object_kind :: Text,
+    build_event_ref :: Text,
+    build_event_tag :: Bool,
+    build_event_before_sha :: Text,
+    build_event_sha :: Text,
+    build_event_retries_count :: Int,
+    build_event_build_event_id :: Int,
+    build_event_build_event_name :: Text,
+    build_event_build_event_stage :: Text,
+    build_event_build_event_status :: Text,
+    build_event_created_at :: Text,
+    build_event_started_at :: Maybe Text,
+    build_event_finished_at :: Maybe Text,
+    build_event_duration :: Maybe Double,
+    build_event_queued_duration :: Maybe Double,
+    build_event_allow_failure :: Bool,
+    build_event_failure_reason :: Text,
+    build_event_pipeline_id :: Int,
+    build_event_runner :: Maybe Runner,
+    build_event_project_id :: Int,
+    build_event_project_name :: Text,
+    build_event_user :: User,
+    build_event_commit :: BuildCommit,
+    build_event_repository :: Repository,
+    build_event_project :: BuildProject,
+    build_event_environment :: Maybe Text
   }
   deriving (Typeable, Show, Eq, Generic)
 
@@ -1494,15 +1494,15 @@ instance FromJSON MergeRequestEvent where
             _unexpected -> fail "merge_request parsing failed"
         _unexpected -> fail "merge_request parsing failed"
 
-instance FromJSON Build where
+instance FromJSON BuildEvent where
   parseJSON =
-    withObject "Build" $ \v -> do
+    withObject "BuildEvent" $ \v -> do
       isProjectEvent <- v .:? "object_kind"
       case isProjectEvent of
         Just theEvent ->
           case theEvent of
             Built ->
-              Build
+              BuildEvent
                 <$> v .: "object_kind"
                 <*> v .: "ref"
                 <*> v .: "tag"

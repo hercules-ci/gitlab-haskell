@@ -197,16 +197,16 @@ tryFire contents (Match _ f) = do
       (parseEvent contents :: Maybe MergeRequestEvent)
     `orElse` fireIf'
       (Just (\_ -> return True))
-      (cast f :: Maybe (Build -> GitLab ()))
-      (parseEvent contents :: Maybe Build)
+      (cast f :: Maybe (BuildEvent -> GitLab ()))
+      (parseEvent contents :: Maybe BuildEvent)
     `orElse` fireIf'
       (Just (\_ -> return True))
-      (cast f :: Maybe (Pipeline -> GitLab ()))
-      (parseEvent contents :: Maybe Pipeline)
+      (cast f :: Maybe (PipelineEvent -> GitLab ()))
+      (parseEvent contents :: Maybe PipelineEvent)
     `orElse` fireIf'
       (Just (\_ -> return True))
-      (cast f :: Maybe (Issue -> GitLab ()))
-      (parseEvent contents :: Maybe Issue)
+      (cast f :: Maybe (IssueEvent -> GitLab ()))
+      (parseEvent contents :: Maybe IssueEvent)
 tryFire contents (MatchIf _ predF f) = do
   fireIf'
     (cast predF :: Maybe (ProjectCreate -> GitLab Bool))
@@ -309,17 +309,17 @@ tryFire contents (MatchIf _ predF f) = do
       (cast f :: Maybe (MergeRequestEvent -> GitLab ()))
       (parseEvent contents :: Maybe MergeRequestEvent)
     `orElse` fireIf'
-      (cast predF :: Maybe (Build -> GitLab Bool))
-      (cast f :: Maybe (Build -> GitLab ()))
-      (parseEvent contents :: Maybe Build)
+      (cast predF :: Maybe (BuildEvent -> GitLab Bool))
+      (cast f :: Maybe (BuildEvent -> GitLab ()))
+      (parseEvent contents :: Maybe BuildEvent)
     `orElse` fireIf'
-      (cast predF :: Maybe (Pipeline -> GitLab Bool))
-      (cast f :: Maybe (Pipeline -> GitLab ()))
-      (parseEvent contents :: Maybe Pipeline)
+      (cast predF :: Maybe (PipelineEvent -> GitLab Bool))
+      (cast f :: Maybe (PipelineEvent -> GitLab ()))
+      (parseEvent contents :: Maybe PipelineEvent)
     `orElse` fireIf'
-      (cast predF :: Maybe (Issue -> GitLab Bool))
-      (cast f :: Maybe (Issue -> GitLab ()))
-      (parseEvent contents :: Maybe Issue)
+      (cast predF :: Maybe (IssueEvent -> GitLab Bool))
+      (cast f :: Maybe (IssueEvent -> GitLab ()))
+      (parseEvent contents :: Maybe IssueEvent)
 
 fireIf' :: (Typeable a, Show a) => Maybe (a -> GitLab Bool) -> Maybe (a -> GitLab ()) -> Maybe a -> GitLab Bool
 fireIf' castPred castF parsed = do
@@ -415,12 +415,12 @@ attemptGitLabEventParse contents =
                                                                                               case parseEvent contents :: Maybe MergeRequestEvent of
                                                                                                 Just _ -> True
                                                                                                 Nothing ->
-                                                                                                  case parseEvent contents :: Maybe Build of
+                                                                                                  case parseEvent contents :: Maybe BuildEvent of
                                                                                                     Just _ -> True
                                                                                                     Nothing ->
-                                                                                                      case parseEvent contents :: Maybe Pipeline of
+                                                                                                      case parseEvent contents :: Maybe PipelineEvent of
                                                                                                         Just _ -> True
                                                                                                         Nothing ->
-                                                                                                          case parseEvent contents :: Maybe Issue of
+                                                                                                          case parseEvent contents :: Maybe IssueEvent of
                                                                                                             Just _ -> True
                                                                                                             Nothing -> False
