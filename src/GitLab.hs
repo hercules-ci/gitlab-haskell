@@ -39,7 +39,7 @@ where
 
 import Control.Monad.IO.Class
 import Control.Monad.Trans.Reader
-import Data.Default.Class
+import Data.Default
 import qualified Data.Text as T
 import GitLab.API.Boards
 import GitLab.API.Branches
