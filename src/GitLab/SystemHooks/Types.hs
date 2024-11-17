@@ -487,7 +487,7 @@ data Push = Push
     push_before :: Text,
     push_after :: Text,
     push_ref :: Text,
-    push_checkout_sha :: Text,
+    push_checkout_sha :: Maybe Text,
     push_user_id :: Int,
     push_user_name :: Text,
     push_user_username :: Maybe Text,
