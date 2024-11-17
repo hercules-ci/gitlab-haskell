@@ -883,7 +883,7 @@ data Runner = Runner
 -- | CI artifacts file
 data ArtifactsFile = ArtifactsFile
   { artifacts_file_filename :: Maybe Text,
-    artifacts_file_size :: Maybe Text -- could be Int or Double
+    artifacts_file_size :: Maybe Int
   }
   deriving (Typeable, Show, Eq, Generic)
 
