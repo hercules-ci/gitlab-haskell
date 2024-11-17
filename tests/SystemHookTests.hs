@@ -128,6 +128,11 @@ parserTests =
             >>= \eventJson -> parseEvent eventJson @?= Just pushHaskell
         ),
       testCase
+        "push-event-2"
+        ( TIO.readFile "data/system-hooks/push2.json"
+            >>= \eventJson -> parseEvent eventJson @?= Just push2Haskell
+        ),
+      testCase
         "tag-push-event"
         ( TIO.readFile "data/system-hooks/tag-push.json"
             >>= \eventJson -> parseEvent eventJson @?= Just tagPushHaskell
@@ -1075,7 +1080,7 @@ pushIfRuleYes =
   matchIf
     "push rule-if yes"
     ( \event@Push {} -> do
-        return (push_checkout_sha event == "da1560886d4f094c3e6c9ef40349f7d38b5d27d7")
+        return (push_checkout_sha event == Just "da1560886d4f094c3e6c9ef40349f7d38b5d27d7")
     )
     ( \Push {} -> do
         return ()
@@ -1086,7 +1091,7 @@ pushIfRuleNo =
   matchIf
     "push rule-if no"
     ( \event@Push {} -> do
-        return (push_checkout_sha event == "")
+        return (push_checkout_sha event == Just "")
     )
     ( \Push {} -> do
         return ()
@@ -1492,7 +1497,11 @@ groupMemberUpdatedHaskell =
 
 pushHaskell :: Push
 pushHaskell =
-  Push {push_event_name = "push", push_before = "95790bf891e76fee5e1747ab589903a6a1f80f22", push_after = "da1560886d4f094c3e6c9ef40349f7d38b5d27d7", push_ref = "refs/heads/master", push_checkout_sha = "da1560886d4f094c3e6c9ef40349f7d38b5d27d7", push_user_id = 4, push_user_name = "John Smith", push_user_username = Just "abc1", push_user_email = Just "john@example.com", push_user_avatar = "https://s.gravatar.com/avatar/d4c74594d841139328695756648b6bd6?s=8://s.gravatar.com/avatar/d4c74594d841139328695756648b6bd6?s=80", push_project_id = 15, push_project = ProjectEvent {projectEvent_id = Nothing, projectEvent_name = "Diaspora", projectEvent_description = Just "", projectEvent_web_url = "http://example.com/mike/diaspora", projectEvent_avatar_url = Nothing, projectEvent_git_ssh_url = "git@example.com:mike/diaspora.git", projectEvent_git_http_url = "http://example.com/mike/diaspora.git", projectEvent_namespace = "Mike", projectEvent_visibility_level = Private, projectEvent_path_with_namespace = "mike/diaspora", projectEvent_default_branch = "master", projectEvent_homepage = Just "http://example.com/mike/diaspora", projectEvent_url = "git@example.com:mike/diaspora.git", projectEvent_ssh_url = "git@example.com:mike/diaspora.git", projectEvent_http_url = "http://example.com/mike/diaspora.git"}, push_repository = RepositoryEvent {repositoryEvent_name = "Diaspora", repositoryEvent_url = "git@example.com:mike/diaspora.git", repositoryEvent_description = Just "", repositoryEvent_homepage = Just "http://example.com/mike/diaspora", repositoryEvent_git_http_url = Just "http://example.com/mike/diaspora.git", repositoryEvent_git_ssh_url = Just "git@example.com:mike/diaspora.git", repositoryEvent_visibility_level = Just Private}, push_commits = [CommitEvent {commitEvent_id = "c5feabde2d8cd023215af4d2ceeb7a64839fc428", commitEvent_message = "Add simple search to projects in public area", commitEvent_timestamp = "2013-05-13T18:18:08+00:00", commitEvent_url = "https://dev.gitlab.org/gitlab/gitlabhq/commit/c5feabde2d8cd023215af4d2ceeb7a64839fc428", commitEvent_author = CommitAuthorEvent {commitAuthorEvent_name = "Example User", commitAuthorEvent_email = "user@example.com"}}], push_total_commits_count = 1}
+  Push {push_event_name = "push", push_before = "95790bf891e76fee5e1747ab589903a6a1f80f22", push_after = "da1560886d4f094c3e6c9ef40349f7d38b5d27d7", push_ref = "refs/heads/master", push_checkout_sha = Just "da1560886d4f094c3e6c9ef40349f7d38b5d27d7", push_user_id = 4, push_user_name = "John Smith", push_user_username = Just "abc1", push_user_email = Just "john@example.com", push_user_avatar = "https://s.gravatar.com/avatar/d4c74594d841139328695756648b6bd6?s=8://s.gravatar.com/avatar/d4c74594d841139328695756648b6bd6?s=80", push_project_id = 15, push_project = ProjectEvent {projectEvent_id = Nothing, projectEvent_name = "Diaspora", projectEvent_description = Just "", projectEvent_web_url = "http://example.com/mike/diaspora", projectEvent_avatar_url = Nothing, projectEvent_git_ssh_url = "git@example.com:mike/diaspora.git", projectEvent_git_http_url = "http://example.com/mike/diaspora.git", projectEvent_namespace = "Mike", projectEvent_visibility_level = Private, projectEvent_path_with_namespace = "mike/diaspora", projectEvent_default_branch = "master", projectEvent_homepage = Just "http://example.com/mike/diaspora", projectEvent_url = "git@example.com:mike/diaspora.git", projectEvent_ssh_url = "git@example.com:mike/diaspora.git", projectEvent_http_url = "http://example.com/mike/diaspora.git"}, push_repository = RepositoryEvent {repositoryEvent_name = "Diaspora", repositoryEvent_url = "git@example.com:mike/diaspora.git", repositoryEvent_description = Just "", repositoryEvent_homepage = Just "http://example.com/mike/diaspora", repositoryEvent_git_http_url = Just "http://example.com/mike/diaspora.git", repositoryEvent_git_ssh_url = Just "git@example.com:mike/diaspora.git", repositoryEvent_visibility_level = Just Private}, push_commits = [CommitEvent {commitEvent_id = "c5feabde2d8cd023215af4d2ceeb7a64839fc428", commitEvent_message = "Add simple search to projects in public area", commitEvent_timestamp = "2013-05-13T18:18:08+00:00", commitEvent_url = "https://dev.gitlab.org/gitlab/gitlabhq/commit/c5feabde2d8cd023215af4d2ceeb7a64839fc428", commitEvent_author = CommitAuthorEvent {commitAuthorEvent_name = "Example User", commitAuthorEvent_email = "user@example.com"}}], push_total_commits_count = 1}
+
+push2Haskell :: Push
+push2Haskell =
+  Push {push_event_name = "push", push_before = "edcba", push_after = "0000000000000000000000000000000000000000", push_ref = "refs/heads/Rohan", push_checkout_sha = Nothing, push_user_id = 2583, push_user_name = "Joe", push_user_username = Just "joe", push_user_email = Nothing, push_user_avatar = "https://secure.gravatar.com/avatar/abc", push_project_id = 25811, push_project = ProjectEvent {projectEvent_id = Just 25811, projectEvent_name = "The project name", projectEvent_description = Nothing, projectEvent_web_url = "https://example.com/joe/proj-name", projectEvent_avatar_url = Nothing, projectEvent_git_ssh_url = "git@example.com:joe/proj-name.git", projectEvent_git_http_url = "https://example.com/joe/proj-name.git", projectEvent_namespace = "The namespace", projectEvent_visibility_level = Private, projectEvent_path_with_namespace = "joe/proj-name", projectEvent_default_branch = "main", projectEvent_homepage = Just "https://example.com/joe/proj-name", projectEvent_url = "git@example.com:joe/proj-name.git", projectEvent_ssh_url = "git@example.com:joe/proj-name.git", projectEvent_http_url = "https://example.com/joe/proj-name.git"}, push_repository = RepositoryEvent {repositoryEvent_name = "The project name", repositoryEvent_url = "git@example.com:joe/proj-name.git", repositoryEvent_description = Nothing, repositoryEvent_homepage = Just "https://example.com/joe/proj-name", repositoryEvent_git_http_url = Just "https://example.com/joe/proj-name.git", repositoryEvent_git_ssh_url = Just "git@example.com:joe/proj-name.git", repositoryEvent_visibility_level = Just Private}, push_commits = [], push_total_commits_count = 0}
 
 tagPushHaskell :: TagPush
 tagPushHaskell =
