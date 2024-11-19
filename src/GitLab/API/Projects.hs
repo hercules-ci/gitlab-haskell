@@ -1100,8 +1100,9 @@ projectCISuccess ::
 projectCISuccess prj = do
   pipes <- pipelines prj
   case pipes of
-    [] -> return False
-    (x : _) -> return (pipeline_status x == "success")
+    Nothing -> return False
+    Just [] -> return False
+    Just (x : _) -> return (pipeline_status x == "success")
 
 -- -- | searches for a username, and returns a user ID for that user, or
 -- -- 'Nothing' if a user cannot be found.
