@@ -40,15 +40,20 @@ import GitLab.Types
 import GitLab.WebRequests.GitLabWebCalls
 import Network.HTTP.Client
 
--- | List pipelines in a project. Child pipelines are not included in
--- the results, but you can get child pipeline individually.
+-- | List pipelines in a project. Child pipelines are not included in the
+-- results, but you can get child pipeline individually. Returns 'Nothing' if
+-- access to the pipelines are forbidden e.g. for a project without any files.
 pipelines ::
   -- | the project
   Project ->
-  GitLab [Pipeline]
+  GitLab (Maybe [Pipeline])
 pipelines p = do
   result <- pipelines' (project_id p)
-  return (fromRight (error "pipelines error") result)
+  case result of
+    Right ps -> return (Just ps)
+    Left err -> return Nothing
+
+-- return (fromRight (error "pipelines error") result)
 
 -- | returns the pipelines for a project given its project ID.
 pipelines' ::
