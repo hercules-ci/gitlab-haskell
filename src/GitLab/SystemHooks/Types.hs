@@ -75,6 +75,8 @@ module GitLab.SystemHooks.Types
     IssueChangesUpdatedAt (..),
     Runner (..),
     ArtifactsFile (..),
+    NoteEvent (..),
+    NoteObjectAttributes (..),
     parseEvent,
   )
 where
@@ -747,6 +749,7 @@ data ProjectAction
   | MergeRequested
   | Built
   | Pipelined
+  | Noted
   deriving (Show, Eq)
 
 -- | CI build
@@ -779,6 +782,10 @@ data BuildEvent = BuildEvent
     build_event_environment :: Maybe Text
   }
   deriving (Typeable, Show, Eq, Generic)
+
+instance SystemHook BuildEvent where
+  match = Match
+  matchIf = MatchIf
 
 -- | CI build commit
 data BuildCommit = BuildCommit
@@ -824,6 +831,10 @@ data PipelineEvent = PipelineEvent
     pipeline_event_builds :: [PipelineBuild]
   }
   deriving (Typeable, Show, Eq, Generic)
+
+instance SystemHook PipelineEvent where
+  match = Match
+  matchIf = MatchIf
 
 -- | CI pipeline attributes
 data PipelineObjectAttributes = PipelineObjectAttributes
@@ -889,16 +900,20 @@ data ArtifactsFile = ArtifactsFile
 
 -- | Issue event
 data IssueEvent = IssueEvent
-  { issue_event_event_type :: Maybe Text,
-    issue_event_user :: UserEvent,
+  { issue_event_event_type :: Text,
+    issue_event_user :: Maybe UserEvent,
     issue_event_project :: Maybe ProjectEvent,
-    issue_event_object_attributes :: IssueEventObjectAttributes,
+    issue_event_object_attributes :: Maybe IssueEventObjectAttributes,
     issue_event_labels :: Maybe [Label],
-    issue_event_changes :: IssueEventChanges,
+    issue_event_changes :: Maybe IssueEventChanges,
     issue_event_repository :: Maybe RepositoryEvent,
     issue_event_assignees :: Maybe [UserEvent]
   }
   deriving (Typeable, Show, Eq, Generic)
+
+instance SystemHook IssueEvent where
+  match = Match
+  matchIf = MatchIf
 
 -- | Issue event object attributes
 data IssueEventObjectAttributes = IssueEventObjectAttributes
@@ -1024,6 +1039,53 @@ data IssueChangesUpdatedAt = IssueChangesUpdatedAt
 --     issue_event_closed_at_current :: Text -- change to URLTime
 --   }
 --   deriving (Typeable, Show, Eq, Generic)
+
+-- | Note event
+data NoteEvent = NoteEvent
+  { note_event_object_kind :: Text,
+    note_event_event_type :: Text,
+    note_event_user :: User,
+    note_event_project_id :: Int,
+    note_event_project :: ProjectEvent,
+    note_event_object_attributes :: NoteObjectAttributes,
+    note_event_repository :: RepositoryEvent,
+    note_event_issue :: IssueEventObjectAttributes
+  }
+  deriving (Typeable, Show, Eq, Generic)
+
+instance SystemHook NoteEvent where
+  match = Match
+  matchIf = MatchIf
+
+-- | CI pipeline attributes
+data NoteObjectAttributes = NoteObjectAttributes
+  { note_object_attributes_attachment :: Maybe Text, -- ?
+    note_object_attributes_author_id :: Int,
+    note_object_attributes_change_position :: Maybe Text, -- ?
+    note_object_attributes_commit_id :: Maybe Int,
+    note_object_attributes_created_at :: Text, -- change to date
+    note_object_attributes_discussion_id :: Text,
+    note_object_attributes_id :: Int,
+    note_object_attributes_line_code :: Maybe Int, -- ?
+    note_object_attributes_note :: Text,
+    note_object_attributes_noteable_id :: Int,
+    note_object_attributes_noteable_type :: Text, -- "Issue"
+    note_object_attributes_original_position :: Maybe Int, -- ?
+    note_object_attributes_position :: Maybe Int, -- ?
+    note_object_attributes_project_id :: Int,
+    note_object_attributes_resolved_at :: Maybe Text, -- date?
+    note_object_attributes_resolved_by_id :: Maybe Int,
+    note_object_attributes_resolved_by_push :: Maybe Int, -- ?
+    note_object_attributes_st_diff :: Maybe Text, -- ?
+    note_object_attributes_system :: Bool,
+    note_object_attributes_type :: Maybe Text, -- ?
+    note_object_attributes_updated_at :: Maybe Text, -- date?
+    note_object_attributes_updated_by_id :: Maybe Int, -- ?
+    note_object_attributes_description :: Text,
+    note_object_attributes_url :: Text,
+    note_object_attributes_action :: Text -- "create"
+  }
+  deriving (Typeable, Show, Eq, Generic)
 
 instance FromJSON ProjectCreate where
   parseJSON =
@@ -1614,6 +1676,26 @@ instance FromJSON PipelineEvent where
             _unexpected -> fail "build parsing failed"
         _unexpected -> fail "build parsing failed"
 
+instance FromJSON NoteEvent where
+  parseJSON =
+    withObject "NoteEvent" $ \v -> do
+      isNoteEvent <- v .:? "object_kind"
+      case isNoteEvent of
+        Just theEvent ->
+          case theEvent of
+            Noted ->
+              NoteEvent
+                <$> v .: "object_kind"
+                <*> v .: "event_type"
+                <*> v .: "user"
+                <*> v .: "project_id"
+                <*> v .: "project"
+                <*> v .: "object_attributes"
+                <*> v .: "repository"
+                <*> v .: "issue"
+            _unexpected -> fail "note parsing failed"
+        _unexpected -> fail "note parsing failed"
+
 -- TODO: replace bodyNoPrefix with a template Haskell based approach in src/GitLab/Types.hs
 -- e.g.
 
@@ -1844,6 +1926,31 @@ bodyNoPrefix "issue_event_state_id_current" = "current"
 bodyNoPrefix "issue_event_changes_updated_at" = "updated_at"
 bodyNoPrefix "issue_event_updated_at_previous" = "previous"
 bodyNoPrefix "issue_event_updated_at_current" = "current"
+bodyNoPrefix "note_object_attributes_attachment" = "attachment"
+bodyNoPrefix "note_object_attributes_author_id" = "author_id"
+bodyNoPrefix "note_object_attributes_change_position" = "change_position"
+bodyNoPrefix "note_object_attributes_commit_id" = "commit_id"
+bodyNoPrefix "note_object_attributes_created_at" = "created_at"
+bodyNoPrefix "note_object_attributes_discussion_id" = "discussion_id"
+bodyNoPrefix "note_object_attributes_id" = "id"
+bodyNoPrefix "note_object_attributes_line_code" = "line_code"
+bodyNoPrefix "note_object_attributes_note" = "note"
+bodyNoPrefix "note_object_attributes_noteable_id" = "noteable_id"
+bodyNoPrefix "note_object_attributes_noteable_type" = "noteable_type"
+bodyNoPrefix "note_object_attributes_original_position" = "original_position"
+bodyNoPrefix "note_object_attributes_position" = "position"
+bodyNoPrefix "note_object_attributes_project_id" = "project_id"
+bodyNoPrefix "note_object_attributes_resolved_at" = "resolved_at"
+bodyNoPrefix "note_object_attributes_resolved_by_id" = "resolved_by_id"
+bodyNoPrefix "note_object_attributes_resolved_by_push" = "resolved_by_push"
+bodyNoPrefix "note_object_attributes_st_diff" = "st_diff"
+bodyNoPrefix "note_object_attributes_system" = "system"
+bodyNoPrefix "note_object_attributes_type" = "type"
+bodyNoPrefix "note_object_attributes_updated_at" = "updated_at"
+bodyNoPrefix "note_object_attributes_updated_by_id" = "updated_by_id"
+bodyNoPrefix "note_object_attributes_description" = "description"
+bodyNoPrefix "note_object_attributes_url" = "url"
+bodyNoPrefix "note_object_attributes_action" = "action"
 bodyNoPrefix s = fail ("uexpected JSON field prefix: " <> s)
 
 instance FromJSON ProjectEvent where
@@ -2078,6 +2185,14 @@ instance FromJSON IssueChangesUpdatedAt where
           }
       )
 
+instance FromJSON NoteObjectAttributes where
+  parseJSON =
+    genericParseJSON
+      ( defaultOptions
+          { fieldLabelModifier = bodyNoPrefix
+          }
+      )
+
 instance FromJSON Label where
   parseJSON = withObject "Label" $ \obj -> do
     labelId <- obj .:? "id"
@@ -2131,4 +2246,5 @@ instance FromJSON ProjectAction where
   parseJSON (String "merge_request") = return MergeRequested
   parseJSON (String "build") = return Built
   parseJSON (String "pipeline") = return Pipelined
+  parseJSON (String "note") = return Noted
   parseJSON s = fail ("unexpected system hook event: " <> show s)

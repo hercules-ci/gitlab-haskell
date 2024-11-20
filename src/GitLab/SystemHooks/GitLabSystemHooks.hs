@@ -207,6 +207,10 @@ tryFire contents (Match _ f) = do
       (Just (\_ -> return True))
       (cast f :: Maybe (IssueEvent -> GitLab ()))
       (parseEvent contents :: Maybe IssueEvent)
+    `orElse` fireIf'
+      (Just (\_ -> return True))
+      (cast f :: Maybe (NoteEvent -> GitLab ()))
+      (parseEvent contents :: Maybe NoteEvent)
 tryFire contents (MatchIf _ predF f) = do
   fireIf'
     (cast predF :: Maybe (ProjectCreate -> GitLab Bool))
@@ -320,6 +324,10 @@ tryFire contents (MatchIf _ predF f) = do
       (cast predF :: Maybe (IssueEvent -> GitLab Bool))
       (cast f :: Maybe (IssueEvent -> GitLab ()))
       (parseEvent contents :: Maybe IssueEvent)
+    `orElse` fireIf'
+      (cast predF :: Maybe (NoteEvent -> GitLab Bool))
+      (cast f :: Maybe (NoteEvent -> GitLab ()))
+      (parseEvent contents :: Maybe NoteEvent)
 
 fireIf' :: (Typeable a, Show a) => Maybe (a -> GitLab Bool) -> Maybe (a -> GitLab ()) -> Maybe a -> GitLab Bool
 fireIf' castPred castF parsed = do
@@ -423,4 +431,7 @@ attemptGitLabEventParse contents =
                                                                                                         Nothing ->
                                                                                                           case parseEvent contents :: Maybe IssueEvent of
                                                                                                             Just _ -> True
-                                                                                                            Nothing -> False
+                                                                                                            Nothing ->
+                                                                                                              case parseEvent contents :: Maybe NoteEvent of
+                                                                                                                Just _ -> True
+                                                                                                                Nothing -> False

@@ -4,6 +4,7 @@
 module SystemHookTests (systemHookTests) where
 
 import Control.Monad.IO.Class
+import Data.Maybe
 import qualified Data.Text.IO as TIO
 import GitLab
 import Test.Tasty
@@ -201,6 +202,11 @@ parserTests =
         "issue2"
         ( TIO.readFile "data/system-hooks/issue2.json"
             >>= \eventJson -> parseEvent eventJson @?= Just issue2Haskell
+        ),
+      testCase
+        "note1"
+        ( TIO.readFile "data/system-hooks/note1.json"
+            >>= \eventJson -> parseEvent eventJson @?= Just note1Haskell
         )
     ]
 
@@ -294,6 +300,10 @@ matchTests =
       <> matchTest "tag-push" "tag-push.json" tagPushRule "project-created.json" projectCreateRule
       <> matchTest "repository-update" "repository-update.json" repositoryUpdateRule "project-created.json" projectCreateRule
       <> matchTest "merge-request" "merge-request.json" mergeRequestRule "project-created.json" projectCreateRule
+      <> matchTest "build" "build.json" buildRule "project-created.json" projectCreateRule
+      <> matchTest "pipeline" "pipeline.json" pipelineRule "project-created.json" projectCreateRule
+      <> matchTest "issue" "issue1.json" issueRule "project-created.json" projectCreateRule
+      <> matchTest "note" "note1.json" noteRule "project-created.json" projectCreateRule
 
 matchIfTests :: TestTree
 matchIfTests =
@@ -322,6 +332,10 @@ matchIfTests =
       <> matchIfTest "tag-push" "tag-push.json" tagPushIfRuleYes tagPushIfRuleNo
       <> matchIfTest "repository-update" "repository-update.json" repositoryUpdateIfRuleYes repositoryUpdateIfRuleNo
       <> matchIfTest "merge-request" "merge-request.json" mergeRequestIfRuleYes mergeRequestIfRuleNo
+      <> matchIfTest "build" "build.json" buildIfRuleYes buildIfRuleNo
+      <> matchIfTest "pipeline" "pipeline.json" pipelineIfRuleYes pipelineIfRuleNo
+      <> matchIfTest "issue" "issue1.json" issueIfRuleYes issueIfRuleNo
+      <> matchIfTest "note" "note1.json" noteIfRuleYes noteIfRuleNo
 
 receiveTests :: TestTree
 receiveTests =
@@ -1187,6 +1201,126 @@ mergeRequestIfRuleNo =
         return ()
     )
 
+buildRule :: Rule
+buildRule =
+  match
+    "build rule"
+    ( \BuildEvent {} -> do
+        return ()
+    )
+
+buildIfRuleYes :: Rule
+buildIfRuleYes =
+  matchIf
+    "build rule-if yes"
+    ( \event@BuildEvent {} -> do
+        return (build_event_build_event_name event == "junit")
+    )
+    ( \BuildEvent {} -> do
+        return ()
+    )
+
+buildIfRuleNo :: Rule
+buildIfRuleNo =
+  matchIf
+    "build rule-if no"
+    ( \event@BuildEvent {} -> do
+        return (build_event_build_event_name event == "not-junit")
+    )
+    ( \BuildEvent {} -> do
+        return ()
+    )
+
+pipelineRule :: Rule
+pipelineRule =
+  match
+    "pipeline rule"
+    ( \PipelineEvent {} -> do
+        return ()
+    )
+
+pipelineIfRuleYes :: Rule
+pipelineIfRuleYes =
+  matchIf
+    "piple rule-if yes"
+    ( \event@PipelineEvent {} -> do
+        return (build_project_project_name (pipeline_event_project event) == "proj-name")
+    )
+    ( \PipelineEvent {} -> do
+        return ()
+    )
+
+pipelineIfRuleNo :: Rule
+pipelineIfRuleNo =
+  matchIf
+    "pipeline rule-if no"
+    ( \event@PipelineEvent {} -> do
+        return (build_project_project_name (pipeline_event_project event) == "proj-not-name")
+    )
+    ( \PipelineEvent {} -> do
+        return ()
+    )
+
+issueRule :: Rule
+issueRule =
+  match
+    "issue rule"
+    ( \IssueEvent {} -> do
+        return ()
+    )
+
+issueIfRuleYes :: Rule
+issueIfRuleYes =
+  matchIf
+    "issue rule-if yes"
+    ( \event@IssueEvent {} -> do
+        return (projectEvent_name (fromJust (issue_event_project event)) == "proj-name")
+    )
+    ( \IssueEvent {} -> do
+        return ()
+    )
+
+issueIfRuleNo :: Rule
+issueIfRuleNo =
+  matchIf
+    "issue rule-if no"
+    ( \event@IssueEvent {} -> do
+        return (projectEvent_name (fromJust (issue_event_project event)) == "proj-not-name")
+    )
+    ( \IssueEvent {} -> do
+        return ()
+    )
+
+noteRule :: Rule
+noteRule =
+  match
+    "note rule"
+    ( \NoteEvent {} -> do
+        return ()
+    )
+
+noteIfRuleYes :: Rule
+noteIfRuleYes =
+  matchIf
+    "note rule-if yes"
+    ( \event@NoteEvent {} -> do
+        return (user_username (note_event_user event) == "joe")
+    )
+    ( \NoteEvent {} -> do
+        return ()
+    )
+
+noteIfRuleNo :: Rule
+noteIfRuleNo =
+  matchIf
+    "note rule-if no"
+    ( \event@NoteEvent {} -> do
+        return (user_username (note_event_user event) == "not joe")
+    )
+    ( \NoteEvent {} -> do
+        return ()
+    )
+
 projectCreatedHaskell :: ProjectCreate
 projectCreatedHaskell =
   ProjectCreate
@@ -1555,8 +1689,12 @@ pipeline5Haskell =
 
 issue1Haskell :: IssueEvent
 issue1Haskell =
-  IssueEvent {issue_event_event_type = Just "issue", issue_event_user = UserEvent {userEvent_id = Nothing, userEvent_name = "Joe", userEvent_username = "ma2305", userEvent_avatar_url = "https://secure.gravatar.com/avatar/abcde", userEvent_email = Nothing}, issue_event_project = Just (ProjectEvent {projectEvent_id = Just 19102, projectEvent_name = "proj-name", projectEvent_description = Just "", projectEvent_web_url = "https://example.com/joe123/proj-name", projectEvent_avatar_url = Nothing, projectEvent_git_ssh_url = "git@example.com:joe123/proj-name.git", projectEvent_git_http_url = "https://example.com/joe123/proj-name.git", projectEvent_namespace = "Joe", projectEvent_visibility_level = Private, projectEvent_path_with_namespace = "joe123/proj-name", projectEvent_default_branch = "master", projectEvent_homepage = Just "https://example.com/joe123/proj-name", projectEvent_url = "git@example.com:joe123/proj-name.git", projectEvent_ssh_url = "git@example.com:joe123/proj-name.git", projectEvent_http_url = "https://example.com/joe123/proj-name.git"}), issue_event_object_attributes = IssueEventObjectAttributes {issue_event_object_attributes_author_id = 2052, issue_event_object_attributes_closed_at = Just "2024-11-02 19:47:16 UTC", issue_event_object_attributes_confidential = False, issue_event_object_attributes_created_at = "2024-11-02 05:45:09 UTC", issue_event_object_attributes_description = "", issue_event_object_attributes_discussion_locked = Nothing, issue_event_object_attributes_due_date = Nothing, issue_event_object_attributes_id = 2183, issue_event_object_attributes_iid = 40, issue_event_object_attributes_last_edited_at = Nothing, issue_event_object_attributes_last_edited_by_id = Nothing, issue_event_object_attributes_milestone_id = Nothing, issue_event_object_attributes_move_to_id = Nothing, issue_event_object_attributes_duplicated_to_id = Nothing, issue_event_object_attributes_project_id = 19102, issue_event_object_attributes_relative_position = Just 20520, issue_event_object_attributes_state_id = 2, issue_event_object_attributes_time_estimate = 0, issue_event_object_attributes_title = "Issue title", issue_event_object_attributes_updated_at = "2024-11-02 19:47:17 UTC", issue_event_object_attributes_updated_by_id = Nothing, issue_event_object_attributes_type = "Issue", issue_event_object_attributes_url = "https://example.com/joe123/proj-name/-/issues/40", issue_event_object_attributes_total_time_spent = 0, issue_event_object_attributes_time_change = 0, issue_event_object_attributes_human_total_time_spent = Nothing, issue_event_object_attributes_human_time_change = Nothing, issue_event_object_attributes_human_time_estimate = Nothing}, issue_event_labels = Just [Label {label_id = Just 385, label_title = Just "Stage 3", label_color = Just "#cd5b45", label_project_id = Just 19102, label_created_at = Just "2024-11-02 05:42:30 UTC", label_updated_at = Just "2024-11-02 05:42:30 UTC", label_template = Just False, label_description = Nothing, label_type = Just "ProjectLabel", label_group_id = Nothing}], issue_event_changes = IssueEventChanges {issue_event_changes_author_id = Nothing, issue_event_changes_created_at = Nothing, issue_event_changes_description = Nothing, issue_event_changes_id = Nothing, issue_event_changes_iid = Nothing, issue_event_changes_project_id = Nothing, issue_event_changes_title = Nothing, issue_event_changes_closed_at = Just (IssueChangesClosedAt {issue_event_closed_at_previous = Nothing, issue_event_closed_at_current = "2024-11-02 19:47:16 UTC"}), issue_event_changes_state_id = Just (IssueChangesStateId {issue_event_state_id_previous = Just 1, issue_event_state_id_current = 2}), issue_event_changes_updated_at = Just (IssueChangesUpdatedAt {issue_event_updated_at_previous = Just "2024-11-02 05:45:09 UTC", issue_event_updated_at_current = "2024-11-02 19:47:17 UTC"})}, issue_event_repository = Just (RepositoryEvent {repositoryEvent_name = "proj-name", repositoryEvent_url = "git@example.com:joe123/proj-name.git", repositoryEvent_description = Just "", repositoryEvent_homepage = Just "https://example.com/joe123/proj-name", repositoryEvent_git_http_url = Nothing, repositoryEvent_git_ssh_url = Nothing, repositoryEvent_visibility_level = Nothing}), issue_event_assignees = Just [UserEvent {userEvent_id = Nothing, userEvent_name = "Joe", userEvent_username = "joe123", userEvent_avatar_url = "https://secure.gravatar.com/avatar/abcde", userEvent_email = Nothing}]}
+  IssueEvent {issue_event_event_type = "issue", issue_event_user = Just (UserEvent {userEvent_id = Nothing, userEvent_name = "Joe", userEvent_username = "ma2305", userEvent_avatar_url = "https://secure.gravatar.com/avatar/abcde", userEvent_email = Nothing}), issue_event_project = Just (ProjectEvent {projectEvent_id = Just 19102, projectEvent_name = "proj-name", projectEvent_description = Just "", projectEvent_web_url = "https://example.com/joe123/proj-name", projectEvent_avatar_url = Nothing, projectEvent_git_ssh_url = "git@example.com:joe123/proj-name.git", projectEvent_git_http_url = "https://example.com/joe123/proj-name.git", projectEvent_namespace = "Joe", projectEvent_visibility_level = Private, projectEvent_path_with_namespace = "joe123/proj-name", projectEvent_default_branch = "master", projectEvent_homepage = Just "https://example.com/joe123/proj-name", projectEvent_url = "git@example.com:joe123/proj-name.git", projectEvent_ssh_url = "git@example.com:joe123/proj-name.git", projectEvent_http_url = "https://example.com/joe123/proj-name.git"}), issue_event_object_attributes = Just (IssueEventObjectAttributes {issue_event_object_attributes_author_id = 2052, issue_event_object_attributes_closed_at = Just "2024-11-02 19:47:16 UTC", issue_event_object_attributes_confidential = False, issue_event_object_attributes_created_at = "2024-11-02 05:45:09 UTC", issue_event_object_attributes_description = "", issue_event_object_attributes_discussion_locked = Nothing, issue_event_object_attributes_due_date = Nothing, issue_event_object_attributes_id = 2183, issue_event_object_attributes_iid = 40, issue_event_object_attributes_last_edited_at = Nothing, issue_event_object_attributes_last_edited_by_id = Nothing, issue_event_object_attributes_milestone_id = Nothing, issue_event_object_attributes_move_to_id = Nothing, issue_event_object_attributes_duplicated_to_id = Nothing, issue_event_object_attributes_project_id = 19102, issue_event_object_attributes_relative_position = Just 20520, issue_event_object_attributes_state_id = 2, issue_event_object_attributes_time_estimate = 0, issue_event_object_attributes_title = "Issue title", issue_event_object_attributes_updated_at = "2024-11-02 19:47:17 UTC", issue_event_object_attributes_updated_by_id = Nothing, issue_event_object_attributes_type = "Issue", issue_event_object_attributes_url = "https://example.com/joe123/proj-name/-/issues/40", issue_event_object_attributes_total_time_spent = 0, issue_event_object_attributes_time_change = 0, issue_event_object_attributes_human_total_time_spent = Nothing, issue_event_object_attributes_human_time_change = Nothing, issue_event_object_attributes_human_time_estimate = Nothing}), issue_event_labels = Just [Label {label_id = Just 385, label_title = Just "Stage 3", label_color = Just "#cd5b45", label_project_id = Just 19102, label_created_at = Just "2024-11-02 05:42:30 UTC", label_updated_at = Just "2024-11-02 05:42:30 UTC", label_template = Just False, label_description = Nothing, label_type = Just "ProjectLabel", label_group_id = Nothing}], issue_event_changes = Just (IssueEventChanges {issue_event_changes_author_id = Nothing, issue_event_changes_created_at = Nothing, issue_event_changes_description = Nothing, issue_event_changes_id = Nothing, issue_event_changes_iid = Nothing, issue_event_changes_project_id = Nothing, issue_event_changes_title = Nothing, issue_event_changes_closed_at = Just (IssueChangesClosedAt {issue_event_closed_at_previous = Nothing, issue_event_closed_at_current = "2024-11-02 19:47:16 UTC"}), issue_event_changes_state_id = Just (IssueChangesStateId {issue_event_state_id_previous = Just 1, issue_event_state_id_current = 2}), issue_event_changes_updated_at = Just (IssueChangesUpdatedAt {issue_event_updated_at_previous = Just "2024-11-02 05:45:09 UTC", issue_event_updated_at_current = "2024-11-02 19:47:17 UTC"})}), issue_event_repository = Just (RepositoryEvent {repositoryEvent_name = "proj-name", repositoryEvent_url = "git@example.com:joe123/proj-name.git", repositoryEvent_description = Just "", repositoryEvent_homepage = Just "https://example.com/joe123/proj-name", repositoryEvent_git_http_url = Nothing, repositoryEvent_git_ssh_url = Nothing, repositoryEvent_visibility_level = Nothing}), issue_event_assignees = Just [UserEvent {userEvent_id = Nothing, userEvent_name = "Joe", userEvent_username = "joe123", userEvent_avatar_url = "https://secure.gravatar.com/avatar/abcde", userEvent_email = Nothing}]}
 
 issue2Haskell :: IssueEvent
 issue2Haskell =
-  IssueEvent {issue_event_event_type = Just "issue", issue_event_user = UserEvent {userEvent_id = Nothing, userEvent_name = "Joe", userEvent_username = "joe", userEvent_avatar_url = "https://secure.gravatar.com/avatar/abc", userEvent_email = Nothing}, issue_event_project = Just (ProjectEvent {projectEvent_id = Just 20125, projectEvent_name = "proj-name", projectEvent_description = Just "the description", projectEvent_web_url = "https://example.com/joe/proj-name", projectEvent_avatar_url = Nothing, projectEvent_git_ssh_url = "git@example.com:joe/proj-name.git", projectEvent_git_http_url = "https://example.com/joe/proj-name.git", projectEvent_namespace = "Joe", projectEvent_visibility_level = Private, projectEvent_path_with_namespace = "joe/proj-name", projectEvent_default_branch = "master", projectEvent_homepage = Just "https://example.com/joe/proj-name", projectEvent_url = "git@example.com:joe/proj-name.git", projectEvent_ssh_url = "git@example.com:joe/proj-name.git", projectEvent_http_url = "https://example.com/joe/proj-name.git"}), issue_event_object_attributes = IssueEventObjectAttributes {issue_event_object_attributes_author_id = 2617, issue_event_object_attributes_closed_at = Nothing, issue_event_object_attributes_confidential = False, issue_event_object_attributes_created_at = "2024-11-09 00:44:06 UTC", issue_event_object_attributes_description = "issue description", issue_event_object_attributes_discussion_locked = Nothing, issue_event_object_attributes_due_date = Nothing, issue_event_object_attributes_id = 2286, issue_event_object_attributes_iid = 25, issue_event_object_attributes_last_edited_at = Nothing, issue_event_object_attributes_last_edited_by_id = Nothing, issue_event_object_attributes_milestone_id = Nothing, issue_event_object_attributes_move_to_id = Nothing, issue_event_object_attributes_duplicated_to_id = Nothing, issue_event_object_attributes_project_id = 20125, issue_event_object_attributes_relative_position = Nothing, issue_event_object_attributes_state_id = 1, issue_event_object_attributes_time_estimate = 0, issue_event_object_attributes_title = "Class Diagram - stage 3", issue_event_object_attributes_updated_at = "2024-11-09 00:44:06 UTC", issue_event_object_attributes_updated_by_id = Nothing, issue_event_object_attributes_type = "Issue", issue_event_object_attributes_url = "https://example.com/joe/proj-name/-/issues/25", issue_event_object_attributes_total_time_spent = 0, issue_event_object_attributes_time_change = 0, issue_event_object_attributes_human_total_time_spent = Nothing, issue_event_object_attributes_human_time_change = Nothing, issue_event_object_attributes_human_time_estimate = Nothing}, issue_event_labels = Just [Label {label_id = Just 380, label_title = Just "the label title", label_color = Just "#9400d3", label_project_id = Just 20125, label_created_at = Just "2024-10-30 16:25:49 UTC", label_updated_at = Just "2024-10-30 16:25:49 UTC", label_template = Just False, label_description = Nothing, label_type = Just "ProjectLabel", label_group_id = Nothing}], issue_event_changes = IssueEventChanges {issue_event_changes_author_id = Just (IssueChangesAuthorId {issue_event_author_id_previous = Nothing, issue_event_author_id_current = 2617}), issue_event_changes_created_at = Just (IssueChangesCreatedAt {issue_event_created_at_previous = Nothing, issue_event_created_at_current = "2024-11-09 00:44:06 UTC"}), issue_event_changes_description = Just (IssueChangesDescription {issue_event_description_previous = Nothing, issue_event_description_current = "issue description"}), issue_event_changes_id = Just (IssueChangesId {issue_event_id_previous = Nothing, issue_event_id_current = 2286}), issue_event_changes_iid = Just (IssueChangesIid {issue_event_iid_previous = Nothing, issue_event_iid_current = 25}), issue_event_changes_project_id = Just (IssueChangesProjectId {issue_event_project_id_previous = Nothing, issue_event_project_id_current = 20125}), issue_event_changes_title = Just (IssueChangesTitle {issue_event_title_previous = Nothing, issue_event_title_current = "new issue title"}), issue_event_changes_closed_at = Nothing, issue_event_changes_state_id = Nothing, issue_event_changes_updated_at = Just (IssueChangesUpdatedAt {issue_event_updated_at_previous = Nothing, issue_event_updated_at_current = "2024-11-09 00:44:06 UTC"})}, issue_event_repository = Just (RepositoryEvent {repositoryEvent_name = "proj-name", repositoryEvent_url = "git@example.com:joe/proj-name.git", repositoryEvent_description = Just "the description", repositoryEvent_homepage = Just "https://example.com/joe/proj-name", repositoryEvent_git_http_url = Nothing, repositoryEvent_git_ssh_url = Nothing, repositoryEvent_visibility_level = Nothing}), issue_event_assignees = Just [UserEvent {userEvent_id = Nothing, userEvent_name = "Joe", userEvent_username = "joe", userEvent_avatar_url = "https://secure.gravatar.com/avatar/abc", userEvent_email = Nothing}]}
+  IssueEvent {issue_event_event_type = "issue", issue_event_user = Just (UserEvent {userEvent_id = Nothing, userEvent_name = "Joe", userEvent_username = "joe", userEvent_avatar_url = "https://secure.gravatar.com/avatar/abc", userEvent_email = Nothing}), issue_event_project = Just (ProjectEvent {projectEvent_id = Just 20125, projectEvent_name = "proj-name", projectEvent_description = Just "the description", projectEvent_web_url = "https://example.com/joe/proj-name", projectEvent_avatar_url = Nothing, projectEvent_git_ssh_url = "git@example.com:joe/proj-name.git", projectEvent_git_http_url = "https://example.com/joe/proj-name.git", projectEvent_namespace = "Joe", projectEvent_visibility_level = Private, projectEvent_path_with_namespace = "joe/proj-name", projectEvent_default_branch = "master", projectEvent_homepage = Just "https://example.com/joe/proj-name", projectEvent_url = "git@example.com:joe/proj-name.git", projectEvent_ssh_url = "git@example.com:joe/proj-name.git", projectEvent_http_url = "https://example.com/joe/proj-name.git"}), issue_event_object_attributes = Just (IssueEventObjectAttributes {issue_event_object_attributes_author_id = 2617, issue_event_object_attributes_closed_at = Nothing, issue_event_object_attributes_confidential = False, issue_event_object_attributes_created_at = "2024-11-09 00:44:06 UTC", issue_event_object_attributes_description = "issue description", issue_event_object_attributes_discussion_locked = Nothing, issue_event_object_attributes_due_date = Nothing, issue_event_object_attributes_id = 2286, issue_event_object_attributes_iid = 25, issue_event_object_attributes_last_edited_at = Nothing, issue_event_object_attributes_last_edited_by_id = Nothing, issue_event_object_attributes_milestone_id = Nothing, issue_event_object_attributes_move_to_id = Nothing, issue_event_object_attributes_duplicated_to_id = Nothing, issue_event_object_attributes_project_id = 20125, issue_event_object_attributes_relative_position = Nothing, issue_event_object_attributes_state_id = 1, issue_event_object_attributes_time_estimate = 0, issue_event_object_attributes_title = "Class Diagram - stage 3", issue_event_object_attributes_updated_at = "2024-11-09 00:44:06 UTC", issue_event_object_attributes_updated_by_id = Nothing, issue_event_object_attributes_type = "Issue", issue_event_object_attributes_url = "https://example.com/joe/proj-name/-/issues/25", issue_event_object_attributes_total_time_spent = 0, issue_event_object_attributes_time_change = 0, issue_event_object_attributes_human_total_time_spent = Nothing, issue_event_object_attributes_human_time_change = Nothing, issue_event_object_attributes_human_time_estimate = Nothing}), issue_event_labels = Just [Label {label_id = Just 380, label_title = Just "the label title", label_color = Just "#9400d3", label_project_id = Just 20125, label_created_at = Just "2024-10-30 16:25:49 UTC", label_updated_at = Just "2024-10-30 16:25:49 UTC", label_template = Just False, label_description = Nothing, label_type = Just "ProjectLabel", label_group_id = Nothing}], issue_event_changes = Just (IssueEventChanges {issue_event_changes_author_id = Just (IssueChangesAuthorId {issue_event_author_id_previous = Nothing, issue_event_author_id_current = 2617}), issue_event_changes_created_at = Just (IssueChangesCreatedAt {issue_event_created_at_previous = Nothing, issue_event_created_at_current = "2024-11-09 00:44:06 UTC"}), issue_event_changes_description = Just (IssueChangesDescription {issue_event_description_previous = Nothing, issue_event_description_current = "issue description"}), issue_event_changes_id = Just (IssueChangesId {issue_event_id_previous = Nothing, issue_event_id_current = 2286}), issue_event_changes_iid = Just (IssueChangesIid {issue_event_iid_previous = Nothing, issue_event_iid_current = 25}), issue_event_changes_project_id = Just (IssueChangesProjectId {issue_event_project_id_previous = Nothing, issue_event_project_id_current = 20125}), issue_event_changes_title = Just (IssueChangesTitle {issue_event_title_previous = Nothing, issue_event_title_current = "new issue title"}), issue_event_changes_closed_at = Nothing, issue_event_changes_state_id = Nothing, issue_event_changes_updated_at = Just (IssueChangesUpdatedAt {issue_event_updated_at_previous = Nothing, issue_event_updated_at_current = "2024-11-09 00:44:06 UTC"})}), issue_event_repository = Just (RepositoryEvent {repositoryEvent_name = "proj-name", repositoryEvent_url = "git@example.com:joe/proj-name.git", repositoryEvent_description = Just "the description", repositoryEvent_homepage = Just "https://example.com/joe/proj-name", repositoryEvent_git_http_url = Nothing, repositoryEvent_git_ssh_url = Nothing, repositoryEvent_visibility_level = Nothing}), issue_event_assignees = Just [UserEvent {userEvent_id = Nothing, userEvent_name = "Joe", userEvent_username = "joe", userEvent_avatar_url = "https://secure.gravatar.com/avatar/abc", userEvent_email = Nothing}]}
+
+note1Haskell :: NoteEvent
+note1Haskell =
+  NoteEvent {note_event_object_kind = "note", note_event_event_type = "note", note_event_user = User {user_id = 2950, user_username = "joe", user_bio = Nothing, user_two_factor_enabled = Nothing, user_last_sign_in_at = Nothing, user_current_sign_in_at = Nothing, user_last_activity_on = Nothing, user_skype = Nothing, user_twitter = Nothing, user_website_url = Nothing, user_theme_id = Nothing, user_color_scheme_id = Nothing, user_external = Nothing, user_private_profile = Nothing, user_projects_limit = Nothing, user_can_create_group = Nothing, user_can_create_project = Nothing, user_public_email = Nothing, user_organization = Nothing, user_job_title = Nothing, user_pronouns = Nothing, user_linkedin = Nothing, user_confirmed_at = Nothing, user_identities = Nothing, user_name = "Joe", user_email = Just "[REDACTED]", user_followers = Nothing, user_bot = Nothing, user_following = Nothing, user_state = Nothing, user_avatar_url = Just "https://secure.gravatar.com/avatar/abc", user_web_url = Nothing, user_location = Nothing, user_extern_uid = Nothing, user_group_id_for_saml = Nothing, user_discussion_locked = Nothing, user_created_at = Nothing, user_note = Nothing, user_password = Nothing, user_force_random_password = Nothing, user_providor = Nothing, user_reset_password = Nothing, user_skip_confirmation = Nothing, user_view_diffs_file_by_file = Nothing}, note_event_project_id = 21219, note_event_project = ProjectEvent {projectEvent_id = Just 21219, projectEvent_name = "proj-name", projectEvent_description = Just "", projectEvent_web_url = "https://example.com/joe/proj-name", projectEvent_avatar_url = Nothing, projectEvent_git_ssh_url = "git@example.com:joe/proj-name.git", projectEvent_git_http_url = "https://example.com/joe/proj-name.git", projectEvent_namespace = "Joe", projectEvent_visibility_level = Private, projectEvent_path_with_namespace = "joe/proj-name", projectEvent_default_branch = "master", projectEvent_homepage = Just "https://example.com/joe/proj-name", projectEvent_url = "git@example.com:joe/proj-name.git", projectEvent_ssh_url = "git@example.com:joe/proj-name.git", projectEvent_http_url = "https://example.com/joe/proj-name.git"}, note_event_object_attributes = NoteObjectAttributes {note_object_attributes_attachment = Nothing, note_object_attributes_author_id = 2950, note_object_attributes_change_position = Nothing, note_object_attributes_commit_id = Nothing, note_object_attributes_created_at = "2024-11-16 16:16:10 UTC", note_object_attributes_discussion_id = "4f0df21318e0110d71de2114a6c34385bd81b713", note_object_attributes_id = 16684, note_object_attributes_line_code = Nothing, note_object_attributes_note = "the note text", note_object_attributes_noteable_id = 2797, note_object_attributes_noteable_type = "Issue", note_object_attributes_original_position = Nothing, note_object_attributes_position = Nothing, note_object_attributes_project_id = 21219, note_object_attributes_resolved_at = Nothing, note_object_attributes_resolved_by_id = Nothing, note_object_attributes_resolved_by_push = Nothing, note_object_attributes_st_diff = Nothing, note_object_attributes_system = False, note_object_attributes_type = Nothing, note_object_attributes_updated_at = Just "2024-11-16 16:16:10 UTC", note_object_attributes_updated_by_id = Nothing, note_object_attributes_description = "the note text", note_object_attributes_url = "https://example.com/joe/proj-name/-/issues/19#note_16684", note_object_attributes_action = "create"}, note_event_repository = RepositoryEvent {repositoryEvent_name = "proj-name", repositoryEvent_url = "git@example.com:joe/proj-name.git", repositoryEvent_description = Just "", repositoryEvent_homepage = Just "https://example.com/joe/proj-name", repositoryEvent_git_http_url = Nothing, repositoryEvent_git_ssh_url = Nothing, repositoryEvent_visibility_level = Nothing}, note_event_issue = IssueEventObjectAttributes {issue_event_object_attributes_author_id = 2950, issue_event_object_attributes_closed_at = Nothing, issue_event_object_attributes_confidential = False, issue_event_object_attributes_created_at = "2024-11-16 12:47:16 UTC", issue_event_object_attributes_description = "", issue_event_object_attributes_discussion_locked = Nothing, issue_event_object_attributes_due_date = Nothing, issue_event_object_attributes_id = 2797, issue_event_object_attributes_iid = 19, issue_event_object_attributes_last_edited_at = Nothing, issue_event_object_attributes_last_edited_by_id = Nothing, issue_event_object_attributes_milestone_id = Nothing, issue_event_object_attributes_move_to_id = Nothing, issue_event_object_attributes_duplicated_to_id = Nothing, issue_event_object_attributes_project_id = 21219, issue_event_object_attributes_relative_position = Just 9747, issue_event_object_attributes_state_id = 1, issue_event_object_attributes_time_estimate = 0, issue_event_object_attributes_title = "the issue title", issue_event_object_attributes_updated_at = "2024-11-16 16:16:10 UTC", issue_event_object_attributes_updated_by_id = Just 2950, issue_event_object_attributes_type = "Issue", issue_event_object_attributes_url = "https://example.com/joe/proj-name/-/issues/19", issue_event_object_attributes_total_time_spent = 0, issue_event_object_attributes_time_change = 0, issue_event_object_attributes_human_total_time_spent = Nothing, issue_event_object_attributes_human_time_change = Nothing, issue_event_object_attributes_human_time_estimate = Nothing}}
