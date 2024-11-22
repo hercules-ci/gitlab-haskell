@@ -99,6 +99,11 @@ parserTests =
             >>= \eventJson -> parseEvent eventJson @?= Just groupCreatedHaskell
         ),
       testCase
+        "group-created-event2"
+        ( TIO.readFile "data/system-hooks/group-created2.json"
+            >>= \eventJson -> parseEvent eventJson @?= Just groupCreated2Haskell
+        ),
+      testCase
         "group-removed-event"
         ( TIO.readFile "data/system-hooks/group-removed.json"
             >>= \eventJson -> parseEvent eventJson @?= Just groupRemovedHaskell
@@ -1556,6 +1561,10 @@ groupCreatedHaskell =
       groupCreate_path = "storecloud",
       groupCreate_group_id = 78
     }
+
+groupCreated2Haskell :: GroupCreate
+groupCreated2Haskell =
+  GroupCreate {groupCreate_created_at = "2024-11-22T12:03:34Z", groupCreate_updated_at = "2024-11-22T12:03:34Z", groupCreate_event_name = "group_create", groupCreate_name = "the-name", groupCreate_owner_email = Nothing, groupCreate_owner_name = Nothing, groupCreate_path = "the-path", groupCreate_group_id = 31780}
 
 groupRemovedHaskell :: GroupRemove
 groupRemovedHaskell =
