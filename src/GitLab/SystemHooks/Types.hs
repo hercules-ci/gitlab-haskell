@@ -1049,7 +1049,7 @@ data NoteEvent = NoteEvent
     note_event_project :: ProjectEvent,
     note_event_object_attributes :: NoteObjectAttributes,
     note_event_repository :: RepositoryEvent,
-    note_event_issue :: IssueEventObjectAttributes
+    note_event_issue :: Maybe IssueEventObjectAttributes
   }
   deriving (Typeable, Show, Eq, Generic)
 
@@ -1062,13 +1062,13 @@ data NoteObjectAttributes = NoteObjectAttributes
   { note_object_attributes_attachment :: Maybe Text, -- ?
     note_object_attributes_author_id :: Int,
     note_object_attributes_change_position :: Maybe Text, -- ?
-    note_object_attributes_commit_id :: Maybe Int,
+    note_object_attributes_commit_id :: Maybe String,
     note_object_attributes_created_at :: Text, -- change to date
     note_object_attributes_discussion_id :: Text,
     note_object_attributes_id :: Int,
     note_object_attributes_line_code :: Maybe Int, -- ?
     note_object_attributes_note :: Text,
-    note_object_attributes_noteable_id :: Int,
+    note_object_attributes_noteable_id :: Maybe Int,
     note_object_attributes_noteable_type :: Text, -- "Issue"
     note_object_attributes_original_position :: Maybe Int, -- ?
     note_object_attributes_position :: Maybe Int, -- ?
@@ -1692,7 +1692,7 @@ instance FromJSON NoteEvent where
                 <*> v .: "project"
                 <*> v .: "object_attributes"
                 <*> v .: "repository"
-                <*> v .: "issue"
+                <*> v .:? "issue"
             _unexpected -> fail "note parsing failed"
         _unexpected -> fail "note parsing failed"
 
