@@ -32,7 +32,6 @@ module GitLab.API.Pipelines
 where
 
 import qualified Data.ByteString.Lazy as BSL
-import Data.Either
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
@@ -51,7 +50,7 @@ pipelines p = do
   result <- pipelines' (project_id p)
   case result of
     Right ps -> return (Just ps)
-    Left err -> return Nothing
+    Left _err -> return Nothing
 
 -- return (fromRight (error "pipelines error") result)
 
