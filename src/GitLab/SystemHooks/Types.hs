@@ -1015,7 +1015,7 @@ data IssueChangesTitle = IssueChangesTitle
 -- | Issue event closed at
 data IssueChangesClosedAt = IssueChangesClosedAt
   { issue_event_closed_at_previous :: Maybe Text, -- change to URLTime
-    issue_event_closed_at_current :: Text -- change to URLTime
+    issue_event_closed_at_current :: Maybe Text -- change to URLTime
   }
   deriving (Typeable, Show, Eq, Generic)
 
