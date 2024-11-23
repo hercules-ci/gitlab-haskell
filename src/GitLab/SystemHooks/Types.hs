@@ -921,7 +921,7 @@ data IssueEventObjectAttributes = IssueEventObjectAttributes
     issue_event_object_attributes_closed_at :: Maybe Text, -- change to UTCTime
     issue_event_object_attributes_confidential :: Bool,
     issue_event_object_attributes_created_at :: Text, -- change to UTCTime
-    issue_event_object_attributes_description :: Text,
+    issue_event_object_attributes_description :: Maybe Text,
     issue_event_object_attributes_discussion_locked :: Maybe Bool,
     issue_event_object_attributes_due_date :: Maybe Text, -- change to UTCTime
     issue_event_object_attributes_id :: Int,
