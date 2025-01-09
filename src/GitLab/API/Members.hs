@@ -57,10 +57,8 @@ where
 
 import qualified Data.ByteString.Lazy as BSL
 import Data.Either
-import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
-import GitLab.API.Groups
 import GitLab.API.Users
 import GitLab.Types
 import GitLab.WebRequests.GitLabWebCalls
@@ -362,8 +360,23 @@ removeUserFromProject ::
   -- | user
   User ->
   GitLab (Either (Response BSL.ByteString) (Maybe ()))
-removeUserFromProject prj =
-  removeUserFromEntity (project_name prj) "projects"
+removeUserFromProject prj usr = do
+  result <- gitlabDelete addr []
+  case result of
+    Left err -> return (Left err)
+    -- GitLab version 14.2.3 returns Version JSON info when a
+    -- member is removed from a group/project. I'm not sure if
+    -- this is new behaviour, anyway we catch it here.
+    Right (Just (Version {})) -> return (Right (Just ()))
+    Right Nothing -> return (Right (Just ()))
+  where
+    addr =
+      "/"
+        <> "projects"
+        <> "/"
+        <> T.decodeUtf8 (urlEncode False (T.encodeUtf8 (T.pack (show (project_id prj)))))
+        <> "/members/"
+        <> T.decodeUtf8 (urlEncode False (T.encodeUtf8 (T.pack (show (user_id usr)))))
 
 -- | Removes a user from a group where the user has been explicitly
 -- assigned a role.
@@ -378,8 +391,23 @@ removeUserFromGroup ::
   -- | user
   User ->
   GitLab (Either (Response BSL.ByteString) (Maybe ()))
-removeUserFromGroup grp =
-  removeUserFromEntity (group_name grp) "groups"
+removeUserFromGroup grp usr = do
+  result <- gitlabDelete addr []
+  case result of
+    Left err -> return (Left err)
+    -- GitLab version 14.2.3 returns Version JSON info when a
+    -- member is removed from a group/project. I'm not sure if
+    -- this is new behaviour, anyway we catch it here.
+    Right (Just (Version {})) -> return (Right (Just ()))
+    Right Nothing -> return (Right (Just ()))
+  where
+    addr =
+      "/"
+        <> "groups"
+        <> "/"
+        <> T.decodeUtf8 (urlEncode False (T.encodeUtf8 (T.pack (show (group_id grp)))))
+        <> "/members/"
+        <> T.decodeUtf8 (urlEncode False (T.encodeUtf8 (T.pack (show (user_id usr)))))
 
 -- | Approves a pending user for a group and its subgroups and
 -- projects.
@@ -434,53 +462,3 @@ pendingMembers grp =
       "/groups/"
         <> T.pack (show (group_id grp))
         <> "/pending_members"
-
----------------------
--- Internal functions
----------------------
-
--- | removes a user from a group or project.
-removeUserFromEntity ::
-  -- | group name
-  Text ->
-  -- | entity ("groups" or "projects)
-  Text ->
-  -- | user
-  User ->
-  GitLab (Either (Response BSL.ByteString) (Maybe ()))
-removeUserFromEntity groupName entity usr =
-  removeUserFromEntity' groupName entity (user_id usr)
-
--- | removes a user with a given user ID from a group or project.
-removeUserFromEntity' ::
-  -- | group name
-  Text ->
-  -- | entity ("groups" or "projects")
-  Text ->
-  -- | user ID
-  Int ->
-  GitLab (Either (Response BSL.ByteString) (Maybe ()))
-removeUserFromEntity' groupName entity usrId = do
-  attempt <- groups (defaultListGroupsFilters {listGroupsFilter_search = Just groupName})
-  case attempt of
-    [] ->
-      return (Right Nothing)
-    [grp] -> do
-      result <- gitlabDelete addr []
-      case result of
-        Left err -> return (Left err)
-        -- GitLab version 14.2.3 returns Version JSON info when a
-        -- member is removed from a group/project. I'm not sure if
-        -- this is new behaviour, anyway we catch it here.
-        Right (Just (Version {})) -> return (Right (Just ()))
-        Right Nothing -> return (Right (Just ()))
-      where
-        addr =
-          "/"
-            <> entity
-            <> "/"
-            <> T.decodeUtf8 (urlEncode False (T.encodeUtf8 (T.pack (show (group_id grp)))))
-            <> "/members/"
-            <> T.decodeUtf8 (urlEncode False (T.encodeUtf8 (T.pack (show usrId))))
-    (_ : _) ->
-      return (Right Nothing)
