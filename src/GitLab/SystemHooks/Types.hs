@@ -77,6 +77,9 @@ module GitLab.SystemHooks.Types
     ArtifactsFile (..),
     NoteEvent (..),
     NoteObjectAttributes (..),
+    WikiPageEvent (..),
+    Wiki (..),
+    WikiPageObjectAttributes (..),
     parseEvent,
   )
 where
@@ -750,6 +753,7 @@ data ProjectAction
   | Built
   | Pipelined
   | Noted
+  | WikiPaged
   deriving (Show, Eq)
 
 -- | CI build
@@ -1084,6 +1088,41 @@ data NoteObjectAttributes = NoteObjectAttributes
     note_object_attributes_description :: Text,
     note_object_attributes_url :: Text,
     note_object_attributes_action :: Text -- "create"
+  }
+  deriving (Typeable, Show, Eq, Generic)
+
+-- | Note event
+data WikiPageEvent = WikiPageEvent
+  { wiki_page_event_object_kind :: Text,
+    wiki_page_event_user :: User,
+    -- wiki_page_event_project :: Maybe Project, -- this will not parse but the JSON elements are too different from Project type
+    wiki_page_event_wiki :: Wiki,
+    wiki_page_event_object_attributes :: WikiPageObjectAttributes
+  }
+  deriving (Typeable, Show, Eq, Generic)
+
+instance SystemHook WikiPageEvent where
+  match = Match
+  matchIf = MatchIf
+
+data Wiki = Wiki
+  { wiki_web_url :: Maybe Text, -- use URL related type in future for these
+    wiki_git_ssh_url :: Maybe Text,
+    wiki_git_http_url :: Maybe Text,
+    wiki_path_with_namespace :: Maybe Text,
+    wiki_default_branch :: Maybe Text
+  }
+  deriving (Typeable, Show, Eq, Generic)
+
+data WikiPageObjectAttributes = WikiPageObjectAttributes
+  { wiki_page_object_attributes_slug :: Maybe Text,
+    wiki_page_object_attributes_title :: Maybe Text,
+    wiki_page_object_attributes_format :: Maybe Text,
+    wiki_page_object_attributes_message :: Maybe Text,
+    wiki_page_object_attributes_version_id :: Maybe Text,
+    wiki_page_object_attributes_url :: Maybe Text,
+    wiki_page_object_attributes_action :: Maybe Text, -- 'update' .. better type in future?
+    wiki_page_object_attributes_diff_url :: Maybe Text
   }
   deriving (Typeable, Show, Eq, Generic)
 
@@ -1696,6 +1735,22 @@ instance FromJSON NoteEvent where
             _unexpected -> fail "note parsing failed"
         _unexpected -> fail "note parsing failed"
 
+instance FromJSON WikiPageEvent where
+  parseJSON =
+    withObject "WikiPageEvent" $ \v -> do
+      isWikiPageEvent <- v .:? "object_kind"
+      case isWikiPageEvent of
+        Just theEvent ->
+          case theEvent of
+            WikiPaged ->
+              WikiPageEvent
+                <$> v .: "object_kind"
+                <*> v .: "user"
+                <*> v .: "wiki"
+                <*> v .: "object_attributes"
+            _unexpected -> fail "wiki page parsing failed"
+        _unexpected -> fail "wiki page parsing failed"
+
 -- TODO: replace bodyNoPrefix with a template Haskell based approach in src/GitLab/Types.hs
 -- e.g.
 
@@ -1951,6 +2006,19 @@ bodyNoPrefix "note_object_attributes_updated_by_id" = "updated_by_id"
 bodyNoPrefix "note_object_attributes_description" = "description"
 bodyNoPrefix "note_object_attributes_url" = "url"
 bodyNoPrefix "note_object_attributes_action" = "action"
+bodyNoPrefix "wiki_web_url" = "web_url"
+bodyNoPrefix "wiki_git_ssh_url" = "git_ssh_url"
+bodyNoPrefix "wiki_git_http_url" = "git_http_url"
+bodyNoPrefix "wiki_path_with_namespace" = "path_with_namespace"
+bodyNoPrefix "wiki_default_branch" = "default_branch"
+bodyNoPrefix "wiki_page_object_attributes_slug" = "slug"
+bodyNoPrefix "wiki_page_object_attributes_title" = "title"
+bodyNoPrefix "wiki_page_object_attributes_format" = "format"
+bodyNoPrefix "wiki_page_object_attributes_message" = "message"
+bodyNoPrefix "wiki_page_object_attributes_version_id" = "version_id"
+bodyNoPrefix "wiki_page_object_attributes_url" = "url"
+bodyNoPrefix "wiki_page_object_attributes_action" = "action"
+bodyNoPrefix "wiki_page_object_attributes_diff_url" = "diff_url"
 bodyNoPrefix s = fail ("uexpected JSON field prefix: " <> s)
 
 instance FromJSON ProjectEvent where
@@ -2193,6 +2261,22 @@ instance FromJSON NoteObjectAttributes where
           }
       )
 
+instance FromJSON Wiki where
+  parseJSON =
+    genericParseJSON
+      ( defaultOptions
+          { fieldLabelModifier = bodyNoPrefix
+          }
+      )
+
+instance FromJSON WikiPageObjectAttributes where
+  parseJSON =
+    genericParseJSON
+      ( defaultOptions
+          { fieldLabelModifier = bodyNoPrefix
+          }
+      )
+
 instance FromJSON Label where
   parseJSON = withObject "Label" $ \obj -> do
     labelId <- obj .:? "id"
@@ -2247,4 +2331,5 @@ instance FromJSON ProjectAction where
   parseJSON (String "build") = return Built
   parseJSON (String "pipeline") = return Pipelined
   parseJSON (String "note") = return Noted
+  parseJSON (String "wiki_page") = return WikiPaged
   parseJSON s = fail ("unexpected system hook event: " <> show s)
