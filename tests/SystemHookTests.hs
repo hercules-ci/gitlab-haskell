@@ -334,6 +334,7 @@ matchTests =
       <> matchTest "pipeline" "pipeline.json" pipelineRule "project-created.json" projectCreateRule
       <> matchTest "issue" "issue1.json" issueRule "project-created.json" projectCreateRule
       <> matchTest "note" "note1.json" noteRule "project-created.json" projectCreateRule
+      <> matchTest "note" "wiki-page1.json" wikiPageRule "project-created.json" projectCreateRule
 
 matchIfTests :: TestTree
 matchIfTests =
@@ -366,6 +367,7 @@ matchIfTests =
       <> matchIfTest "pipeline" "pipeline.json" pipelineIfRuleYes pipelineIfRuleNo
       <> matchIfTest "issue" "issue1.json" issueIfRuleYes issueIfRuleNo
       <> matchIfTest "note" "note1.json" noteIfRuleYes noteIfRuleNo
+      <> matchIfTest "note" "wiki-page1.json" wikiPageIfRuleYes wikiPageIfRuleNo
 
 receiveTests :: TestTree
 receiveTests =
@@ -1348,6 +1350,36 @@ noteIfRuleNo =
         return (user_username (note_event_user event) == "not joe")
     )
     ( \NoteEvent {} -> do
+        return ()
+    )
+
+wikiPageRule :: Rule
+wikiPageRule =
+  match
+    "wiki page rule"
+    ( \WikiPageEvent {} -> do
+        return ()
+    )
+
+wikiPageIfRuleYes :: Rule
+wikiPageIfRuleYes =
+  matchIf
+    "wiki page rule-if yes"
+    ( \event@WikiPageEvent {} -> do
+        return (user_username (wiki_page_event_user event) == "joe")
+    )
+    ( \WikiPageEvent {} -> do
+        return ()
+    )
+
+wikiPageIfRuleNo :: Rule
+wikiPageIfRuleNo =
+  matchIf
+    "wiki page rule-if no"
+    ( \event@WikiPageEvent {} -> do
+        return (user_username (wiki_page_event_user event) == "not joe")
+    )
+    ( \WikiPageEvent {} -> do
         return ()
     )
 
