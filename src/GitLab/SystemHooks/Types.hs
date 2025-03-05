@@ -80,6 +80,8 @@ module GitLab.SystemHooks.Types
     WikiPageEvent (..),
     Wiki (..),
     WikiPageObjectAttributes (..),
+    WorkItemEvent (..),
+    WorkItemObjectAttributes (..),
     parseEvent,
   )
 where
@@ -754,6 +756,7 @@ data ProjectAction
   | Pipelined
   | Noted
   | WikiPaged
+  | WorkItemed
   deriving (Show, Eq)
 
 -- | CI build
@@ -1123,6 +1126,61 @@ data WikiPageObjectAttributes = WikiPageObjectAttributes
     wiki_page_object_attributes_url :: Maybe Text,
     wiki_page_object_attributes_action :: Maybe Text, -- 'update' .. better type in future?
     wiki_page_object_attributes_diff_url :: Maybe Text
+  }
+  deriving (Typeable, Show, Eq, Generic)
+
+-- TODO remove object_kind fields, they can be discarded after checking their values.
+
+data WorkItemEvent = WorkItemEvent
+  { work_item_event_user :: User,
+    work_item_event_object_attributes :: WorkItemObjectAttributes,
+    work_item_event_labels :: [Label],
+    -- work_item_event_changes :: Change,
+    work_item_event_repository :: Repository,
+    work_item_event_assignees :: [User]
+  }
+  deriving (Typeable, Show, Eq, Generic)
+
+instance SystemHook WorkItemEvent where
+  match = Match
+  matchIf = MatchIf
+
+data WorkItemObjectAttributes = WorkItemObjectAttributes
+  { work_item_object_author_id :: Int,
+    work_item_object_closed_at :: Text, -- change to date type
+    work_item_object_confidential :: Bool,
+    work_item_object_created_at :: Text, -- change to date type
+    work_item_object_description :: Maybe Text,
+    work_item_object_discussion_locked :: Maybe Bool,
+    work_item_object_due_date :: Maybe Text, -- chanage to date type
+    work_item_object_id :: Int,
+    work_item_object_iid :: Int,
+    work_item_object_last_edited_at :: Maybe Text,
+    work_item_object_last_edited_by_id :: Maybe Int,
+    work_item_object_milestone_id :: Maybe Int,
+    work_item_object_moved_to_id :: Maybe Int,
+    work_item_object_duplicated_to_id :: Maybe Int,
+    work_item_object_project_id :: Int,
+    work_item_object_relative_position :: Int,
+    work_item_object_state_id :: Int,
+    work_item_object_time_estimate :: Int,
+    work_item_object_title :: Text,
+    work_item_object_updated_at :: Text,
+    work_item_object_updated_by_id :: Int,
+    work_item_object_type :: Text, -- change to own type e.g. "Task"
+    work_item_object_url :: Text,
+    work_item_object_total_time_spent :: Int,
+    work_item_object_time_change :: Int,
+    work_item_object_human_total_time_spent :: Maybe Int,
+    work_item_object_human_time_change :: Maybe Int,
+    work_item_object_human_time_estimate :: Maybe Int,
+    work_item_object_assignee_ids :: [Int],
+    work_item_object_assignee_id :: Int,
+    work_item_object_labels :: [Label],
+    work_item_object_state :: Text, -- change to own type e.g. "closed"
+    work_item_object_severity :: Text, -- change to own type e.g. "unknown"
+    work_item_object_customer_relations_contacts :: [Text],
+    work_item_object_action :: Text -- change to own type e.g. "close"
   }
   deriving (Typeable, Show, Eq, Generic)
 
@@ -1751,6 +1809,24 @@ instance FromJSON WikiPageEvent where
             _unexpected -> fail "wiki page parsing failed"
         _unexpected -> fail "wiki page parsing failed"
 
+instance FromJSON WorkItemEvent where
+  parseJSON =
+    withObject "WorkItemEvent" $ \v -> do
+      isWorkItemEvent <- v .:? "object_kind"
+      case isWorkItemEvent of
+        Just theEvent ->
+          case theEvent of
+            WorkItemed ->
+              WorkItemEvent
+                <$> v .: "user"
+                <*> v .: "object_attributes"
+                <*> v .: "labels"
+                -- <*> v .: "changes"
+                <*> v .: "repository"
+                <*> v .: "assignees"
+            _unexpected -> fail "work item parsing failed"
+        _unexpected -> fail "work item parsing failed"
+
 -- TODO: replace bodyNoPrefix with a template Haskell based approach in src/GitLab/Types.hs
 -- e.g.
 
@@ -2019,6 +2095,41 @@ bodyNoPrefix "wiki_page_object_attributes_version_id" = "version_id"
 bodyNoPrefix "wiki_page_object_attributes_url" = "url"
 bodyNoPrefix "wiki_page_object_attributes_action" = "action"
 bodyNoPrefix "wiki_page_object_attributes_diff_url" = "diff_url"
+bodyNoPrefix "work_item_object_author_id" = "author_id"
+bodyNoPrefix "work_item_object_closed_at" = "closed_at"
+bodyNoPrefix "work_item_object_confidential" = "confidential"
+bodyNoPrefix "work_item_object_created_at" = "created_at"
+bodyNoPrefix "work_item_object_description" = "description"
+bodyNoPrefix "work_item_object_discussion_locked" = "discussion_locked"
+bodyNoPrefix "work_item_object_due_date" = "due_date"
+bodyNoPrefix "work_item_object_id" = "id"
+bodyNoPrefix "work_item_object_iid" = "iid"
+bodyNoPrefix "work_item_object_last_edited_at" = "last_edited_at"
+bodyNoPrefix "work_item_object_last_edited_at_by_id" = "edited_at_by_id"
+bodyNoPrefix "work_item_object_milestone_id" = "milestone_id"
+bodyNoPrefix "work_item_object_moved_to_id" = "moved_to_id"
+bodyNoPrefix "work_item_object_duplicated_to_id" = "duplicated_to_id"
+bodyNoPrefix "work_item_object_project_id" = "project_id"
+bodyNoPrefix "work_item_object_relative_position" = "relative_position"
+bodyNoPrefix "work_item_object_state_id" = "state_id"
+bodyNoPrefix "work_item_object_time_estimate" = "time_estimate"
+bodyNoPrefix "work_item_object_title" = "title"
+bodyNoPrefix "work_item_object_updated_at" = "updated_at"
+bodyNoPrefix "work_item_object_updated_by_id" = "updated_by_id"
+bodyNoPrefix "work_item_object_type" = "type"
+bodyNoPrefix "work_item_object_url" = "url"
+bodyNoPrefix "work_item_object_total_time_spent" = "total_time_spent"
+bodyNoPrefix "work_item_object_time_change" = "time_change"
+bodyNoPrefix "work_item_object_human_total_time_spent" = "human_total_time_spent"
+bodyNoPrefix "work_item_object_human_time_change" = "human_time_change"
+bodyNoPrefix "work_item_object_human_time_estimate" = "human_time_estimate"
+bodyNoPrefix "work_item_object_assignee_ids" = "assignee_ids"
+bodyNoPrefix "work_item_object_assignee_id" = "assignee_id"
+bodyNoPrefix "work_item_object_labels" = "labels"
+bodyNoPrefix "work_item_object_state" = "state"
+bodyNoPrefix "work_item_object_severity" = "severity"
+bodyNoPrefix "work_item_object_customer_relations_contacts" = "customer_relations_contacts"
+bodyNoPrefix "work_item_object_action" = "action"
 bodyNoPrefix s = fail ("uexpected JSON field prefix: " <> s)
 
 instance FromJSON ProjectEvent where
@@ -2277,6 +2388,14 @@ instance FromJSON WikiPageObjectAttributes where
           }
       )
 
+instance FromJSON WorkItemObjectAttributes where
+  parseJSON =
+    genericParseJSON
+      ( defaultOptions
+          { fieldLabelModifier = bodyNoPrefix
+          }
+      )
+
 instance FromJSON Label where
   parseJSON = withObject "Label" $ \obj -> do
     labelId <- obj .:? "id"
@@ -2332,4 +2451,5 @@ instance FromJSON ProjectAction where
   parseJSON (String "pipeline") = return Pipelined
   parseJSON (String "note") = return Noted
   parseJSON (String "wiki_page") = return WikiPaged
+  parseJSON (String "work_item") = return WorkItemed
   parseJSON s = fail ("unexpected system hook event: " <> show s)
