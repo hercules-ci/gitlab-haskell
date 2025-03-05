@@ -237,6 +237,11 @@ parserTests =
         "wiki-page1"
         ( TIO.readFile "data/system-hooks/wiki-page1.json"
             >>= \eventJson -> parseEvent eventJson @?= Just wikiPage1Haskell
+        ),
+      testCase
+        "work-item1"
+        ( TIO.readFile "data/system-hooks/work-item1.json"
+            >>= \eventJson -> parseEvent eventJson @?= Just workItem1Haskell
         )
     ]
 
@@ -335,6 +340,7 @@ matchTests =
       <> matchTest "issue" "issue1.json" issueRule "project-created.json" projectCreateRule
       <> matchTest "note" "note1.json" noteRule "project-created.json" projectCreateRule
       <> matchTest "note" "wiki-page1.json" wikiPageRule "project-created.json" projectCreateRule
+      <> matchTest "note" "work-item1.json" workItemRule "project-created.json" projectCreateRule
 
 matchIfTests :: TestTree
 matchIfTests =
@@ -368,6 +374,7 @@ matchIfTests =
       <> matchIfTest "issue" "issue1.json" issueIfRuleYes issueIfRuleNo
       <> matchIfTest "note" "note1.json" noteIfRuleYes noteIfRuleNo
       <> matchIfTest "note" "wiki-page1.json" wikiPageIfRuleYes wikiPageIfRuleNo
+      <> matchIfTest "note" "work-item1.json" workItemIfRuleYes workItemIfRuleNo
 
 receiveTests :: TestTree
 receiveTests =
@@ -1383,6 +1390,36 @@ wikiPageIfRuleNo =
         return ()
     )
 
+workItemRule :: Rule
+workItemRule =
+  match
+    "work item rule"
+    ( \WorkItemEvent {} -> do
+        return ()
+    )
+
+workItemIfRuleYes :: Rule
+workItemIfRuleYes =
+  matchIf
+    "work item rule-if yes"
+    ( \event@WorkItemEvent {} -> do
+        return (user_username (work_item_event_user event) == "joe")
+    )
+    ( \WorkItemEvent {} -> do
+        return ()
+    )
+
+workItemIfRuleNo :: Rule
+workItemIfRuleNo =
+  matchIf
+    "work item rule-if no"
+    ( \event@WorkItemEvent {} -> do
+        return (user_username (work_item_event_user event) == "not joe")
+    )
+    ( \WorkItemEvent {} -> do
+        return ()
+    )
+
 projectCreatedHaskell :: ProjectCreate
 projectCreatedHaskell =
   ProjectCreate
@@ -1784,3 +1821,7 @@ note3Haskell =
 wikiPage1Haskell :: WikiPageEvent
 wikiPage1Haskell =
   WikiPageEvent {wiki_page_event_object_kind = "wiki_page", wiki_page_event_user = User {user_id = 2908, user_username = "joe", user_bio = Nothing, user_two_factor_enabled = Nothing, user_last_sign_in_at = Nothing, user_current_sign_in_at = Nothing, user_last_activity_on = Nothing, user_skype = Nothing, user_twitter = Nothing, user_website_url = Nothing, user_theme_id = Nothing, user_color_scheme_id = Nothing, user_external = Nothing, user_private_profile = Nothing, user_projects_limit = Nothing, user_can_create_group = Nothing, user_can_create_project = Nothing, user_public_email = Nothing, user_organization = Nothing, user_job_title = Nothing, user_pronouns = Nothing, user_linkedin = Nothing, user_confirmed_at = Nothing, user_identities = Nothing, user_name = "Joe", user_email = Just "[REDACTED]", user_followers = Nothing, user_bot = Nothing, user_following = Nothing, user_state = Nothing, user_avatar_url = Just "https://secure.gravatar.com/avatar/abc", user_web_url = Nothing, user_location = Nothing, user_extern_uid = Nothing, user_group_id_for_saml = Nothing, user_discussion_locked = Nothing, user_created_at = Nothing, user_note = Nothing, user_password = Nothing, user_force_random_password = Nothing, user_providor = Nothing, user_reset_password = Nothing, user_skip_confirmation = Nothing, user_view_diffs_file_by_file = Nothing}, wiki_page_event_wiki = Wiki {wiki_web_url = Just "https://example.com/joe/proj-name/-/wikis/home", wiki_git_ssh_url = Just "git@example.com:joe/proj-name.wiki.git", wiki_git_http_url = Just "https://example.com/joe/proj-name.wiki.git", wiki_path_with_namespace = Just "joe/proj-name.wiki", wiki_default_branch = Just "main"}, wiki_page_event_object_attributes = WikiPageObjectAttributes {wiki_page_object_attributes_slug = Just "home", wiki_page_object_attributes_title = Just "home", wiki_page_object_attributes_format = Just "markdown", wiki_page_object_attributes_message = Just "The wiki message", wiki_page_object_attributes_version_id = Just "99c9ea1617756edfb6187ab82e663afb834cd306", wiki_page_object_attributes_url = Just "https://example.com/joe/proj-name/-/wikis/home", wiki_page_object_attributes_action = Just "update", wiki_page_object_attributes_diff_url = Just "https://example.com/joe/proj-name/-/wikis/home/diff?version_id=99c9ea1617756edfb6187ab82e663afb834cd306"}}
+
+workItem1Haskell :: WorkItemEvent
+workItem1Haskell =
+  WorkItemEvent {work_item_event_user = User {user_id = 1853, user_username = "joe", user_bio = Nothing, user_two_factor_enabled = Nothing, user_last_sign_in_at = Nothing, user_current_sign_in_at = Nothing, user_last_activity_on = Nothing, user_skype = Nothing, user_twitter = Nothing, user_website_url = Nothing, user_theme_id = Nothing, user_color_scheme_id = Nothing, user_external = Nothing, user_private_profile = Nothing, user_projects_limit = Nothing, user_can_create_group = Nothing, user_can_create_project = Nothing, user_public_email = Nothing, user_organization = Nothing, user_job_title = Nothing, user_pronouns = Nothing, user_linkedin = Nothing, user_confirmed_at = Nothing, user_identities = Nothing, user_name = "Joe Bloggs", user_email = Just "[REDACTED]", user_followers = Nothing, user_bot = Nothing, user_following = Nothing, user_state = Nothing, user_avatar_url = Just "https://secure.gravatar.com/avatar/abc", user_web_url = Nothing, user_location = Nothing, user_extern_uid = Nothing, user_group_id_for_saml = Nothing, user_discussion_locked = Nothing, user_created_at = Nothing, user_note = Nothing, user_password = Nothing, user_force_random_password = Nothing, user_providor = Nothing, user_reset_password = Nothing, user_skip_confirmation = Nothing, user_view_diffs_file_by_file = Nothing}, work_item_event_object_attributes = WorkItemObjectAttributes {work_item_object_author_id = 1853, work_item_object_closed_at = "2024-11-23 15:56:50 UTC", work_item_object_confidential = False, work_item_object_created_at = "2024-11-11 14:23:52 UTC", work_item_object_description = Nothing, work_item_object_discussion_locked = Nothing, work_item_object_due_date = Nothing, work_item_object_id = 2449, work_item_object_iid = 76, work_item_object_last_edited_at = Nothing, work_item_object_last_edited_by_id = Nothing, work_item_object_milestone_id = Just 63, work_item_object_moved_to_id = Nothing, work_item_object_duplicated_to_id = Nothing, work_item_object_project_id = 19127, work_item_object_relative_position = 38988, work_item_object_state_id = 2, work_item_object_time_estimate = 0, work_item_object_title = "The title", work_item_object_updated_at = "2024-11-23 15:56:50 UTC", work_item_object_updated_by_id = 1853, work_item_object_type = "Task", work_item_object_url = "http://example.com/joe/project/-/work_items/76", work_item_object_total_time_spent = 0, work_item_object_time_change = 0, work_item_object_human_total_time_spent = Nothing, work_item_object_human_time_change = Nothing, work_item_object_human_time_estimate = Nothing, work_item_object_assignee_ids = [1853], work_item_object_assignee_id = 1853, work_item_object_labels = [Label {label_id = Just 391, label_title = Just "Stage 6", label_color = Just "#330066", label_project_id = Just 19127, label_created_at = Just "2024-11-11 13:54:59 UTC", label_updated_at = Just "2024-11-14 09:04:36 UTC", label_template = Just False, label_description = Just "", label_type = Just "ProjectLabel", label_group_id = Nothing}, Label {label_id = Just 337, label_title = Just "documentation", label_color = Just "#f0ad4e", label_project_id = Just 19127, label_created_at = Just "2024-10-07 07:46:00 UTC", label_updated_at = Just "2024-10-07 07:46:00 UTC", label_template = Just False, label_description = Nothing, label_type = Just "ProjectLabel", label_group_id = Nothing}], work_item_object_state = "closed", work_item_object_severity = "unknown", work_item_object_customer_relations_contacts = [], work_item_object_action = "close"}, work_item_event_labels = [Label {label_id = Just 391, label_title = Just "Stage 6", label_color = Just "#330066", label_project_id = Just 19127, label_created_at = Just "2024-11-11 13:54:59 UTC", label_updated_at = Just "2024-11-14 09:04:36 UTC", label_template = Just False, label_description = Just "", label_type = Just "ProjectLabel", label_group_id = Nothing}, Label {label_id = Just 337, label_title = Just "documentation", label_color = Just "#f0ad4e", label_project_id = Just 19127, label_created_at = Just "2024-10-07 07:46:00 UTC", label_updated_at = Just "2024-10-07 07:46:00 UTC", label_template = Just False, label_description = Nothing, label_type = Just "ProjectLabel", label_group_id = Nothing}], work_item_event_repository = Repository {repository_id = Nothing, repository_name = "proj-name", repository_type = Nothing, repository_path = Nothing, repository_mode = Nothing}, work_item_event_assignees = [User {user_id = 1853, user_username = "joe", user_bio = Nothing, user_two_factor_enabled = Nothing, user_last_sign_in_at = Nothing, user_current_sign_in_at = Nothing, user_last_activity_on = Nothing, user_skype = Nothing, user_twitter = Nothing, user_website_url = Nothing, user_theme_id = Nothing, user_color_scheme_id = Nothing, user_external = Nothing, user_private_profile = Nothing, user_projects_limit = Nothing, user_can_create_group = Nothing, user_can_create_project = Nothing, user_public_email = Nothing, user_organization = Nothing, user_job_title = Nothing, user_pronouns = Nothing, user_linkedin = Nothing, user_confirmed_at = Nothing, user_identities = Nothing, user_name = "Joe Bloggs", user_email = Just "[REDACTED]", user_followers = Nothing, user_bot = Nothing, user_following = Nothing, user_state = Nothing, user_avatar_url = Just "https://secure.gravatar.com/avatar/abc", user_web_url = Nothing, user_location = Nothing, user_extern_uid = Nothing, user_group_id_for_saml = Nothing, user_discussion_locked = Nothing, user_created_at = Nothing, user_note = Nothing, user_password = Nothing, user_force_random_password = Nothing, user_providor = Nothing, user_reset_password = Nothing, user_skip_confirmation = Nothing, user_view_diffs_file_by_file = Nothing}]}
