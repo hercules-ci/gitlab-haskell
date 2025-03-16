@@ -92,9 +92,9 @@ import GitLab
     Version (Version),
     Visibility (..),
   )
+import Prettyprinter
 import Test.Tasty
 import Test.Tasty.HUnit
-import qualified Text.PrettyPrint.ANSI.Leijen as WL
 
 removeNulls :: Value -> Maybe Value
 removeNulls Null = Nothing
@@ -125,9 +125,11 @@ jsonValuesEqual :: (ToExpr a, FromJSON a, ToJSON a, Eq a, Show a) => FilePath ->
 jsonValuesEqual jsonFilename decodedCustomTypeF = do
   jsonValueFromFile <- parseValuesFromFile jsonFilename
   decodedCustomType <- decodedCustomTypeF
-  let (Just jsonFromCustomType) = decode (encode decodedCustomType) :: Maybe Value
-  (jsonValueFromFile == jsonFromCustomType)
-    @? showWL (ansiWlEditExprCompact (ediff jsonValueFromFile jsonFromCustomType))
+  case decode (encode decodedCustomType) :: Maybe Value of
+    Nothing -> False @? ("Unable able to parse " <> show decodedCustomType)
+    Just jsonFromCustomType ->
+      (jsonValueFromFile == jsonFromCustomType)
+        @? showWL (ansiWlEditExprCompact (ediff jsonValueFromFile jsonFromCustomType))
 
 parseValuesFromFile :: String -> IO Value
 parseValuesFromFile fname =
@@ -140,8 +142,8 @@ gitlabParseTestOne expectedHaskellValue filename = do
   (expectedHaskellValue == result)
     @? showWL (ansiWlEditExprCompact (ediff expectedHaskellValue result))
 
-showWL :: WL.Doc -> String
-showWL doc = WL.displayS (WL.renderSmart 0.4 80 doc) ""
+showWL :: Doc ann -> String
+showWL doc = show doc
 
 gitlabParseTestMany :: (ToExpr a, FromJSON a, Eq a, Show a) => [a] -> String -> Assertion
 gitlabParseTestMany expectedHaskellValue filename = do
@@ -150,13 +152,13 @@ gitlabParseTestMany expectedHaskellValue filename = do
   (expectedHaskellValue == result)
     @? showWL (ansiWlEditExprCompact (ediff expectedHaskellValue result))
 
-parseOne :: FromJSON a => BSL.ByteString -> IO a
+parseOne :: (FromJSON a) => BSL.ByteString -> IO a
 parseOne bs =
   case eitherDecode bs of
     Left err -> assertFailure err
     Right xs -> return xs
 
-parseMany :: FromJSON a => BSL.ByteString -> IO [a]
+parseMany :: (FromJSON a) => BSL.ByteString -> IO [a]
 parseMany bs =
   case eitherDecode bs of
     Left err -> assertFailure err

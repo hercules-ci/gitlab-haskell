@@ -249,7 +249,7 @@ test-suite test-gitlab-haskell
                , bytestring
                , aeson >= 2.0.0.0
                , tree-diff
-               , ansi-wl-pprint
+               , prettyprinter
                , vector
                , unordered-containers
                , text
