@@ -46,12 +46,12 @@ receiveString eventContent rules = do
   -- fire the rules
   didFire <- mapM (fire eventContent) rules
   -- if nothing fired
-  when (not (or didFire)) $ do
+  unless (or didFire) $ do
     cfg <- MR.asks serverCfg
     -- maybe log the JSON if it was not parsed
     when (debugSystemHooks cfg == Just NonParsedJSON) $ liftIO $ do
       -- no rules fired, was it because the JSON was not parsed?
-      when (not (attemptGitLabEventParse eventContent)) $ do
+      unless (attemptGitLabEventParse eventContent) $ do
         fpath <- writeSystemTempFile "gitlab-system-hook-nonparsed-" (T.unpack eventContent)
         void $ setFileMode fpath otherReadMode
     -- maybe log the JSON if no rules were fired for it
@@ -81,11 +81,13 @@ orElse f g = do
 fire :: Text -> Rule -> GitLab Bool
 fire contents rule = do
   result <- tryFire contents rule
-  case result of
-    True -> do
-      liftIO (putStrLn ("fired: " <> labelOf rule))
-      return True
-    False -> return False
+  if result
+    then
+      ( do
+          liftIO (putStrLn ("fired: " <> labelOf rule))
+          return True
+      )
+    else return False
   where
     labelOf :: Rule -> String
     labelOf (Match lbl _) = lbl

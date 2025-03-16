@@ -143,7 +143,7 @@ gitlabParseTestOne expectedHaskellValue filename = do
     @? showWL (ansiWlEditExprCompact (ediff expectedHaskellValue result))
 
 showWL :: Doc ann -> String
-showWL doc = show doc
+showWL = show
 
 gitlabParseTestMany :: (ToExpr a, FromJSON a, Eq a, Show a) => [a] -> String -> Assertion
 gitlabParseTestMany expectedHaskellValue filename = do
