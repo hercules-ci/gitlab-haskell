@@ -138,7 +138,7 @@ project ::
   Int ->
   GitLab (Either (Response BSL.ByteString) (Maybe Project))
 project pId = do
-  gitlabGetOne urlPath []
+  gitlabGetOne urlPath [("statistics", Just (T.encodeUtf8 "true"))]
   where
     urlPath =
       "/projects/"
@@ -936,7 +936,7 @@ defaultProjectSearchAttrs :: ProjectSearchAttrs
 defaultProjectSearchAttrs =
   ProjectSearchAttrs Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing
 
--- | Attributes related to a group
+-- | Attributes related to a project
 data ProjectSearchAttrs = ProjectSearchAttrs
   { -- | Limit by archived status.
     projectSearchFilter_archived :: Maybe Bool,
@@ -960,7 +960,7 @@ data ProjectSearchAttrs = ProjectSearchAttrs
     -- | Limit by current user minimal access level.
     projectSearchFilter_min_access_level :: Maybe AccessLevel,
     -- | Return projects ordered by a given criteria.
-    projectSearchFilter_order_by :: Maybe OrderBy,
+    projectSearchFilter_order_by :: Maybe ProjectOrderBy,
     -- | Limit by projects explicitly owned by the current user.
     projectSearchFilter_owned :: Maybe Bool,
     -- | Limit projects where the repository checksum calculation has

@@ -26,6 +26,7 @@ module GitLab.Types
     Scope (..),
     SortBy (..),
     OrderBy (..),
+    ProjectOrderBy (..),
     Member (..),
     SamlIdentity (..),
     Identity (..),
@@ -279,6 +280,39 @@ instance Show OrderBy where
   show MilestoneDue = "milestone_due"
   show Popularity = "popularity"
   show Weight = "weight"
+
+-- | Ordering search results
+data ProjectOrderBy
+  = ProjectId
+  | ProjectName
+  | ProjectPath
+  | ProjectCreatedAt
+  | ProjectUpdatedAt
+  | ProjectStarCount
+  | ProjectLastActivity
+  | ProjectSimilarity
+  | -- | only available to admin users
+    ProjectRepositorySize
+  | -- | only available to admin users
+    ProjectStorageSize
+  | -- | only available to admin users
+    ProjectPackageSize
+  | -- | only available to admin users
+    ProjectWikiSize
+
+instance Show ProjectOrderBy where
+  show ProjectId = "id"
+  show ProjectName = "name"
+  show ProjectPath = "path"
+  show ProjectCreatedAt = "created_at"
+  show ProjectUpdatedAt = "updated_at"
+  show ProjectStarCount = "star_count"
+  show ProjectLastActivity = "last_activity"
+  show ProjectSimilarity = "similarity"
+  show ProjectRepositorySize = "repository_size"
+  show ProjectStorageSize = "storage_size"
+  show ProjectPackageSize = "package_size"
+  show ProjectWikiSize = "wiki_size"
 
 -- | member of a project.
 data Member = Member
