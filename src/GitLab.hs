@@ -81,7 +81,7 @@ import System.IO
 -- >   where
 -- >     myConfig = defaultGitLabServer
 -- >         { url = "https://gitlab.example.com"
--- >         , token = "my_access_token" }
+-- >         , token = AuthMethodToken "my_access_token" }
 -- >     issueEnabled Nothing = False
 -- >     issueEnabled (Just b) = b
 runGitLab :: GitLabServerConfig -> GitLab a -> IO a
