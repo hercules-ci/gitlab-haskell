@@ -5,22 +5,24 @@ module Main
   )
 where
 
+import Control.Monad
 import Control.Monad.IO.Class
 import Data.Traversable
 import GitLab
 
 main :: IO ()
 main = do
-  runGitLab
-    ( defaultGitLabServer
-        { url = "https://gitlab.com",
-          token = AuthMethodToken "insert your token here"
-        }
-    )
-    ( do
-        projectData <- projectsAndIssues
-        liftIO (print projectData)
-    )
+  void $
+    runGitLab
+      ( defaultGitLabServer
+          { url = "https://gitlab.com",
+            token = AuthMethodToken "insert your token here"
+          }
+      )
+      ( do
+          projectData <- projectsAndIssues
+          liftIO (print projectData)
+      )
 
 projectsAndIssues :: GitLab [(Project, [Issue])]
 projectsAndIssues = do
