@@ -19,6 +19,7 @@ where
 
 import qualified Control.Exception as E
 import Control.Monad
+import Control.Monad.Except
 import Control.Monad.IO.Class
 import qualified Control.Monad.Reader as MR
 import Data.Text (Text)
@@ -41,20 +42,27 @@ receive rules = do
 -- received from a function argument.
 receiveString :: Text -> [Rule] -> GitLab ()
 receiveString eventContent rules = do
-  -- maybe log the JSON received
+  -- log all JSON received if AllJSON stated
   traceSystemHook eventContent
   -- fire the rules
-  didFire <- mapM (fire eventContent) rules
+  didFire <-
+    mapM (fire eventContent) rules
+      `catchError` \(GitLabError e) -> do
+        liftIO $ do
+          fpath <- writeSystemTempFile "gitlab-system-hook-exception-" (T.unpack e)
+          void $ setFileMode fpath otherReadMode
+          return []
+
   -- if nothing fired
   unless (or didFire) $ do
     cfg <- MR.asks serverCfg
-    -- maybe log the JSON if it was not parsed
+    -- log the JSON if it was not parsed and NonParsedJSON was stated
     when (debugSystemHooks cfg == Just NonParsedJSON) $ liftIO $ do
       -- no rules fired, was it because the JSON was not parsed?
       unless (attemptGitLabEventParse eventContent) $ do
         fpath <- writeSystemTempFile "gitlab-system-hook-nonparsed-" (T.unpack eventContent)
         void $ setFileMode fpath otherReadMode
-    -- maybe log the JSON if no rules were fired for it
+    -- log the JSON if no rules were fired for it and UnprocessedEvents was states
     when (debugSystemHooks cfg == Just UnprocessedEvents) $ liftIO $ do
       fpath <- writeSystemTempFile "gitlab-system-hook-unprocessed-" (T.unpack eventContent)
       void $ setFileMode fpath otherReadMode
