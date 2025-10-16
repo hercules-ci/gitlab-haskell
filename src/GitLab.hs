@@ -37,6 +37,7 @@ module GitLab
   )
 where
 
+import Control.Monad.Except
 import Control.Monad.IO.Class
 import Control.Monad.Trans.Reader
 import Data.Default
@@ -84,7 +85,7 @@ import System.IO
 -- >         , token = AuthMethodToken "my_access_token" }
 -- >     issueEnabled Nothing = False
 -- >     issueEnabled (Just b) = b
-runGitLab :: GitLabServerConfig -> GitLab a -> IO a
+runGitLab :: GitLabServerConfig -> GitLab a -> IO (Either GitLabError a)
 runGitLab cfg action = do
   liftIO $ hSetBuffering stdout LineBuffering
   let settings = mkManagerSettings def Nothing
@@ -99,7 +100,7 @@ runGitLab cfg action = do
 -- be asked for at runtime:
 --
 -- > runGitLabPassPrompt defaultGitLabServer myGitLabProgram
-runGitLabPassPrompt :: GitLabServerConfig -> GitLab a -> IO a
+runGitLabPassPrompt :: GitLabServerConfig -> GitLab a -> IO (Either GitLabError a)
 runGitLabPassPrompt cfg action = do
   liftIO $ hSetBuffering stdout NoBuffering
   liftIO (putStr "Enter GitLab server URL\n> ")
@@ -110,26 +111,26 @@ runGitLabPassPrompt cfg action = do
 
 -- | The same as 'runGitLab', except that it also takes a connection
 -- manager as an argument.
-runGitLabWithManager :: Manager -> GitLabServerConfig -> GitLab a -> IO a
+runGitLabWithManager :: Manager -> GitLabServerConfig -> GitLab a -> IO (Either GitLabError a)
 runGitLabWithManager manager cfg (GitLabT action) = do
   -- test the token access
   let (GitLabT versionCheck) = gitlabVersion
-  tokenTest <- runReaderT versionCheck (GitLabState cfg manager)
+  tokenTest <- runExceptT (runReaderT versionCheck (GitLabState cfg manager))
   case tokenTest of
-    Left response ->
+    Left (GitLabError t) -> return (Left (GitLabError t))
+    Right (Left response) ->
       case responseStatus response of
-        (Status 401 "Unauthorized") -> error "access token not accepted."
-        st -> error ("unexpected HTTP status: " <> show st)
-    Right _versionInfo ->
-      -- it worked, run the user code.
-      runReaderT action (GitLabState cfg manager)
+        (Status 401 "Unauthorized") -> return $ Left (GitLabError "access token not accepted.")
+        st -> return $ Left (GitLabError ("unexpected HTTP status: " <> T.pack (show st)))
+    Right (Right _versionInfo) ->
+      runExceptT (runReaderT action (GitLabState cfg manager))
 
 -- | Only useful for testing GitLab actions that lift IO actions with
 -- liftIO. Cannot speak to a GitLab server. Only useful for the
 -- gitlab-haskell tests.
-runGitLabDbg :: GitLab a -> IO a
+runGitLabDbg :: GitLab a -> IO (Either GitLabError a)
 runGitLabDbg (GitLabT action) = do
   liftIO $ hSetBuffering stdout LineBuffering
   manager <- liftIO $ newManager (mkManagerSettings def Nothing)
   let cfg = GitLabServerConfig {url = "", token = AuthMethodToken "", retries = 1, debugSystemHooks = Nothing}
-  runReaderT action (GitLabState cfg manager)
+  runExceptT (runReaderT action (GitLabState cfg manager))
