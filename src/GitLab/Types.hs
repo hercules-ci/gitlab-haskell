@@ -18,6 +18,7 @@ module GitLab.Types
     GitLabT (..),
     GitLabState (..),
     GitLabServerConfig (..),
+    GitLabError (..),
     AuthMethod (..),
     defaultGitLabServer,
     ArchiveFormat (..),
@@ -110,6 +111,7 @@ module GitLab.Types
   )
 where
 
+import Control.Monad.Except
 import Control.Monad.IO.Class
 import qualified Control.Monad.IO.Class as MIO
 import qualified Control.Monad.Reader as MR
@@ -127,7 +129,7 @@ import Network.HTTP.Conduit
 --
 -- Run it with 'runGitLab'
 newtype GitLabT m a = GitLabT (MR.ReaderT GitLabState m a)
-  deriving (Functor, Applicative, Monad, MonadFail, MR.MonadReader GitLabState)
+  deriving (Functor, Applicative, Monad, MonadFail, MR.MonadReader GitLabState, MonadError e)
 
 instance MT.MonadTrans GitLabT where
   lift = GitLabT . MT.lift
@@ -135,8 +137,11 @@ instance MT.MonadTrans GitLabT where
 instance (MIO.MonadIO m) => MIO.MonadIO (GitLabT m) where
   liftIO = GitLabT . MIO.liftIO
 
+data GitLabError = GitLabError Text
+  deriving (Show)
+
 -- | Utility type which uses 'IO' as underlying monad
-type GitLab a = GitLabT IO a
+type GitLab a = GitLabT (ExceptT GitLabError IO) a
 
 -- | state used by GitLab actions, used internally.
 data GitLabState = GitLabState
