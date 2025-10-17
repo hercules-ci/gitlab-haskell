@@ -3,7 +3,9 @@
 
 module SystemHookTests (systemHookTests) where
 
+import Control.Monad
 import Control.Monad.IO.Class
+import Data.Either
 import Data.Maybe
 import qualified Data.Text.IO as TIO
 import GitLab
@@ -248,20 +250,21 @@ parserTests =
 matchTest :: String -> String -> Rule -> String -> Rule -> [TestTree]
 matchTest lbl jsonFilename rule wrongJson wrongRule =
   [ testCase lbl $
-      runGitLabDbg
-        ( liftIO (TIO.readFile ("data/system-hooks/" <> jsonFilename))
-            >>= \eventJson -> tryFire eventJson rule
-        )
+      (fromRight False)
+        <$> runGitLabDbg
+          ( liftIO (TIO.readFile ("data/system-hooks/" <> jsonFilename))
+              >>= \eventJson -> tryFire eventJson rule
+          )
         @? (lbl <> " failed"),
     testCase (lbl <> "-wrong-json") $
-      not
+      (not . fromRight False)
         <$> runGitLabDbg
           ( liftIO (TIO.readFile ("data/system-hooks/" <> wrongJson))
               >>= \eventJson -> tryFire eventJson rule
           )
         @? (lbl <> "-wrong-json failed"),
     testCase (lbl <> "-wrong-rule") $
-      not
+      (not . fromRight False)
         <$> runGitLabDbg
           ( liftIO (TIO.readFile ("data/system-hooks/" <> jsonFilename))
               >>= \eventJson -> tryFire eventJson wrongRule
@@ -272,13 +275,14 @@ matchTest lbl jsonFilename rule wrongJson wrongRule =
 matchIfTest :: String -> String -> Rule -> Rule -> [TestTree]
 matchIfTest lbl jsonFilename yesFire noFire =
   [ testCase (lbl <> "-yes") $
-      runGitLabDbg
-        ( liftIO (TIO.readFile ("data/system-hooks/" <> jsonFilename))
-            >>= \eventJson -> tryFire eventJson yesFire
-        )
+      (fromRight False)
+        <$> runGitLabDbg
+          ( liftIO (TIO.readFile ("data/system-hooks/" <> jsonFilename))
+              >>= \eventJson -> tryFire eventJson yesFire
+          )
         @? (lbl <> "-fireIf-yes failed"),
     testCase (lbl <> "-no") $
-      not
+      (not . fromRight False)
         <$> runGitLabDbg
           ( liftIO (TIO.readFile ("data/system-hooks/" <> jsonFilename))
               >>= \eventJson -> tryFire eventJson noFire
@@ -381,21 +385,24 @@ receiveTests =
   testGroup
     "GitLab system hooks receive"
     [ testCase "1-rule-match" $
-        runGitLabDbg $
-          liftIO (TIO.readFile "data/system-hooks/project-created.json")
-            >>= \eventJson ->
-              receiveString
-                eventJson
-                [projectCreateRule],
+        void $
+          runGitLabDbg $
+            liftIO (TIO.readFile "data/system-hooks/project-created.json")
+              >>= \eventJson ->
+                receiveString
+                  eventJson
+                  [projectCreateRule],
       testCase "1-rule-no-match" $
-        runGitLabDbg $
-          liftIO (TIO.readFile "data/system-hooks/project-created.json")
-            >>= \eventJson ->
-              receiveString
-                eventJson
-                [projectRenameRule],
+        void $
+          runGitLabDbg $
+            liftIO (TIO.readFile "data/system-hooks/project-created.json")
+              >>= \eventJson ->
+                receiveString
+                  eventJson
+                  [projectRenameRule],
       testCase
         "2-rules"
+        $ void
         $ runGitLabDbg
         $ liftIO (TIO.readFile "data/system-hooks/project-created.json")
           >>= \eventJson ->
