@@ -52,6 +52,7 @@ module GitLab.API.MergeRequests
   )
 where
 
+import Control.Monad.Except
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as BSL
 import Data.Either
@@ -100,7 +101,9 @@ mergeRequests ::
   GitLab [MergeRequest]
 mergeRequests p = do
   result <- mergeRequests' (project_id p)
-  return (fromRight (error "mergeRequests error") result)
+  case result of
+    Left _er -> throwError (GitLabError "mergeRequests error")
+    Right x -> return x
 
 -- | returns the merge requests for a project given its project ID.
 mergeRequests' ::
@@ -131,7 +134,9 @@ mergeRequestsWith ::
   GitLab [MergeRequest]
 mergeRequestsWith p attrs = do
   result <- mergeRequestsWith' (project_id p) attrs
-  return (fromRight (error "mergeRequests error") result)
+  case result of
+    Left _er -> throwError (GitLabError "mergeRequests error")
+    Right x -> return x
 
 -- | returns the merge requests for a project given its project ID and
 -- a set of search attributes as 'Just' values in 'MergeProjectAttrs'.

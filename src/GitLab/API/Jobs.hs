@@ -34,6 +34,7 @@ module GitLab.API.Jobs
   )
 where
 
+import Control.Monad.Except
 import qualified Data.ByteString.Lazy as BSL
 import Data.Either
 import qualified Data.Text as T
@@ -48,7 +49,9 @@ jobs ::
   GitLab [Job]
 jobs project = do
   result <- jobs' (project_id project)
-  return (fromRight (error "jobs error") result)
+  case result of
+    Left _ -> throwError (GitLabError "jobs error")
+    Right answer -> return answer
 
 -- | Get a list of jobs in a project. Jobs are sorted in descending
 -- order of their IDs.

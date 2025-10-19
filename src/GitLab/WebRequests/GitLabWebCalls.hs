@@ -15,6 +15,7 @@ module GitLab.WebRequests.GitLabWebCalls
 where
 
 import qualified Control.Exception as Exception
+import Control.Monad.Except
 import Control.Monad.IO.Class
 import qualified Control.Monad.Reader as MR
 import Data.Aeson
@@ -89,7 +90,7 @@ gitlabPost urlPath params = do
         params
 
 gitlabPut ::
-  FromJSON a =>
+  (FromJSON a) =>
   -- | the URL to post to
   Text ->
   -- | the data to post
@@ -107,7 +108,7 @@ gitlabPut urlPath params = do
         params
 
 gitlabDelete ::
-  FromJSON a =>
+  (FromJSON a) =>
   -- | the URL to post to
   Text ->
   -- | the data to post
@@ -130,8 +131,8 @@ gitlabUnsafe :: GitLab (Either a (Maybe b)) -> GitLab b
 gitlabUnsafe query = do
   result <- query
   case result of
-    Left _err -> error "gitlabUnsafe error"
-    Right Nothing -> error "gitlabUnsafe error"
+    Left _err -> throwError (GitLabError "gitlabUnsafe error")
+    Right Nothing -> throwError (GitLabError "gitlabUnsafe error")
     Right (Just x) -> return x
 
 -- | Lower level query that returns the raw bytestring response from a
@@ -188,7 +189,7 @@ gitlabHTTP httpMethod contentType urlPath urlParams contentParams = do
   liftIO $ tryGitLab 0 request (retries cfg) manager Nothing
 
 gitlabHTTPOne ::
-  FromJSON a =>
+  (FromJSON a) =>
   -- | HTTP method (PUT, POST, DELETE, GET)
   BS.ByteString ->
   -- | Content type (content-type)
@@ -230,7 +231,7 @@ gitlabHTTPMany ::
 gitlabHTTPMany httpMethod contentType urlPath urlParams contentParams = do
   go 1 []
   where
-    go :: FromJSON a => Int -> [a] -> GitLab (Either (Response BSL.ByteString) [a])
+    go :: (FromJSON a) => Int -> [a] -> GitLab (Either (Response BSL.ByteString) [a])
     go pageNum accum = do
       response <-
         gitlabHTTP
@@ -283,13 +284,13 @@ tryGitLab i request maxRetries manager lastException
       httpLbs request manager
         `Exception.catch` \ex -> tryGitLab (i + 1) request maxRetries manager (Just ex)
 
-parseOne :: FromJSON a => BSL.ByteString -> Maybe a
+parseOne :: (FromJSON a) => BSL.ByteString -> Maybe a
 parseOne bs =
   case eitherDecode bs of
     Left _err -> Nothing
     Right x -> Just x
 
-parseMany :: FromJSON a => BSL.ByteString -> Maybe [a]
+parseMany :: (FromJSON a) => BSL.ByteString -> Maybe [a]
 parseMany bs =
   case eitherDecode bs of
     Left _err -> Nothing

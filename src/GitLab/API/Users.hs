@@ -95,6 +95,7 @@ module GitLab.API.Users
   )
 where
 
+import Control.Monad.Except
 import qualified Data.ByteString.Lazy as BSL
 import Data.Either
 import Data.Maybe
@@ -109,7 +110,10 @@ import Network.HTTP.Client
 users :: GitLab [User]
 users = do
   let pathUser = "/users"
-  fromRight (error "allUsers error") <$> gitlabGetMany pathUser []
+  result <- gitlabGetMany pathUser []
+  case result of
+    Left _ -> throwError (GitLabError "allUsers error")
+    Right usrs -> return usrs
 
 -- | Get a single user.
 user ::
@@ -242,16 +246,24 @@ deleteUser usr =
 
 -- | Get current user.
 currentUser :: GitLab User
-currentUser =
-  fromMaybe (error "currentUser") . fromRight (error "currentUser error") <$> gitlabGetOne pathUser []
+currentUser = do
+  result <- gitlabGetOne pathUser []
+  case result of
+    Left _ -> throwError (GitLabError "currentUser error")
+    Right Nothing -> throwError (GitLabError "currentUser error")
+    Right (Just usr) -> return usr
   where
     pathUser =
       "/user"
 
 -- | Get current user status.
 currentUserStatus :: GitLab UserStatus
-currentUserStatus =
-  fromMaybe (error "currentUserStatus") . fromRight (error "currentUserStatus error") <$> gitlabGetOne pathUser []
+currentUserStatus = do
+  result <- gitlabGetOne pathUser []
+  case result of
+    Left _er -> throwError (GitLabError "currentUserStatus error")
+    Right Nothing -> throwError (GitLabError "currentUserStatus error")
+    Right (Just x) -> return x
   where
     pathUser =
       "/user/status"
@@ -261,8 +273,12 @@ userStatus ::
   -- | user
   User ->
   GitLab UserStatus
-userStatus usr =
-  fromMaybe (error "userStatus") . fromRight (error "userStatus error") <$> gitlabGetOne pathUser []
+userStatus usr = do
+  result <- gitlabGetOne pathUser []
+  case result of
+    Left _er -> throwError (GitLabError ("userStatus error"))
+    Right Nothing -> throwError (GitLabError ("userStatus error"))
+    Right (Just st) -> return st
   where
     pathUser =
       "/users/"
@@ -272,8 +288,12 @@ userStatus usr =
 -- | Get the status of the current user.
 userPreferences ::
   GitLab UserPrefs
-userPreferences =
-  fromMaybe (error "userPreferences") . fromRight (error "userPreferences error") <$> gitlabGetOne pathUser []
+userPreferences = do
+  result <- gitlabGetOne pathUser []
+  case result of
+    Left _er -> throwError (GitLabError ("userPreferences error"))
+    Right Nothing -> throwError (GitLabError ("userPreferences error"))
+    Right (Just prefs) -> return prefs
   where
     pathUser =
       "/user/preferences"
@@ -312,16 +332,24 @@ unfollowUser usr =
 
 -- | Get the counts of the currently signed in user.
 currentUserCounts :: GitLab UserCount
-currentUserCounts =
-  fromMaybe (error "currentUserCounts") . fromRight (error "currentUserCounts error") <$> gitlabGetOne pathUser []
+currentUserCounts = do
+  result <- gitlabGetOne pathUser []
+  case result of
+    Left _er -> throwError (GitLabError ("currentUserCounts error"))
+    Right Nothing -> throwError (GitLabError ("currentUserCounts error"))
+    Right (Just counts) -> return counts
   where
     pathUser =
       "/user_counts"
 
 -- | Get a list of currently authenticated user’s SSH keys.
 currentUserSshKeys :: GitLab Key
-currentUserSshKeys =
-  fromMaybe (error "currentUserSshKeys") . fromRight (error "currentUserSshKeys error") <$> gitlabGetOne pathUser []
+currentUserSshKeys = do
+  result <- gitlabGetOne pathUser []
+  case result of
+    Left _er -> throwError (GitLabError ("currentUserSshKeys error"))
+    Right Nothing -> throwError (GitLabError ("currentUserSshKeys error"))
+    Right (Just k) -> return k
   where
     pathUser =
       "/user/keys"
@@ -331,8 +359,12 @@ userSshKeys ::
   -- | user
   User ->
   GitLab Key
-userSshKeys usr =
-  fromMaybe (error "userSshKeys") . fromRight (error "userSshKeys error") <$> gitlabGetOne pathUser []
+userSshKeys usr = do
+  result <- gitlabGetOne pathUser []
+  case result of
+    Left _er -> throwError (GitLabError ("userSshKeys error"))
+    Right Nothing -> throwError (GitLabError ("userSshKeys error"))
+    Right (Just k) -> return k
   where
     pathUser =
       "/user/"
@@ -415,7 +447,10 @@ deleteSshKeyUser usr keyId =
 emails :: GitLab [Email]
 emails = do
   let pathUser = "/user/emails/"
-  fromRight (error "emails error") <$> gitlabGetMany pathUser []
+  result <- gitlabGetMany pathUser []
+  case result of
+    Left _er -> throwError (GitLabError ("emails error"))
+    Right x -> return x
 
 -- | Get a list of currently authenticated user’s emails.
 emailsCurrentUser ::
@@ -427,19 +462,25 @@ emailsCurrentUser usr = do
         "/user/"
           <> T.pack (show (user_email usr))
           <> "/emails/"
-  fromRight (error "emails error") <$> gitlabGetMany pathUser []
+  result <- gitlabGetMany pathUser []
+  case result of
+    Left _er -> throwError (GitLabError ("emailsCurrentUser error"))
+    Right emls -> return emls
 
 -- | Used internally by the following functions
 userAction ::
   -- | user action
   Text ->
-  -- | function name for the error
+  -- | function name
   Text ->
   -- | user
   User ->
   GitLab (Maybe User)
-userAction action funcName usr =
-  fromRight (error (T.unpack funcName <> " error")) <$> gitlabPost userAddr []
+userAction action funcName usr = do
+  result <- gitlabPost userAddr []
+  case result of
+    Left _er -> throwError (GitLabError "userAction error")
+    Right x -> return x
   where
     userAddr :: Text
     userAddr =

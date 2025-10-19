@@ -85,6 +85,7 @@ module GitLab.API.Issues
   )
 where
 
+import Control.Monad.Except
 import Data.Aeson.TH
 import qualified Data.ByteString.Lazy as BSL
 import Data.Either
@@ -108,16 +109,15 @@ groupIssues ::
   GitLab [Issue]
 groupIssues grp attrs = do
   result <- gitlabGetMany urlPath (issueFilters attrs)
-  return (fromRight (error "groupsIssues error") result)
+  case result of
+    Left _er -> throwError (GitLabError "groupIssues error")
+    Right x -> return x
   where
     urlPath =
       T.pack $
         "/groups/"
           <> show (group_id grp)
           <> "/issues"
-
--- result <- projectIssues' (project_id p) filters
--- return (fromRight (error "projectIssues error") result)
 
 -- | Get a list of a project’s issues
 projectIssues ::
@@ -129,7 +129,9 @@ projectIssues ::
   GitLab [Issue]
 projectIssues p filters = do
   result <- projectIssues' (project_id p) filters
-  return (fromRight (error "projectIssues error") result)
+  case result of
+    Left _er -> throwError (GitLabError "projectIssues error")
+    Right x -> return x
 
 -- | Get a list of a project’s issues
 projectIssues' ::
@@ -166,8 +168,11 @@ userIssues ::
   -- | the user
   User ->
   GitLab [Issue]
-userIssues usr =
-  fromRight (error "userIssues error") <$> gitlabGetMany addr params
+userIssues usr = do
+  result <- gitlabGetMany addr params
+  case result of
+    Left _er -> throwError (GitLabError "userIssues error")
+    Right x -> return x
   where
     addr = "/issues"
     params :: [GitLabParam]
@@ -254,7 +259,7 @@ editIssue prj issueId editIssueReq = do
       (issueAttrs (project_id prj) editIssueReq)
   case result of
     Left resp -> return (Left resp)
-    Right Nothing -> error "editIssue error"
+    Right Nothing -> throwError (GitLabError "editIssue error")
     Right (Just iss) -> return (Right iss)
 
 -- | deletes an issue. see <https://docs.gitlab.com/ee/api/issues.html#delete-an-issue>
@@ -300,7 +305,7 @@ reorderIssue prj issueId moveAfterId moveBeforeId = do
       ]
   case result of
     Left resp -> return (Left resp)
-    Right Nothing -> error "reorderIssue error"
+    Right Nothing -> throwError (GitLabError "reorderIssue error")
     Right (Just iss) -> return (Right iss)
 
 -- | Moves an issue to a different project. If a given label or
@@ -493,8 +498,8 @@ issueStatisticsGroup ::
 issueStatisticsGroup group filters = do
   result <- issueStatisticsGroup' (group_id group) filters
   case result of
-    Left _s -> error "issueStatisticsGroup error"
-    Right Nothing -> error "issueStatisticsGroup error"
+    Left _s -> throwError (GitLabError "issueStatisticsGroup error")
+    Right Nothing -> throwError (GitLabError "issueStatisticsGroup error")
     Right (Just stats) -> return stats
 
 -- | Gets issues count statistics for a given group.
@@ -525,8 +530,8 @@ issueStatisticsProject ::
 issueStatisticsProject proj filters = do
   result <- issueStatisticsProject' (project_id proj) filters
   case result of
-    Left _s -> error "issueStatisticsProject error"
-    Right Nothing -> error "issueStatisticsProject error"
+    Left _s -> throwError (GitLabError "issueStatisticsProject error")
+    Right Nothing -> throwError (GitLabError "issueStatisticsProject error")
     Right (Just stats) -> return stats
 
 -- | Gets issues count statistics for a given project.

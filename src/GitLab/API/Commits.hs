@@ -57,6 +57,7 @@ module GitLab.API.Commits
   )
 where
 
+import Control.Monad.Except
 import qualified Data.ByteString.Lazy as BSL
 import Data.Either
 import Data.Text (Text)
@@ -103,7 +104,7 @@ createCommitMultipleFilesActions prj branchName commitMsg actions = do
         ("actions", Just (T.encodeUtf8 (T.pack (show actions))))
       ]
   case result of
-    Left resp -> error ("createCommitMultipleFilesActions: " <> show resp)
+    Left resp -> throwError (GitLabError ("createCommitMultipleFilesActions: " <> T.pack (show resp)))
     Right x -> return x
   where
     commitsAddr :: Int -> Text

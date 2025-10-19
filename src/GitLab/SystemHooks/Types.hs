@@ -106,7 +106,7 @@ class (FromJSON a) => SystemHook a where
 parseEvent :: (FromJSON a) => Text -> Maybe a
 parseEvent eventText =
   case eitherDecodeStrict (T.encodeUtf8 eventText) of
-    Left _error -> Nothing
+    Left _er -> Nothing
     Right event -> Just event
 
 instance SystemHook ProjectCreate where

@@ -56,6 +56,7 @@ module GitLab.API.Groups
   )
 where
 
+import Control.Monad.Except
 import qualified Data.ByteString.Lazy as BSL
 import Data.Either
 import Data.Maybe
@@ -68,53 +69,67 @@ import Network.HTTP.Client
 
 -- | Get a list of visible groups for the authenticated user.
 groups :: ListGroupsAttrs -> GitLab [Group]
-groups attrs =
-  fromRight (error "groups error")
-    <$> gitlabGetMany "/groups" (listGroupsAttrs attrs)
+groups attrs = do
+  result <- gitlabGetMany "/groups" (listGroupsAttrs attrs)
+  case result of
+    Left _er -> throwError (GitLabError "groups error")
+    Right x -> return x
 
 -- | Get a list of visible direct subgroups in this group.
 subGroups :: Group -> ListGroupsAttrs -> GitLab [Group]
-subGroups parentGrp attrs =
-  fromRight (error "subGroups error")
-    <$> gitlabGetMany
+subGroups parentGrp attrs = do
+  result <-
+    gitlabGetMany
       ( "/groups/"
           <> T.pack (show (group_id parentGrp))
           <> "/subgroups"
       )
       (listGroupsAttrs attrs)
+  case result of
+    Left _er -> throwError (GitLabError "subGroups error")
+    Right x -> return x
 
 -- | Get a list of visible descendant groups of this group.
 descendantGroups :: Group -> ListGroupsAttrs -> GitLab [Group]
-descendantGroups parentGrp attrs =
-  fromRight (error "subGroups error")
-    <$> gitlabGetMany
+descendantGroups parentGrp attrs = do
+  result <-
+    gitlabGetMany
       ( "/groups/"
           <> T.pack (show (group_id parentGrp))
           <> "/descendant_groups"
       )
       (listGroupsAttrs attrs)
+  case result of
+    Left _er -> throwError (GitLabError "subGroups error")
+    Right x -> return x
 
 -- | Get a list of projects in this group.
 groupProjects :: Group -> GroupProjectAttrs -> GitLab [Project]
-groupProjects parentGrp attrs =
-  fromRight (error "groupProjects error")
-    <$> gitlabGetMany
+groupProjects parentGrp attrs = do
+  result <-
+    gitlabGetMany
       ( "/groups/"
           <> T.pack (show (group_id parentGrp))
           <> "/projects"
       )
       (groupProjectAttrs attrs)
+  case result of
+    Left _er -> throwError (GitLabError "groupProjects error")
+    Right x -> return x
 
 -- | Get a list of projects in this group.
 groupSharedProjects :: Group -> GroupProjectAttrs -> GitLab [Project]
-groupSharedProjects parentGrp attrs =
-  fromRight (error "groupSharedProjects error")
-    <$> gitlabGetMany
+groupSharedProjects parentGrp attrs = do
+  result <-
+    gitlabGetMany
       ( "/groups/"
           <> T.pack (show (group_id parentGrp))
           <> "/projects/shared"
       )
       (groupProjectAttrs attrs)
+  case result of
+    Left _er -> throwError (GitLabError "groupSharedProjects error")
+    Right x -> return x
 
 -- | Get all details of a group.
 group ::
@@ -202,9 +217,11 @@ searchGroup ::
   -- | String or path to search for.
   Text ->
   GitLab [Group]
-searchGroup searchTxt =
-  fromRight (error "searchGroups error")
-    <$> gitlabGetMany "/groups" [("search", Just (T.encodeUtf8 searchTxt))]
+searchGroup searchTxt = do
+  result <- gitlabGetMany "/groups" [("search", Just (T.encodeUtf8 searchTxt))]
+  case result of
+    Left _er -> throwError (GitLabError "searchGroups error")
+    Right x -> return x
 
 -- | Attributes related to a group
 data GroupProjectAttrs = GroupProjectAttrs

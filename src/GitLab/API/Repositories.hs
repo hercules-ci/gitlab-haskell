@@ -23,6 +23,7 @@ module GitLab.API.Repositories
   )
 where
 
+import Control.Monad.Except
 import Control.Monad.IO.Class
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as BSL
@@ -41,8 +42,11 @@ repositoryTree ::
   -- | the project
   Project ->
   GitLab [Repository]
-repositoryTree project =
-  fromRight (error "repositories error") <$> repositories' (project_id project)
+repositoryTree project = do
+  result <- repositories' (project_id project)
+  case result of
+    Left _er -> throwError (GitLabError "repositories error")
+    Right x -> return x
 
 -- | returns a list of repository files and directories in a project
 -- given its project ID.
@@ -86,7 +90,7 @@ fileArchiveBS project format = do
   result <- getFileArchiveBS' (project_id project) format
   case result of
     Left resp -> return (Left resp)
-    Right Nothing -> error "could not download file"
+    Right Nothing -> throwError (GitLabError "fileArchiveBS could not download file")
     Right (Just bs) -> return (Right bs)
 
 -- | get a file archive of the repository files using the project's
@@ -106,7 +110,7 @@ getFileArchive' projectId format fPath = do
   case attempt of
     Left st -> return (Left st)
     Right Nothing ->
-      Right <$> error "cannot download file"
+      Right <$> throwError (GitLabError "getFileArchive' could not download file")
     Right (Just archiveData) ->
       Right <$> liftIO (BSL.writeFile fPath archiveData)
 
@@ -145,9 +149,11 @@ contributors ::
   -- asc.
   Maybe SortBy ->
   GitLab [Contributor]
-contributors prj order sort =
-  fromRight (error "contributors error")
-    <$> gitlabGetMany addr params
+contributors prj order sort = do
+  result <- gitlabGetMany addr params
+  case result of
+    Left _er -> throwError (GitLabError "contributors error")
+    Right x -> return x
   where
     addr =
       "/projects/"

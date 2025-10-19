@@ -52,8 +52,6 @@ pipelines p = do
     Right ps -> return (Just ps)
     Left _err -> return Nothing
 
--- return (fromRight (error "pipelines error") result)
-
 -- | returns the pipelines for a project given its project ID.
 pipelines' ::
   -- | the project ID

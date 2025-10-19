@@ -101,6 +101,7 @@ module GitLab.API.Projects
   )
 where
 
+import Control.Monad.Except
 import qualified Data.ByteString.Lazy as BSL
 import Data.Either
 import Data.List
@@ -126,11 +127,11 @@ projects ::
   -- | project filters
   ProjectSearchAttrs ->
   GitLab [Project]
-projects attrs =
-  fromRight (error "projects error")
-    <$> gitlabGetMany
-      "/projects"
-      (projectSearchAttrsParams attrs)
+projects attrs = do
+  result <- gitlabGetMany "/projects" (projectSearchAttrsParams attrs)
+  case result of
+    Left _er -> throwError (GitLabError "projects error")
+    Right x -> return x
 
 -- | Get a specific project. This endpoint can be accessed without
 -- authentication if the project is publicly accessible.
@@ -177,7 +178,7 @@ userProjects' username attrs = do
           (urlPath (user_id usr))
           (projectSearchAttrsParams attrs)
       case result of
-        Left _ -> error "userProjects' error"
+        Left _ -> throwError (GitLabError "userProjects' error")
         Right projs -> return (Just projs)
   where
     urlPath usrId = "/users/" <> T.pack (show usrId) <> "/projects"
@@ -195,13 +196,16 @@ userProjects theUser =
 -- > userProjects myUser
 starredProjects :: User -> ProjectSearchAttrs -> GitLab [Project]
 starredProjects usr attrs = do
-  fromRight (error "starredProjects error")
-    <$> gitlabGetMany
+  result <-
+    gitlabGetMany
       ( "/users/"
           <> T.pack (show (user_id usr))
           <> "/starred_projects"
       )
       (projectSearchAttrsParams attrs)
+  case result of
+    Left _er -> throwError (GitLabError "starredProjects error")
+    Right x -> return x
 
 -- | Get a list of ancestor groups for this project.
 projectGroups ::
@@ -290,7 +294,7 @@ editProject' projId attrs = do
       (projectAttrsParams attrs)
   case result of
     Left resp -> return (Left resp)
-    Right Nothing -> error "editProject error"
+    Right Nothing -> throwError (GitLabError "editProject error")
     Right (Just proj) -> return (Right proj)
 
 -- | Forks a project into the user namespace of the authenticated user
@@ -507,13 +511,12 @@ projectsWithName ::
   Text ->
   GitLab [Project]
 projectsWithName projectName = do
-  foundProjects <-
-    fromRight (error "projectsWithName error")
-      <$> gitlabGetMany
-        "/projects"
-        [("search", Just (T.encodeUtf8 projectName))]
-  return $
-    filter (\prj -> projectName == project_path prj) foundProjects
+  result <- gitlabGetMany "/projects" [("search", Just (T.encodeUtf8 projectName))]
+  case result of
+    Left _er -> throwError (GitLabError "projectsWithName error")
+    Right foundProjects -> do
+      return $
+        filter (\prj -> projectName == project_path prj) foundProjects
 
 -- | gets a project with the given name for the given full path of the
 --   namespace. E.g.
@@ -581,7 +584,7 @@ transferProject' projId namespaceString = do
       ]
   case result of
     Left resp -> return (Left resp)
-    Right Nothing -> error "transferProject error"
+    Right Nothing -> throwError (GitLabError "transferProject error")
     Right (Just proj) -> return (Right proj)
 
 --------------------
@@ -609,11 +612,14 @@ commitsEmailAddresses prj = do
 -- was created.
 projectOfIssue :: Issue -> GitLab Project
 projectOfIssue iss = do
-  let prId = fromMaybe (error "projectOfIssue error") (issue_project_id iss)
-  result <- project prId
-  case fromRight (error "projectOfIssue error") result of
-    Nothing -> error "projectOfIssue error"
-    Just proj -> return proj
+  case issue_project_id iss of
+    Nothing -> throwError (GitLabError "projectOfIssue error")
+    Just prId -> do
+      result <- project prId
+      case result of
+        Left _er -> throwError (GitLabError "projectOfIssue error")
+        Right Nothing -> throwError (GitLabError "projectOfIssue error")
+        Right (Just proj) -> return proj
 
 -- | gets all diffs in a project for a given commit SHA.
 projectDiffs :: Project -> Text -> GitLab (Either (Response BSL.ByteString) [Diff])

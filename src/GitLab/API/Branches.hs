@@ -25,6 +25,7 @@ module GitLab.API.Branches
   )
 where
 
+import Control.Monad.Except
 import qualified Data.ByteString.Lazy as BSL
 import Data.Either
 import Data.Text (Text)
@@ -44,7 +45,9 @@ import Network.HTTP.Client
 branches :: Project -> GitLab [Branch]
 branches project = do
   result <- branches' (project_id project)
-  return (fromRight (error "branches error") result)
+  case result of
+    Left _er -> throwError (GitLabError "branches error")
+    Right x -> return x
 
 -- | Get a list of repository branches from a project given its
 -- project ID, sorted by name alphabetically.
@@ -70,7 +73,9 @@ branch ::
   GitLab (Maybe Branch)
 branch project branchName = do
   result <- branch' (project_id project) branchName
-  return (fromRight (error "branch error") result)
+  case result of
+    Left _er -> throwError (GitLabError "branch error")
+    Right x -> return x
 
 -- | Get a single project repository branch.
 branch' ::

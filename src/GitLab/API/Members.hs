@@ -55,6 +55,7 @@ module GitLab.API.Members
   )
 where
 
+import Control.Monad.Except
 import qualified Data.ByteString.Lazy as BSL
 import Data.Either
 import qualified Data.Text as T
@@ -73,9 +74,11 @@ import Network.HTTP.Types.URI
 -- user. Returns only direct members and not inherited members through
 -- ancestors groups.
 membersOfProject :: Project -> GitLab [Member]
-membersOfProject prj =
-  fromRight (error "membersOfProject error")
-    <$> gitlabGetMany addr []
+membersOfProject prj = do
+  result <- gitlabGetMany addr []
+  case result of
+    Left _er -> throwError (GitLabError "membersOfProject error")
+    Right x -> return x
   where
     addr =
       "/projects/"
