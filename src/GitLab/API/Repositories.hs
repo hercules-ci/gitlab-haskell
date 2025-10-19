@@ -27,7 +27,6 @@ import Control.Monad.Except
 import Control.Monad.IO.Class
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as BSL
-import Data.Either
 import Data.Maybe
 import Data.Text (Text)
 import qualified Data.Text as T

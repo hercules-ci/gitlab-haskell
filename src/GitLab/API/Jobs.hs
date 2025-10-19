@@ -36,7 +36,6 @@ where
 
 import Control.Monad.Except
 import qualified Data.ByteString.Lazy as BSL
-import Data.Either
 import qualified Data.Text as T
 import GitLab.Types
 import GitLab.WebRequests.GitLabWebCalls

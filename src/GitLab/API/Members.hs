@@ -57,7 +57,6 @@ where
 
 import Control.Monad.Except
 import qualified Data.ByteString.Lazy as BSL
-import Data.Either
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 import GitLab.API.Users

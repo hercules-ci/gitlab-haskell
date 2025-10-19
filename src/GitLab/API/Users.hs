@@ -97,7 +97,6 @@ where
 
 import Control.Monad.Except
 import qualified Data.ByteString.Lazy as BSL
-import Data.Either
 import Data.Maybe
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -476,7 +475,7 @@ userAction ::
   -- | user
   User ->
   GitLab (Maybe User)
-userAction action funcName usr = do
+userAction action _funcName usr = do
   result <- gitlabPost userAddr []
   case result of
     Left _er -> throwError (GitLabError "userAction error")
