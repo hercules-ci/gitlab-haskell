@@ -60,12 +60,12 @@ Run all GitLab actions with `runGitLab`:
     runGitLab ::
        => GitLabServerConfig
        -> GitLab a
-       -> IO a
+       -> IO (Either GitLabError a)
 
 For example the following project returns all GitLab projects for the
 user "joe".
 
-    myProjects <-
+    myProjects <- fromRight <$>
       runGitLab
         (defaultGitLabServer
            { url = "https://gitlab.example.com"
