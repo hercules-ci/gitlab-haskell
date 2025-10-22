@@ -201,7 +201,7 @@ library
               , crypton-connection >= 0.4.1
               , aeson >= 2.0.0.0
               , bytestring
-              , text
+              , text >= 2.1
               , http-client
               , http-types
               , transformers
