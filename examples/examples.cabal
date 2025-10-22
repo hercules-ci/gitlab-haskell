@@ -59,7 +59,7 @@ executable user-projects-example
     main-is:          UserProjects.hs
 
     -- Other library packages from which modules are imported.
-    build-depends:    base ^>=4.18.0.0, text, gitlab-haskell
+    build-depends:    base ^>=4.20.0.0, text, gitlab-haskell
 
     -- Directories containing source files.
     hs-source-dirs:   .
@@ -75,7 +75,7 @@ executable file-hook-example
     main-is:          FileHook.hs
 
     -- Other library packages from which modules are imported.
-    build-depends:    base ^>=4.18.0.0, text, gitlab-haskell
+    build-depends:    base ^>=4.20.0.0, text, gitlab-haskell
 
     -- Directories containing source files.
     hs-source-dirs:   .
@@ -91,7 +91,7 @@ executable gitlab-commit-example
     main-is:          GitLabCommit.hs
 
     -- Other library packages from which modules are imported.
-    build-depends:    base ^>=4.18.0.0, text, gitlab-haskell
+    build-depends:    base ^>=4.20.0.0, text, gitlab-haskell
 
     -- Directories containing source files.
     hs-source-dirs:   .
