@@ -24,7 +24,7 @@ import Control.Monad.IO.Class
 import qualified Control.Monad.Reader as MR
 import Data.Text (Text)
 import qualified Data.Text as T
-import qualified Data.Text.IO as TIO
+import qualified Data.Text.IO.Utf8 as TIO
 import Data.Typeable
 import GitLab.SystemHooks.Types
 import GitLab.Types
