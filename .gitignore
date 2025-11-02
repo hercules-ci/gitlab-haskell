@@ -37,3 +37,4 @@ examples/Main
 examples/FileHook
 examples/GitLabCommit
 examples/UserProjects
+.direnv/
