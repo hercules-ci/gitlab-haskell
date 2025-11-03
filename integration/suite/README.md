@@ -22,6 +22,38 @@ cd integration/suite
 cabal run integration-suite
 ```
 
+### Running Tests Selectively
+
+The test suite uses hspec, which supports filtering tests via command-line options.
+
+**How `--match` works**: Substring matching on the full test path (e.g., `"Issue operations/can move an issue to a different project"`).
+
+Examples:
+```bash
+# Match by describe block
+cabal run integration-suite -- --match "Issue operations"
+
+# Match by test name substring
+cabal run integration-suite -- --match "can create"
+
+# Match across path boundaries using /
+cabal run integration-suite -- --match "Issue operations/move"
+cabal run integration-suite -- --match "operations/can"
+
+# Exact test path (useful for rerunning a single test)
+cabal run integration-suite -- --match "/GitLab API calls/Issue operations/can move an issue to a different project/"
+
+# Other useful options
+cabal run integration-suite -- --skip "404"        # Skip matching tests
+cabal run integration-suite -- --dry-run           # Show what would run
+cabal run integration-suite -- --fail-fast         # Stop on first failure
+cabal run integration-suite -- --rerun             # Rerun failed tests
+cabal run integration-suite -- -j4                 # Run with 4 parallel jobs
+cabal run integration-suite -- --help              # Show all options
+```
+
+Patterns are case-sensitive. The `/` is a literal character in the path, not special syntax.
+
 ## Test suite structure
 
 Tests are organized in `src/Test/GitLab/API/` mirroring the GitLab API structure.
