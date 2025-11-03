@@ -14,6 +14,7 @@ executable integration-suite
                      , Test.GitLab.API.Groups
                      , Test.GitLab.API.Issues
                      , Test.GitLab.API.Projects
+                     , Test.GitLab.API.RepositoryFiles
                      , Test.GitLab.API.Users
                      , Test.GitLab.API.Version
   hs-source-dirs:      src
