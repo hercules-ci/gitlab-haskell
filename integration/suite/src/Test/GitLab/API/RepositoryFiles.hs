@@ -81,3 +81,58 @@ spec cfg = do
         httpResponse <- expectLeft "Expected 404 for deleted file" deletedOrHttpError
         showing httpResponse $ do
           responseStatus httpResponse `shouldBe` status404
+
+    it "handles 404 for non-existent files" $ do
+      withProject cfg $ \project -> do
+        let filePath = "does-not-exist.txt"
+            branchName = "main"
+
+        -- Try to read non-existent file with repositoryFile
+        readResponseOrError <- GitLab.runGitLab cfg $
+          GitLab.repositoryFile project filePath branchName
+        readOrHttpError <- expectRight "Could not read non-existent file" readResponseOrError
+        httpResponse <- expectLeft "Expected 404 for non-existent file" readOrHttpError
+        showing httpResponse $ do
+          responseStatus httpResponse `shouldBe` status404
+
+        -- Try to read non-existent file with repositoryFileRawFile
+        rawResponseOrError <- GitLab.runGitLab cfg $
+          GitLab.repositoryFileRawFile project filePath branchName
+        rawOrHttpError <- expectRight "Could not read non-existent raw file" rawResponseOrError
+        rawHttpResponse <- expectLeft "Expected 404 for non-existent raw file" rawOrHttpError
+        showing rawHttpResponse $ do
+          responseStatus rawHttpResponse `shouldBe` status404
+
+    it "can handle empty files" $ do
+      withProject cfg $ \project -> do
+        let filePath = "empty.txt"
+            branchName = "main"
+            emptyContent = ""
+            commitMsg = "Add empty file"
+
+        -- Create empty file
+        createResponseOrError <- GitLab.runGitLab cfg $
+          GitLab.createRepositoryFile project filePath branchName emptyContent commitMsg
+        createOrHttpError <- expectRight "Could not create empty file" createResponseOrError
+        createdFileOrNotFound <- expectRight "Could not create empty file (HTTP error)" createOrHttpError
+        createdFile <- expectJust "Could not create empty file (not found)" createdFileOrNotFound
+
+        let createdBranch = GitLab.repository_file_simple_branch createdFile
+
+        -- Read back via repositoryFile (Base64-encoded)
+        readResponseOrError <- GitLab.runGitLab cfg $
+          GitLab.repositoryFile project filePath createdBranch
+        readOrHttpError <- expectRight "Could not read empty file" readResponseOrError
+        readFileOrNotFound <- expectRight "Could not read empty file (HTTP error)" readOrHttpError
+        fileInfo <- expectJust "Could not read empty file (not found)" readFileOrNotFound
+        showing fileInfo $ do
+          GitLab.repository_file_file_path fileInfo `shouldBe` filePath
+          GitLab.repository_file_size fileInfo `shouldBe` 0
+
+        -- Read back via repositoryFileRawFile
+        rawResponseOrError <- GitLab.runGitLab cfg $
+          GitLab.repositoryFileRawFile project filePath createdBranch
+        rawOrHttpError <- expectRight "Could not read empty raw file" rawResponseOrError
+        rawContent <- expectRight "Could not read empty raw file (HTTP error)" rawOrHttpError
+        showing rawContent $ do
+          rawContent `shouldBe` mempty
