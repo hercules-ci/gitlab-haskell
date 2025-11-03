@@ -24,17 +24,13 @@ cabal run integration-suite
 
 ## Test suite structure
 
-The test suite is organized into modules mirroring the GitLab API:
+Tests are organized in `src/Test/GitLab/API/` mirroring the GitLab API structure.
 
-- `Test.GitLab.API.Version`: Version and basic connectivity tests
-- `Test.GitLab.API.Users`: User CRUD operations and error handling
-- `Test.GitLab.API.Projects`: Project CRUD operations and error handling
-
-### Helper modules
+Helper modules provide reusable test infrastructure:
 
 - `Test.Helpers.Environment`: GitLab environment configuration (URL, password, OAuth token)
 - `Test.Helpers.Assertions`: Test assertion helpers (`expectRight`, `expectLeft`, `expectJust`, `showing`, `shouldBe*`)
-- `Test.Helpers.Fixtures`: Test fixtures for resource management (`withProject`, `withUser`, `generateRandomName`)
+- `Test.Helpers.Fixtures`: Resource management with bracket pattern (`withProject`, `withUser`, `withGroup`, `withIssue`)
 
 ## Testing Guidelines
 
@@ -117,14 +113,31 @@ Use the bracket pattern for resources that need cleanup:
 
 - `withProject`: Creates a project, runs a test, and cleans up
 - `withUser`: Creates a user, runs a test, and cleans up
+- `withGroup`: Creates a group, runs a test, and cleans up
+- `withIssue`: Creates an issue within a project, runs a test, and cleans up
 
-**Important**: Cleanup failures MUST fail the test. This ensures test isolation and prevents resource leaks.
+**Important principles**:
 
-## GitLab Soft-Delete Behavior
+1. **Cleanup MUST succeed**: All `with*` fixtures require successful deletion. This tests delete operations and ensures proper cleanup.
+2. **No lenient cleanup by default**: We do not accept 404s or ignore errors during cleanup. This means:
+   - Fixtures actively test that delete operations work
+   - If you need to test delete explicitly within the fixture scope, return the resource and continue testing after the fixture completes
+   - If future tests need alternate deletion flows (e.g., multi-step deletion), consider adding explicit lenient variants like `withIssueLenient` rather than changing the default behavior
+3. **Test isolation**: Each test gets fresh resources and must clean up completely to avoid interfering with other tests.
 
-GitLab uses "soft deletes" for some resources:
+### Testing Both Success and Failure
 
-- **Projects**: Marked for deletion with `marked_for_deletion_at` timestamp, may still be accessible
-- **Users**: Blocked with `state = "blocked"` instead of being fully deleted
+Test both positive and negative cases:
 
-Tests should account for both soft-delete and hard-delete responses when verifying deletion.
+- **404 handling**: Test that non-existent resources return appropriate errors
+- **Invalid IDs**: Test edge cases like ID 0 or negative IDs
+- **State verification**: After mutations, read back the resource to verify changes persisted
+- **Unexpected responses are opportunities**: When the API returns something unexpected (like 304 instead of 200), add a test for it rather than changing the test. These edge cases document important API behavior.
+
+### Multi-Resource Tests
+
+For tests requiring multiple resources (e.g., moving issues between projects):
+
+- Nest `with*` fixtures: `withProject $ \project1 -> withProject $ \project2 -> ...`
+- Each fixture manages its own lifecycle independently
+- Cleanup happens in reverse order (LIFO)
