@@ -6,6 +6,7 @@ import Test.Hspec ( describe, parallel, Spec )
 import qualified GitLab
 import Test.Helpers.Environment ( getGitLabURL, getGitLabToken )
 import qualified Test.GitLab.API.Groups
+import qualified Test.GitLab.API.Issues
 import qualified Test.GitLab.API.Projects
 import qualified Test.GitLab.API.Users
 import qualified Test.GitLab.API.Version
@@ -50,3 +51,4 @@ spec cfg = do
     Test.GitLab.API.Users.spec cfg
     Test.GitLab.API.Projects.spec cfg
     Test.GitLab.API.Groups.spec cfg
+    Test.GitLab.API.Issues.spec cfg

@@ -80,6 +80,7 @@ module GitLab.API.Issues
     defaultIssueFilters,
     defaultIssueAttrs,
     IssueAttrs (..),
+    IssueFilterAttrs (..),
     DueDate (..),
     IssueState (..),
   )

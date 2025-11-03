@@ -12,6 +12,7 @@ executable integration-suite
                      , Test.Helpers.Environment
                      , Test.Helpers.Fixtures
                      , Test.GitLab.API.Groups
+                     , Test.GitLab.API.Issues
                      , Test.GitLab.API.Projects
                      , Test.GitLab.API.Users
                      , Test.GitLab.API.Version
