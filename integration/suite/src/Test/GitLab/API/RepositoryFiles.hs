@@ -49,6 +49,9 @@ spec cfg = do
           -- Content is Base64 encoded
           GitLab.repository_file_content fileInfo `shouldSatisfy` (\c -> not (T.null c))
 
+        -- Get the commit SHA of the initial version (for testing ref parameter later)
+        let initialCommitSha = GitLab.repository_file_last_commit_id fileInfo
+
         -- Read raw file content
         -- Note: We use the branch from the create response because a new project
         -- might not have a default branch yet until the first file is created
@@ -80,13 +83,33 @@ spec cfg = do
           -- Content is Base64 encoded - just verify it's non-empty
           GitLab.repository_file_content updatedFileInfo `shouldSatisfy` (\c -> not (T.null c))
 
-        -- Verify update by reading raw content
+        -- Verify update by reading raw content from branch head
         updatedRawResponseOrGitLabError <- GitLab.runGitLab cfg $
           GitLab.repositoryFileRawFile project filePath branchName
         updatedRawOrHttpError <- expectRight "Could not read updated file (raw)" updatedRawResponseOrGitLabError
         updatedRawContent <- expectRight "Could not read updated file (raw HTTP error)" updatedRawOrHttpError
         showing updatedRawContent $ do
           updatedRawContent `shouldBe` lazyUtf8 updatedContent
+
+        -- Test ref parameter with repositoryFileRawFile: read from the initial commit SHA
+        oldRawResponseOrError <- GitLab.runGitLab cfg $
+          GitLab.repositoryFileRawFile project filePath initialCommitSha
+        oldRawOrHttpError <- expectRight "Could not read old version (raw)" oldRawResponseOrError
+        oldRawContent <- expectRight "Could not read old version (raw HTTP error)" oldRawOrHttpError
+        showing oldRawContent $ do
+          oldRawContent `shouldBe` lazyUtf8 initialContent
+          -- Verify the versions are different
+          oldRawContent `shouldNotBe` updatedRawContent
+
+        -- Test ref parameter with repositoryFile: read from the initial commit SHA
+        oldReadResponseOrError <- GitLab.runGitLab cfg $
+          GitLab.repositoryFile project filePath initialCommitSha
+        oldReadOrHttpError <- expectRight "Could not read old version (base64)" oldReadResponseOrError
+        oldFileInfoOrNotFound <- expectRight "Could not read old version (base64 HTTP error)" oldReadOrHttpError
+        oldFileInfo <- expectJust "Could not read old version (base64 not found)" oldFileInfoOrNotFound
+        showing oldFileInfo $ do
+          GitLab.repository_file_file_path oldFileInfo `shouldBe` filePath
+          GitLab.repository_file_last_commit_id oldFileInfo `shouldBe` initialCommitSha
 
         -- Delete file
         deleteResponseOrError <- GitLab.runGitLab cfg $
