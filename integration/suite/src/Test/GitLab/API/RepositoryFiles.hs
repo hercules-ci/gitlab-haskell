@@ -10,6 +10,8 @@ import Test.Helpers.Fixtures
 import Network.HTTP.Client (responseStatus)
 import Network.HTTP.Types (status404)
 import qualified Data.Text as T
+import qualified Data.ByteString.Lazy as BL
+import qualified Data.Text.Encoding as TE
 
 spec :: GitLab.GitLabServerConfig -> Spec
 spec cfg = do
@@ -34,7 +36,7 @@ spec cfg = do
           GitLab.repository_file_simple_file_path createdFile `shouldBe` filePath
           GitLab.repository_file_simple_branch createdFile `shouldBe` branchName
 
-        -- Read file back
+        -- Read file back (Base64-encoded metadata)
         readResponseOrError <- GitLab.runGitLab cfg $
           GitLab.repositoryFile project filePath branchName
         readOrHttpError <- expectRight "Could not read file" readResponseOrError
@@ -45,7 +47,18 @@ spec cfg = do
           GitLab.repository_file_file_name fileInfo `shouldBe` "README.md"
           GitLab.repository_file_size fileInfo `shouldSatisfy` (> 0)
           -- Content is Base64 encoded
-          GitLab.repository_file_content fileInfo `shouldSatisfy` (\c -> T.length c > 0)
+          GitLab.repository_file_content fileInfo `shouldSatisfy` (\c -> not (T.null c))
+
+        -- Read raw file content
+        -- Note: We use the branch from the create response because a new project
+        -- might not have a default branch yet until the first file is created
+        let createdBranch = GitLab.repository_file_simple_branch createdFile
+        rawResponseOrGitLabError <- GitLab.runGitLab cfg $
+          GitLab.repositoryFileRawFile project filePath createdBranch
+        rawOrHttpError <- expectRight "Could not read raw file" rawResponseOrGitLabError
+        rawContent <- expectRight "Could not read raw file (HTTP error)" rawOrHttpError
+        showing rawContent $ do
+          rawContent `shouldBe` lazyUtf8 initialContent
 
         -- Update file
         updateResponseOrError <- GitLab.runGitLab cfg $
@@ -56,7 +69,7 @@ spec cfg = do
         showing updatedFile $ do
           GitLab.repository_file_simple_file_path updatedFile `shouldBe` filePath
 
-        -- Verify update by reading file back
+        -- Verify update by reading file back (Base64-encoded metadata)
         updatedReadResponseOrError <- GitLab.runGitLab cfg $
           GitLab.repositoryFile project filePath branchName
         updatedReadOrHttpError <- expectRight "Could not read updated file" updatedReadResponseOrError
@@ -65,7 +78,15 @@ spec cfg = do
         showing updatedFileInfo $ do
           GitLab.repository_file_file_path updatedFileInfo `shouldBe` filePath
           -- Content is Base64 encoded - just verify it's non-empty
-          GitLab.repository_file_content updatedFileInfo `shouldSatisfy` (\c -> T.length c > 0)
+          GitLab.repository_file_content updatedFileInfo `shouldSatisfy` (\c -> not (T.null c))
+
+        -- Verify update by reading raw content
+        updatedRawResponseOrGitLabError <- GitLab.runGitLab cfg $
+          GitLab.repositoryFileRawFile project filePath branchName
+        updatedRawOrHttpError <- expectRight "Could not read updated file (raw)" updatedRawResponseOrGitLabError
+        updatedRawContent <- expectRight "Could not read updated file (raw HTTP error)" updatedRawOrHttpError
+        showing updatedRawContent $ do
+          updatedRawContent `shouldBe` lazyUtf8 updatedContent
 
         -- Delete file
         deleteResponseOrError <- GitLab.runGitLab cfg $
@@ -136,3 +157,6 @@ spec cfg = do
         rawContent <- expectRight "Could not read empty raw file (HTTP error)" rawOrHttpError
         showing rawContent $ do
           rawContent `shouldBe` mempty
+
+lazyUtf8 :: T.Text -> BL.ByteString
+lazyUtf8 = BL.fromStrict . TE.encodeUtf8
