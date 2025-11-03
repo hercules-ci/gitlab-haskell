@@ -37,4 +37,12 @@ examples/Main
 examples/FileHook
 examples/GitLabCommit
 examples/UserProjects
+
+# direnv (.envrc)
 .direnv/
+
+# nix
+result
+
+# integration test vm
+gitlab-dev.qcow2
