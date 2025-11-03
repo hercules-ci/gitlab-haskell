@@ -5,6 +5,7 @@ module Test.Helpers.Fixtures
   ( generateRandomName
   , withProject
   , withUser
+  , withGroup
   ) where
 
 import qualified Data.Text as T
@@ -76,6 +77,33 @@ withUser cfg action = do
       result <- GitLab.runGitLab cfg $ GitLab.deleteUser user
       parsedOrHttpError <- expectRight ("Failed to delete user " ++ show (GitLab.user_id user)) result
       (_ :: Maybe ()) <- expectRight ("Failed to delete user " ++ show (GitLab.user_id user) ++ " (HTTP error)") parsedOrHttpError
+      -- Note: Both Just () and Nothing indicate success (2xx status code)
+      -- Just () means the response body parsed as (), Nothing means parse failed (e.g., empty body)
+      return ()
+
+-- | Helper to create a group, run an action with it, and clean up.
+-- Uses bracket to ensure cleanup happens even if the action fails.
+withGroup :: GitLab.GitLabServerConfig -> (GitLab.Group -> IO a) -> IO a
+withGroup cfg action = do
+  groupName <- generateRandomName "test-group"
+  groupPath <- generateRandomName "test-group"
+
+  bracket
+    (createGroup groupName groupPath)
+    deleteGroup
+    action
+  where
+    createGroup name path = do
+      let attrs = GitLab.defaultGroupFilters
+      createResult <- GitLab.runGitLab cfg $ GitLab.newGroup name path attrs
+      parsedOrHttpError <- expectRight ("Failed to create group '" ++ T.unpack name ++ "'") createResult
+      groupOrNotFound <- expectRight ("Failed to create group '" ++ T.unpack name ++ "' (HTTP error)") parsedOrHttpError
+      expectJust ("Failed to create group '" ++ T.unpack name ++ "' (not found)") groupOrNotFound
+
+    deleteGroup group = do
+      result <- GitLab.runGitLab cfg $ GitLab.removeGroup (GitLab.group_id group)
+      parsedOrHttpError <- expectRight ("Failed to delete group " ++ show (GitLab.group_id group)) result
+      (_ :: Maybe ()) <- expectRight ("Failed to delete group " ++ show (GitLab.group_id group) ++ " (HTTP error)") parsedOrHttpError
       -- Note: Both Just () and Nothing indicate success (2xx status code)
       -- Just () means the response body parsed as (), Nothing means parse failed (e.g., empty body)
       return ()

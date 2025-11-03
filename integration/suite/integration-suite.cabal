@@ -11,6 +11,7 @@ executable integration-suite
   other-modules:       Test.Helpers.Assertions
                      , Test.Helpers.Environment
                      , Test.Helpers.Fixtures
+                     , Test.GitLab.API.Groups
                      , Test.GitLab.API.Projects
                      , Test.GitLab.API.Users
                      , Test.GitLab.API.Version
