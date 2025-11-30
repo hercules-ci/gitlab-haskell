@@ -5,6 +5,7 @@
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
     flake-parts.url = "github:hercules-ci/flake-parts";
     haskell-flake.url = "github:srid/haskell-flake";
+    hercules-ci-effects.url = "github:hercules-ci/hercules-ci-effects";
   };
 
   outputs =
@@ -19,7 +20,11 @@
           "x86_64-darwin"
           "aarch64-darwin"
         ];
-        imports = [ inputs.haskell-flake.flakeModule ];
+        herculesCI.ciSystems = [ "x86_64-linux" ];
+        imports = [
+          inputs.haskell-flake.flakeModule
+          inputs.hercules-ci-effects.flakeModule
+        ];
 
         # https://flake.parts/options/flake-parts.html#opt-perSystem
         perSystem =
