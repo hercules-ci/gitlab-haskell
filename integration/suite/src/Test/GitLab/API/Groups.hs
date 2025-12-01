@@ -109,3 +109,19 @@ spec cfg = do
               GitLab.group_name foundGroup `shouldBe` groupName
             [] -> expectationFailure "Expected to find the created group in search results"
             _ -> expectationFailure "Expected exactly one matching group in search results"
+
+    it "can filter groups by active status" $ do
+      -- Create and delete a group (marking it for deletion)
+      deletedGroupId <- withGroup cfg $ \group -> do
+        return (GitLab.group_id group)
+
+      -- List only active groups - deleted group should NOT appear
+      let activeAttrs = GitLab.defaultListGroupsFilters
+            { GitLab.listGroupsFilter_active = Just True
+            }
+      activeGroupsOrError <- GitLab.runGitLab cfg $ GitLab.groups activeAttrs
+      activeGroups <- expectRight "Could not list active groups" activeGroupsOrError
+      showing activeGroups $ do
+        -- Deleted group should NOT be in active groups
+        let foundDeleted = filter (\g -> GitLab.group_id g == deletedGroupId) activeGroups
+        length foundDeleted `shouldBe` 0
