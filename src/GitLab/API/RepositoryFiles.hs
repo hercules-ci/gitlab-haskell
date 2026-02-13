@@ -72,9 +72,12 @@ repositoryFileRawFile ::
   -- | The name of branch, tag or commit. Default is the HEAD of the
   -- project.
   Text ->
-  GitLab (Either (Response BSL.ByteString) (Maybe Text))
-repositoryFileRawFile prj filePath reference =
-  gitlabGetOne addr [("ref", Just (T.encodeUtf8 reference))]
+  GitLab (Either (Response BSL.ByteString) BSL.ByteString)
+repositoryFileRawFile prj filePath reference = do
+  resp <- gitlabGetByteStringResponse addr [("ref", Just (T.encodeUtf8 reference))]
+  if responseStatus resp == status200
+    then return (Right (responseBody resp))
+    else return (Left resp)
   where
     addr =
       "/projects/"

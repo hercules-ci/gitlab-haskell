@@ -301,7 +301,10 @@ data ListGroupsAttrs = ListGroupsAttrs
     listGroupsFilter_sort :: Maybe SortBy,
     listGroupsFilter_owned :: Maybe Bool,
     listGroupsFilter_min_access_level :: Maybe AccessLevel,
-    listGroupsFilter_top_level_only :: Maybe Bool
+    listGroupsFilter_top_level_only :: Maybe Bool,
+    -- | Limit by active status. 'Just' 'True' excludes groups marked for
+    -- deletion and archived groups.
+    listGroupsFilter_active :: Maybe Bool
   }
 
 -- | The order of groups in search results.
@@ -327,7 +330,8 @@ listGroupsAttrs filters =
       (\sortBy -> Just ("sort", textToBS (T.pack (show sortBy)))) =<< listGroupsFilter_sort filters,
       (\b -> Just ("owned", textToBS (showBool b))) =<< listGroupsFilter_owned filters,
       (\accLevel -> Just ("min_access_level", textToBS (T.pack (show accLevel)))) =<< listGroupsFilter_min_access_level filters,
-      (\b -> Just ("top_level_only", textToBS (showBool b))) =<< listGroupsFilter_top_level_only filters
+      (\b -> Just ("top_level_only", textToBS (showBool b))) =<< listGroupsFilter_top_level_only filters,
+      (\b -> Just ("active", textToBS (showBool b))) =<< listGroupsFilter_active filters
     ]
   where
     textToBS = Just . T.encodeUtf8
@@ -338,7 +342,7 @@ listGroupsAttrs filters =
 -- | No group filters applied, thereby returning all groups.
 defaultListGroupsFilters :: ListGroupsAttrs
 defaultListGroupsFilters =
-  ListGroupsAttrs Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing
+  ListGroupsAttrs Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing
 
 -- | Attributes related to a group
 data GroupAttrs = GroupAttrs

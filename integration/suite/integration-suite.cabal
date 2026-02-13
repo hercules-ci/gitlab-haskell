@@ -1,0 +1,33 @@
+cabal-version: 2.4
+name:           integration-suite
+version:        1
+synopsis:       Integration test suite for gitlab-haskell
+description:    Integration tests for gitlab-haskell library
+category:       Testing
+build-type:     Simple
+
+executable integration-suite
+  main-is:             Main.hs
+  other-modules:       Test.Helpers.Assertions
+                     , Test.Helpers.Environment
+                     , Test.Helpers.Fixtures
+                     , Test.GitLab.API.Groups
+                     , Test.GitLab.API.Issues
+                     , Test.GitLab.API.Projects
+                     , Test.GitLab.API.RepositoryFiles
+                     , Test.GitLab.API.Users
+                     , Test.GitLab.API.Version
+  hs-source-dirs:      src
+  build-depends:       base >=4.7 && <5
+                     , gitlab-haskell
+                     , aeson >= 2.0.0.0
+                     , text >= 2.1
+                     , http-client
+                     , http-types
+                     , bytestring
+                     , hspec
+                     , HUnit
+                     , random
+                     , deepseq
+  default-language:    Haskell2010
+  ghc-options:         -Wall -threaded -rtsopts -with-rtsopts=-N
